@@ -795,6 +795,15 @@
         this.quadVbo.draw(this.compositeProgram, this.gl.TRIANGLE_FAN);
     }
 
+    Renderer.prototype.redraw = function() {
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+        this.gl.viewport(0, 0, this.width, this.height);
+        this.gl.scissor(0, 0, this.width, this.height);
+        this.composite();
+
+        this.renderNLOS();
+    }
+
     Renderer.prototype.render = function(timestamp) {
         this.needsReset = true;
         this.elapsedTimes.push(timestamp);

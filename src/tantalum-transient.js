@@ -3,7 +3,6 @@ var Transient = function() {
     this.overlay        = document.getElementById("transient-overlay");
     this.content        = document.getElementById("transient-content");
     this.controls       = document.getElementById("transient-controls");
-    this.spectrumCanvas = document.getElementById("spectrum-canvas");
 
     this.boundRenderLoop = this.renderLoop.bind(this);
     
@@ -118,18 +117,14 @@ Transient.prototype.setupUI = function() {
 
     var config = {
         "resolutions": [[820, 461], [1024, 576], [1280, 720], [1600, 900], [1920, 1080], [4096, 2160]],
+        "reconstruction_resolutions": [16, 32, 64, 128],
         "scenes": [
             {'shader': 'scene10', 'name': 'Plane NLOS',          'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene9', 'name': 'Spheres NLOS',         'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene6', 'name': 'Spheres',              'posA': map(-1.59, 0.65), 'posB': map(0.65, -0.75),  'spread': tcore.Renderer.SPREAD_BEAM},
-            {'shader': 'scene1', 'name': 'Lenses',               'posA': [0.5,  0.5],      'posB': [0.5, 0.5],        'spread': tcore.Renderer.SPREAD_POINT},
-            {'shader': 'scene7', 'name': 'Playground',           'posA': [0.3, 0.52],      'posB': [0.3, 0.52],       'spread': tcore.Renderer.SPREAD_POINT},
-            {'shader': 'scene4', 'name': 'Prism',                'posA': [0.1,  0.65],     'posB': [0.4, 0.4],        'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene5', 'name': 'Cardioid',             'posA': [0.2,  0.5],      'posB': [0.2, 0.5],        'spread': tcore.Renderer.SPREAD_POINT},
-            {'shader': 'scene3', 'name': 'Cornell Box',          'posA': [0.5,  0.101],    'posB': [0.5, 0.2],        'spread': tcore.Renderer.SPREAD_AREA},
-            {'shader': 'scene2', 'name': 'Rough Mirror Spheres', 'posA': [0.25, 0.125],    'posB': [0.5, 0.66],       'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene8', 'name': 'Spheres without Bbox', 'posA': map(-1.59, 0.65), 'posB': map(0.65, -0.75),  'spread': tcore.Renderer.SPREAD_LASER}
-        ]
+            {'shader': 'scene9', 'name': 'Spheres NLOS',         'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER}
+        ],
+        "capture_methods": ["Non-confocal", "Confocal"],
+        "spad_num": [16, 32, 64, 128],
+        "filters": ["None", "Laplacian", "Gaussian", "Laplacian of Gaussian", "Phasor Fields"]
     };
     
     var sceneShaders = [], sceneNames = [];
@@ -139,10 +134,8 @@ Transient.prototype.setupUI = function() {
     }
     
     this.renderer = new transientcore.Renderer(this.gl, this.canvas.width/2, this.canvas.height, sceneShaders);
-    this.spectrumRenderer = new transientcore.SpectrumRenderer(this.spectrumCanvas, this.renderer.getEmissionSpectrum());
 
     /* Let's try and make member variables in JS a little less verbose... */
-    var spectrumRenderer = this.spectrumRenderer;
     var renderer = this.renderer;
     var content = this.content;
     var canvas = this.canvas;
@@ -162,23 +155,25 @@ Transient.prototype.setupUI = function() {
         canvas.height = height;
         renderer.changeResolution(width, height);
     });
-    var spreadSelector = new tui.ButtonGroup("spread-selector", true, ["Point", "Cone", "Beam", "Laser", "Area"],
-            renderer.setSpreadType.bind(renderer));
+
+    resolutionLabels = [];
+    for (var i = 0; i < config.reconstruction_resolutions.length; ++i)
+        resolutionLabels.push(config.reconstruction_resolutions[i] + "x" + config.reconstruction_resolutions[i]);
+
+    new tui.ButtonGroup("reconstruction-resolution-selector", false, resolutionLabels, function(idx) {
+        var width = config.resolutions[idx];
+        //renderer.changeResolution(width, height);
+    });
+    var captureMethodSelector = new tui.ButtonGroup("capture-selector", true, config.capture_methods, function() {});
+    var spadNumberSelector = new tui.ButtonGroup("spad-selector", false, config.spad_num, function() {});
     
     function selectScene(idx) {
         renderer.changeScene(idx);
-        spreadSelector.select(config.scenes[idx].spread);
         renderer.setNormalizedEmitterPos(config.scenes[idx].posA, config.scenes[idx].posB);
     }
     new tui.ButtonGroup("scene-selector", true, sceneNames, selectScene);
     
     var mouseListener = new tui.MouseListener(canvas, renderer.setEmitterPos.bind(renderer));
-    
-    var temperatureSlider = new tui.Slider("emission-temperature", 1000, 10000, true, function(temperature) {
-        this.setLabel("Temperature: " + temperature + "K");
-        renderer.setEmitterTemperature(temperature);
-        spectrumRenderer.setSpectrum(renderer.getEmissionSpectrum());
-    });
         
     var bounceSlider = new tui.Slider("path-length", 1, 20, true, function(length) {
         this.setLabel((length - 1) + " light bounces");
@@ -192,25 +187,6 @@ Transient.prototype.setupUI = function() {
         renderer.setMaxSampleCount(sampleCount);
     });
     sampleSlider.setValue(600);
-        
-    var gasOptions = [];
-    for (var i = 0; i < GasDischargeLines.length; ++i)
-        gasOptions.push(GasDischargeLines[i].name);
-    var gasGrid = new tui.ButtonGrid("gas-selection", 4, gasOptions, function(gasId) {
-        renderer.setEmitterGas(gasId);
-        spectrumRenderer.setSpectrum(renderer.getEmissionSpectrum());
-    });
-    
-    temperatureSlider.show(false);
-    gasGrid.show(false);
-    
-    new tui.ButtonGroup("emission-selector", false, ["White", "Incandescent", "Gas Discharge"], function(type) {
-        renderer.setEmissionSpectrumType(type);
-        spectrumRenderer.setSmooth(type != tcore.Renderer.SPECTRUM_GAS_DISCHARGE);
-        spectrumRenderer.setSpectrum(renderer.getEmissionSpectrum());
-        temperatureSlider.show(type == tcore.Renderer.SPECTRUM_INCANDESCENT);
-        gasGrid.show(type == tcore.Renderer.SPECTRUM_GAS_DISCHARGE);
-    });
         
     this.saveImageData = false;
     document.getElementById('save-button').addEventListener('click', (function() {
@@ -266,8 +242,10 @@ Transient.prototype.renderLoop = function(timestamp) {
            the results are garbage unless we rendered to it in that frame.
            There's most likely some browser/ANGLE meddling happening here, but
            in interest of my mental health I'm not going to dig deeper into this */
-        if (this.renderer.finished())
-            this.renderer.composite();
+        //if (this.renderer.finished()) {
+            // Now we are not rendering every frame, only when we reach the maximum length of each batch
+            this.renderer.redraw();
+        //}
         
         var fileName = "Transient";
         if (this.savedImages > 0)

@@ -10,6 +10,14 @@ body {
     height: 461px;
 }
 
+.tantalum-render2 {
+    margin: 0 auto;
+    margin-bottom: 4px;
+    position: relative;
+    width: 1640px;
+    height: 461px;
+}
+
 #render-canvas {
     border: none;
 }

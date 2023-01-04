@@ -21,13 +21,10 @@
 </head>
 
 <body onload="t = new Transient();">
-        <div class="tantalum-render" id="transient-content">
-            <canvas id="transient-canvas" width="1640" height="461"></canvas>
-            <div id="transient-overlay" class="render-loading">Loading...</div>
-        </div>
-        <!-- <div class="tantalum-render" id="wall-content">
-            <canvas id="wall-canvas" width="820" height="461"></canvas>
-        </div> -->
+    <div class="tantalum-render2" id="transient-content">
+        <canvas id="transient-canvas" width="1640" height="461"></canvas>
+        <div id="transient-overlay" class="render-loading">Loading...</div>
+    </div>
     <div class="tantalum-controls" id="transient-controls" style="visibility: hidden">
         <div id="render-progress"></div>
         <p class="progress-label" id="render-progress-label"></p>
@@ -46,18 +43,19 @@
                 <h3 class="control-title">Scene</h3>
                 <div id="scene-selector"></div>
             </div>
-            <div class="col-6-12 col-left col-padding">
-                <h3 class="control-title">Emission Spectrum</h3>
-                <div class="center-tight">
-                    <div id="emission-selector"></div>
-                    <canvas id="spectrum-canvas" style="border: none;" width="425" height="256"></canvas>
-                    <div id="emission-temperature"></div>
-                    <div id="gas-selection"></div>
-                </div>
+            <div class="col-5-12 col-left col-padding">
+                <h3 class="control-title">Reconstruction resolution</h3>
+                <div id="reconstruction-resolution-selector"></div>
             </div>
             <div class="col-2-12 col-left">
-                <h3 class="control-title">Spread</h3>
-                <div id="spread-selector"></div>
+                <h3 class="control-title">Data capture</h3>
+                <div id="capture-selector"></div>
+            </div>
+        </div>
+        <div class="control-row clearfix">
+            <div class="col-3-12 col-left col-padding">
+                <h3 class="contol-title">Number of SPADS</h3>
+                <div id="spad-selector"></div>
             </div>
         </div>
         <div class="control-row clearfix">
