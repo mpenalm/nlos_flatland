@@ -1,0 +1,24 @@
+#include "preamble"
+
+// our texture
+uniform sampler2D u_image;
+uniform sampler2D u_kernel;
+
+#define KERNEL_SIZE 512
+uniform int u_numPixels;
+
+varying vec2 mPos; // Pixel coordinates [0,1]
+
+void main() {
+	// vec2 textCoord = gl_FragCoord.xy / u_textureSize;
+    float knlInterval = 1.0 / float(KERNEL_SIZE);
+    vec2 oneImgPixel = vec2(0.0, 1.0 / float(u_numPixels));
+	vec4 meanColor = vec4(0);
+	int ms = KERNEL_SIZE / 2;
+	for (int i = 0; i < KERNEL_SIZE; i++) {
+        float knlIdx = (float(i) + 0.5) * knlInterval;
+		meanColor += texture2D(u_image, mPos + oneImgPixel*vec2(i - ms)) *
+            texture2D(u_kernel, vec2(knlIdx, 0.5)) * vec4(knlIdx > 0.0 && knlIdx < 1.0);
+	}
+	gl_FragColor = meanColor;
+}

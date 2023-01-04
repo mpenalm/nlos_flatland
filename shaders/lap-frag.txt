@@ -1,0 +1,32 @@
+#include "preamble"
+
+uniform sampler2D fluence;
+uniform float Aspect;
+
+uniform float numPixels;
+
+const int kernelWidth = 3;
+uniform float kernel[kernelWidth*kernelWidth];
+
+varying vec2 mPos; // Pixel coordinates [0,1]
+
+void main() {
+    if (mPos.x > 1.0) {
+        gl_FragColor = vec4(vec3(0.0), 1.0);
+    } else {
+
+        float acc = 0.0;
+        vec2 ps = vec2(1.0 / numPixels);
+        vec2 kps = vec2(Aspect / float(kernelWidth), 1.0 / float(kernelWidth)); // kernel pixel size
+
+        for (int i = 0; i < kernelWidth*kernelWidth; i++){
+            vec2 d = -vec2(kernelWidth / 2);
+            d.x += (i == 0 || i == 3 || i == 6) ? 0.0 : (i == 1 || i == 4 || i == 7) ? 1.0 : 2.0;
+            d.y += float(i / kernelWidth);
+            vec2 posTex = mPos + d * ps;
+            acc += kernel[i] * texture2D(fluence, posTex).x * float(posTex.x >= 0.0 && posTex.x <= 1.0 && posTex.y >= 0.0 && posTex.y <= 1.0);
+        }
+
+        gl_FragColor = vec4(acc, 0.0, 0.0, 1.0);
+    }
+}

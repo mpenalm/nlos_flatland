@@ -1,0 +1,47 @@
+#include "preamble"
+
+// Inspired from https://github.com/regl-project/regl/blob/gh-pages/example/reduction.js
+
+uniform sampler2D tex;
+uniform int useSameChannel;
+uniform int isComplex;
+uniform int numPixels;
+varying vec2 mPos;
+
+void main () {
+	float intervalSize = 1.0 / float(numPixels);
+	float result;
+	float result2;
+
+	if (isComplex == 0) {
+			// Not a complex number
+		// mPos are the coordinates of the center of the new pixel
+		// this is also the shared vertex of the old pixels we want to compare
+		// => access the center of those pixels
+		float a = texture2D(tex, mPos + intervalSize * vec2(-0.25)).x;
+		float b = texture2D(tex, mPos + intervalSize * vec2(0.25)).x;
+		float c = texture2D(tex, mPos + intervalSize * vec2(-0.25, 0.25)).x;
+		float d = texture2D(tex, mPos + intervalSize * vec2(0.25, -0.25)).x;
+		result = max(max(a, b), max(c, d));
+		result2 = min(min(a, b), min(c, d)) * float(useSameChannel);
+
+		a = texture2D(tex, mPos + intervalSize * vec2(-0.25)).y;
+		b = texture2D(tex, mPos + intervalSize * vec2(0.25)).y;
+		c = texture2D(tex, mPos + intervalSize * vec2(-0.25, 0.25)).y;
+		d = texture2D(tex, mPos + intervalSize * vec2(0.25, -0.25)).y;
+		result2 += min(min(a, b), min(c, d)) * abs(float(1-useSameChannel));
+	} else {
+			// Complex number, we are looking for the max module (abs)
+		// mPos are the coordinates of the center of the new pixel
+		// this is also the shared vertex of the old pixels we want to compare
+		// => access the center of those pixels
+		float a = length(texture2D(tex, mPos + intervalSize * vec2(-0.25)).xy);
+		float b = length(texture2D(tex, mPos + intervalSize * vec2(0.25)).xy);
+		float c = length(texture2D(tex, mPos + intervalSize * vec2(-0.25, 0.25)).xy);
+		float d = length(texture2D(tex, mPos + intervalSize * vec2(0.25, -0.25)).xy);
+		result = max(max(a, b), max(c, d));
+		result2 = min(min(a, b), min(c, d));
+	}
+	
+	gl_FragColor = vec4(result, result2, 0.0, 1.0);
+}

@@ -1,0 +1,32 @@
+#include "preamble"
+
+// our texture
+uniform sampler2D u_image;
+
+#define KERNEL_SIZE 45
+uniform vec2 u_textureSize;
+//uniform float u_kernel[KERNEL_SIZE*KERNEL_SIZE];
+uniform sampler2D u_kernel;
+
+varying vec2 mPos; // Pixel coordinates [0,1]
+
+void main() {
+	// vec2 textCoord = gl_FragCoord.xy / u_textureSize;
+	vec2 vertPixel = vec2(1.0, 0.0) / u_textureSize;
+	vec2 horPixel  = vec2(0.0, 1.0) / u_textureSize;
+	vec2 kernVertPixel = vec2(1.0, 0.0) / float(KERNEL_SIZE);
+	vec2 kernHorPixel  = vec2(0.0, 1.0) / float(KERNEL_SIZE);
+
+	vec4 meanColor = vec4(0);
+	int ms = KERNEL_SIZE / 2;
+	for (int i = 0; i < KERNEL_SIZE; i++) {
+		for (int j = 0; j < KERNEL_SIZE; j++) {
+			vec2 texPos = mPos + horPixel*vec2(i - ms) + vertPixel*vec2(j - ms);
+			//meanColor += texture2D(u_image, mPos + horPixel*vec2(i - ms) + vertPixel*vec2(j - ms))*u_kernel[i*KERNEL_SIZE+j];
+			meanColor += texture2D(u_image, texPos) *
+				texture2D(u_kernel, kernHorPixel*vec2(i) + kernVertPixel*vec2(j)).x *
+				vec4(texPos.x >= 0.0 && texPos.x <= 1.0 && texPos.y >= 0.0 && texPos.y <= 1.0); // outside pixels have invalid values
+		}
+	}
+	gl_FragColor = abs(meanColor);
+}

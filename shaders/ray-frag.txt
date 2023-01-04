@@ -1,0 +1,13 @@
+#include "preamble"
+
+varying vec3 vColor;
+varying vec3 vTexCoord;
+varying float t0;
+varying float t1;
+varying vec2 vPosition;
+varying vec2 posA;
+varying vec2 posB;
+
+void main() {
+    gl_FragColor = vec4(vColor, 1.0);
+}
