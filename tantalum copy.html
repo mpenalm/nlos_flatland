@@ -6,6 +6,7 @@
     <title>Tantalum - 2D Light Transport</title>
 
     <link rel="stylesheet" href="ui.css">
+    <link rel="stylesheet" href="src/thirdparty/noUiSlider/nouislider.css">
     
     <script type="text/javascript" src="src/thirdparty/canvasToBlob/canvasToBlob.js"></script>
     <script type="text/javascript" src="src/thirdparty/FileSaver/FileSaver.js"></script>
@@ -18,6 +19,7 @@
     <script type="text/javascript" src="src/tantalum-gl.js"></script>
     <script type="text/javascript" src="src/tantalum-transient.js"></script>
     <script type="text/javascript" src="src/transient-core.js"></script>
+    <script type="text/javascript" src="src/thirdparty/noUiSlider/nouislider.js"></script>
 </head>
 
 <body onload="t = new Transient();">
@@ -54,8 +56,12 @@
         </div>
         <div class="control-row clearfix">
             <div class="col-3-12 col-left col-padding">
-                <h3 class="contol-title">Number of SPADS</h3>
+                <h3 class="control-title">Number of SPADs</h3>
                 <div id="spad-selector"></div>
+            </div>
+            <div class="col-8-12 col-left col-padding">
+                <h3 class="control-title">Segment of the relay wall seen by the SPAD</h3>
+                <div class="slider-styled" id="spad-positions-selector"></div>
             </div>
         </div>
         <div class="control-row clearfix">

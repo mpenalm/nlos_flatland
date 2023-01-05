@@ -167,6 +167,21 @@ Transient.prototype.setupUI = function() {
     var captureMethodSelector = new tui.ButtonGroup("capture-selector", true, config.capture_methods, function() {});
     var spadNumberSelector = new tui.ButtonGroup("spad-selector", false, config.spad_num, function() {});
     
+    var spadPositionsSlider = document.getElementById("spad-positions-selector");
+    noUiSlider.create(spadPositionsSlider, {
+        start: [-0.5, 0.5],
+        connect: true,
+        range: {
+            min: [-1],
+            max: [1]
+        }
+    });
+    spadPositionsSlider.label = document.createElement("p");
+    spadPositionsSlider.label.className = "slider-label";
+    var parent = spadPositionsSlider.parentNode;
+    parent.insertBefore(spadPositionsSlider.label, spadPositionsSlider.nextSibling);
+    spadPositionsSlider.label.textContent = "[-0.5, 0.5]";
+
     function selectScene(idx) {
         renderer.changeScene(idx);
         renderer.setNormalizedEmitterPos(config.scenes[idx].posA, config.scenes[idx].posB);
