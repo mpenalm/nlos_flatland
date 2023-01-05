@@ -160,12 +160,16 @@ Transient.prototype.setupUI = function() {
     for (var i = 0; i < config.reconstruction_resolutions.length; ++i)
         resolutionLabels.push(config.reconstruction_resolutions[i] + "x" + config.reconstruction_resolutions[i]);
 
-    new tui.ButtonGroup("reconstruction-resolution-selector", false, resolutionLabels, function(idx) {
-        var width = config.resolutions[idx];
-        //renderer.changeResolution(width, height);
+    var recResolutionSelector = new tui.ButtonGroup("reconstruction-resolution-selector", false, resolutionLabels, function(idx) {
+        var width = config.reconstruction_resolutions[idx];
+        renderer.changeReconstructionResolution(width);
     });
+    recResolutionSelector.select(3);
     var captureMethodSelector = new tui.ButtonGroup("capture-selector", true, config.capture_methods, function() {});
-    var spadNumberSelector = new tui.ButtonGroup("spad-selector", false, config.spad_num, function() {});
+    var spadNumberSelector = new tui.ButtonGroup("spad-selector", false, config.spad_num, function(idx) {
+        renderer.changeSpadResolution(config.spad_num[idx]);
+    });
+    spadNumberSelector.select(2);
     
     var spadPositionsSlider = document.getElementById("spad-positions-selector");
     noUiSlider.create(spadPositionsSlider, {
@@ -181,6 +185,12 @@ Transient.prototype.setupUI = function() {
     var parent = spadPositionsSlider.parentNode;
     parent.insertBefore(spadPositionsSlider.label, spadPositionsSlider.nextSibling);
     spadPositionsSlider.label.textContent = "[-0.5, 0.5]";
+    spadPositionsSlider.noUiSlider.on('update', function(values) {
+        var low = values[0];
+        var high = values[1];
+        renderer.setSpadBoundaries(low, high);
+        spadPositionsSlider.label.textContent = "[" + low + "," + high + "]";
+    })
 
     function selectScene(idx) {
         renderer.changeScene(idx);

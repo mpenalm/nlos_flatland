@@ -1,16 +1,16 @@
-(function(exports) {
+(function (exports) {
     var LAMBDA_MIN = 360.0;
     var LAMBDA_MAX = 750.0;
 
     function intermediatePositions(start, end, n) {
         if (n == 1) {
-            return [(start + end) /2.0];
+            return [(start + end) / 2.0];
         } else {
             var step = (end - start) / n;
             if (n == 2) {
-                return [start + step/2, end - step/2];
+                return [start + step / 2, end - step / 2];
             } else {
-                var result = [start + step/2];
+                var result = [start + step / 2];
                 var accum = result[0] + step;
                 while (result.length < n) {
                     result.push(accum);
@@ -23,7 +23,7 @@
 
     function linspace(start, end, n) {
         if (n == 1) {
-            return [(start + end) /2.0];
+            return [(start + end) / 2.0];
         } else if (n == 2) {
             return [start, end];
         } else {
@@ -38,39 +38,38 @@
         }
     }
 
-    function makeGaussKernel(sigma){
+    function makeGaussKernel(sigma) {
         const GAUSSKERN = 6.0;
         var dim = parseInt(Math.max(3.0, GAUSSKERN * sigma));
-        var sqrtSigmaPi2 = Math.sqrt(Math.PI*2.0)*sigma;
+        var sqrtSigmaPi2 = Math.sqrt(Math.PI * 2.0) * sigma;
         var s2 = 2.0 * sigma * sigma;
         var sum = 0.0;
-        
+
         var kernel = new Float32Array(dim - !(dim & 1)); // Make it odd number
         const half = parseInt(kernel.length / 2);
-        for (var j = 0, i = -half; j < kernel.length; i++, j++) 
-        {
-          kernel[j] = Math.exp(-(i*i)/(s2)) / sqrtSigmaPi2;
-          sum += kernel[j];
+        for (var j = 0, i = -half; j < kernel.length; i++, j++) {
+            kernel[j] = Math.exp(-(i * i) / (s2)) / sqrtSigmaPi2;
+            sum += kernel[j];
         }
         // Normalize the gaussian kernel to prevent image darkening/brightening
         for (var i = 0; i < dim; i++) {
-          kernel[i] /= sum;
+            kernel[i] /= sum;
         }
         return kernel;
     }
 
-    var SpadData = function(pos, radius, deltaT, maxTime) {
+    var SpadData = function (pos, radius, deltaT, maxTime) {
         this.pos = pos;
         this.radius = radius;
         this.deltaT = deltaT;
         this.maxTime = maxTime;
     }
 
-    var Renderer = function(gl, width, height, scenes) {
+    var Renderer = function (gl, width, height, scenes) {
         this.gl = gl;
         this.quadVbo = this.createQuadVbo();
         this.quadVbo2 = this.createQuadVbo2();
-        
+
         this.maxSampleCount = 100000;
         this.spreadType = tcore.Renderer.SPREAD_POINT;
         this.emissionSpectrumType = tcore.Renderer.SPECTRUM_WHITE;
@@ -82,16 +81,16 @@
 
         // Shader programs to simulate and render the scene
         this.compositeProgram = new tgl.Shader(Shaders, "compose-vert", "compose-frag");
-        this.passProgram      = new tgl.Shader(Shaders, "compose-vert",    "pass-frag");
-        this.initProgram      = new tgl.Shader(Shaders,    "init-vert",    "init-frag");
-        this.rayProgram       = new tgl.Shader(Shaders,     "ray-vert",     "ray-frag");
+        this.passProgram = new tgl.Shader(Shaders, "compose-vert", "pass-frag");
+        this.initProgram = new tgl.Shader(Shaders, "init-vert", "init-frag");
+        this.rayProgram = new tgl.Shader(Shaders, "ray-vert", "ray-frag");
         // this.hProgram         = new tgl.Shader(Shaders,       "h-vert",       "h-frag"); // added in setSpadPositions
         this.tracePrograms = []
         for (var i = 0; i < scenes.length; ++i)
             this.tracePrograms.push(new tgl.Shader(Shaders, "trace-vert", scenes[i]));
-        
+
         this.maxPathLength = 12;
-        
+
         this.deltaT = 0.003;
         this.maxTime = 10; // approximate max instant we want to store
         this.numIntervals = parseInt(this.maxTime / this.deltaT + 0.05); // make sure it is an int
@@ -100,78 +99,77 @@
 
         this.maxTime = this.numIntervals * this.deltaT; // fix the maxTime to a value that corresponds with integer numIntervals
         this.spadRadius = 0.007;
-        this.numPixels = 128; // Reconstruction definition
-        this.setSpadPositions(64, [0, -0.6]);
-        this.reconstructionSquare = [-1.78,1.0, 0.22,-1.0]; // upper left, bottom right
+        this.setSpadPos([0, -0.6]);
+        this.reconstructionSquare = [-1.78, 1.0, 0.22, -1.0]; // upper left, bottom right
         this.bboxCorners = this.reconstructionSquare;
 
         // Shader programs to reconstruct the hidden scene
-        this.bpProgram       = new tgl.Shader(Shaders, "bp-vert", "bp-frag");
+        this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-frag");
         // this.sumProgram      = new tgl.Shader(Shaders, "bp-vert", "replacedSum"); // added in setSpadPositions
-        this.lapProgram      = new tgl.Shader(Shaders, "bp-vert", "lap-frag");
-        this.gaussProgram    = new tgl.Shader(Shaders, "bp-vert", "gauss-frag");
-        this.logProgram      = new tgl.Shader(Shaders, "bp-vert", "log-frag");
+        this.lapProgram = new tgl.Shader(Shaders, "bp-vert", "lap-frag");
+        this.gaussProgram = new tgl.Shader(Shaders, "bp-vert", "gauss-frag");
+        this.logProgram = new tgl.Shader(Shaders, "bp-vert", "log-frag");
         this.pfKernelProgram = new tgl.Shader(Shaders, "bp-vert", "pf-filter-frag");
-        this.pfProgram       = new tgl.Shader(Shaders, "bp-vert", "pf-conv-frag");
-        this.maxProgram      = new tgl.Shader(Shaders, "bp-vert", "max-frag");
-        this.showProgram     = new tgl.Shader(Shaders, "show-vert", "show-frag");
-        
+        this.pfProgram = new tgl.Shader(Shaders, "bp-vert", "pf-conv-frag");
+        this.maxProgram = new tgl.Shader(Shaders, "bp-vert", "max-frag");
+        this.showProgram = new tgl.Shader(Shaders, "show-vert", "show-frag");
+
         this.spectrumTable = wavelengthToRgbTable();
-        this.spectrum      = new tgl.Texture(this.spectrumTable.length/4, 1, 4, true,  true, true, this.spectrumTable);
-        this.emission      = new tgl.Texture(tcore.Renderer.SPECTRUM_SAMPLES,   1, 1, true, false, true, null);
-        this.emissionIcdf  = new tgl.Texture(tcore.Renderer.ICDF_SAMPLES,       1, 1, true, false, true, null);
-        this.emissionPdf   = new tgl.Texture(tcore.Renderer.SPECTRUM_SAMPLES,   1, 1, true, false, true, null);
-        
+        this.spectrum = new tgl.Texture(this.spectrumTable.length / 4, 1, 4, true, true, true, this.spectrumTable);
+        this.emission = new tgl.Texture(tcore.Renderer.SPECTRUM_SAMPLES, 1, 1, true, false, true, null);
+        this.emissionIcdf = new tgl.Texture(tcore.Renderer.ICDF_SAMPLES, 1, 1, true, false, true, null);
+        this.emissionPdf = new tgl.Texture(tcore.Renderer.SPECTRUM_SAMPLES, 1, 1, true, false, true, null);
+
         this.raySize = 512;
         this.resetActiveBlock();
-        this.rayCount = this.raySize*this.raySize;
+        this.rayCount = this.raySize * this.raySize;
         this.currentState = 0;
         this.rayStates = [new tcore.RayState(this.raySize), new tcore.RayState(this.raySize)];
 
         this.rayVbo = new tgl.VertexBuffer();
         this.rayVbo.addAttribute("TexCoord", 3, gl.FLOAT, false);
-        this.rayVbo.init(this.rayCount*2);
-        
-        var vboData = new Float32Array(this.rayCount*2*3);
+        this.rayVbo.init(this.rayCount * 2);
+
+        var vboData = new Float32Array(this.rayCount * 2 * 3);
         for (var i = 0; i < this.rayCount; ++i) {
-            var u = ((i % this.raySize) + 0.5)/this.raySize;
-            var v = (Math.floor(i/this.raySize) + 0.5)/this.raySize;
-            vboData[i*6 + 0] = vboData[i*6 + 3] = u;
-            vboData[i*6 + 1] = vboData[i*6 + 4] = v;
-            vboData[i*6 + 2] = 0.0;
-            vboData[i*6 + 5] = 1.0;
+            var u = ((i % this.raySize) + 0.5) / this.raySize;
+            var v = (Math.floor(i / this.raySize) + 0.5) / this.raySize;
+            vboData[i * 6 + 0] = vboData[i * 6 + 3] = u;
+            vboData[i * 6 + 1] = vboData[i * 6 + 4] = v;
+            vboData[i * 6 + 2] = 0.0;
+            vboData[i * 6 + 5] = 1.0;
         }
         this.rayVbo.copy(vboData);
 
         this.rayVbo2 = new tgl.VertexBuffer();
         this.rayVbo2.addAttribute("TexCoord", 2, gl.FLOAT, false);
         this.rayVbo2.init(this.rayCount);
-        
-        var vboData2 = new Float32Array(this.rayCount*2);
+
+        var vboData2 = new Float32Array(this.rayCount * 2);
         for (var i = 0; i < this.rayCount; ++i) {
-            var u = ((i % this.raySize) + 0.5)/this.raySize;
-            var v = (Math.floor(i/this.raySize) + 0.5)/this.raySize;
-            vboData2[i*2 + 0] = u;
-            vboData2[i*2 + 1] = v;
+            var u = ((i % this.raySize) + 0.5) / this.raySize;
+            var v = (Math.floor(i / this.raySize) + 0.5) / this.raySize;
+            vboData2[i * 2 + 0] = u;
+            vboData2[i * 2 + 1] = v;
         }
         this.rayVbo2.copy(vboData2);
-        
+
         this.fbo = new tgl.RenderTarget();
-        
+
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.blendFunc(gl.ONE, gl.ONE);
 
-        this.createNLOSBuffers();
+        this.createNLOSBuffers(ModifiedAttributes.All);
 
         this.changeResolution(width, height);
-        this.setEmitterPos([width/2, height/2], [width/2, height/2]);
+        this.setEmitterPos([width / 2, height / 2], [width / 2, height / 2]);
         this.computeEmissionSpectrum();
 
-        var colormap = [ 
-            0.0104, 0, 0, 1.0, 0.0208, 0, 0, 1.0, 0.0312, 0, 0, 1.0, 0.0417, 0, 0, 1.0, 0.0521, 0, 0, 1.0, 0.0625, 0, 0, 1.0, 0.0729, 0, 0, 1.0, 0.0833, 0, 0, 1.0, 0.0938, 0, 0, 1.0, 0.1042, 0, 0, 1.0, 0.1146, 0, 0, 1.0, 0.1250, 0, 0, 1.0, 0.1354, 0, 0, 1.0, 0.1458, 0, 0, 1.0, 0.1562, 0, 0, 1.0, 0.1667, 0, 0, 1.0, 0.1771, 0, 0, 1.0, 0.1875, 0, 0, 1.0, 0.1979, 0, 0, 1.0, 0.2083, 0, 0, 1.0, 0.2188, 0, 0, 1.0, 0.2292, 0, 0, 1.0, 0.2396, 0, 0, 1.0, 0.2500, 0, 0, 1.0, 0.2604, 0, 0, 1.0, 0.2708, 0, 0, 1.0, 0.2812, 0, 0, 1.0, 0.2917, 0, 0, 1.0, 0.3021, 0, 0, 1.0, 0.3125, 0, 0, 1.0, 0.3229, 0, 0, 1.0, 0.3333, 0, 0, 1.0, 0.3438, 0, 0, 1.0, 0.3542, 0, 0, 1.0, 0.3646, 0, 0, 1.0, 0.3750, 0, 0, 1.0, 0.3854, 0, 0, 1.0, 0.3958, 0, 0, 1.0, 0.4062, 0, 0, 1.0, 0.4167, 0, 0, 1.0, 0.4271, 0, 0, 1.0, 0.4375, 0, 0, 1.0, 0.4479, 0, 0, 1.0, 0.4583, 0, 0, 1.0, 0.4688, 0, 0, 1.0, 0.4792, 0, 0, 1.0, 0.4896, 0, 0, 1.0, 0.5000, 0, 0, 1.0, 0.5104, 0, 0, 1.0, 0.5208, 0, 0, 1.0, 0.5312, 0, 0, 1.0, 0.5417, 0, 0, 1.0, 0.5521, 0, 0, 1.0, 0.5625, 0, 0, 1.0, 0.5729, 0, 0, 1.0, 0.5833, 0, 0, 1.0, 0.5938, 0, 0, 1.0, 0.6042, 0, 0, 1.0, 0.6146, 0, 0, 1.0, 0.6250, 0, 0, 1.0, 0.6354, 0, 0, 1.0, 0.6458, 0, 0, 1.0, 0.6562, 0, 0, 1.0, 0.6667, 0, 0, 1.0, 0.6771, 0, 0, 1.0, 0.6875, 0, 0, 1.0, 0.6979, 0, 0, 1.0, 0.7083, 0, 0, 1.0, 0.7188, 0, 0, 1.0, 0.7292, 0, 0, 1.0, 0.7396, 0, 0, 1.0, 0.7500, 0, 0, 1.0, 0.7604, 0, 0, 1.0, 0.7708, 0, 0, 1.0, 0.7812, 0, 0, 1.0, 0.7917, 0, 0, 1.0, 0.8021, 0, 0, 1.0, 0.8125, 0, 0, 1.0, 0.8229, 0, 0, 1.0, 0.8333, 0, 0, 1.0, 0.8438, 0, 0, 1.0, 0.8542, 0, 0, 1.0, 0.8646, 0, 0, 1.0, 0.8750, 0, 0, 1.0, 0.8854, 0, 0, 1.0, 0.8958, 0, 0, 1.0, 0.9062, 0, 0, 1.0, 0.9167, 0, 0, 1.0, 0.9271, 0, 0, 1.0, 0.9375, 0, 0, 1.0, 0.9479, 0, 0, 1.0, 0.9583, 0, 0, 1.0, 0.9688, 0, 0, 1.0, 0.9792, 0, 0, 1.0, 0.9896, 0, 0, 1.0, 1.0000, 0, 0, 1.0, 1.0000, 0.0104, 0, 1.0, 1.0000, 0.0208, 0, 1.0, 1.0000, 0.0312, 0, 1.0, 1.0000, 0.0417, 0, 1.0, 1.0000, 0.0521, 0, 1.0, 1.0000, 0.0625, 0, 1.0, 1.0000, 0.0729, 0, 1.0, 1.0000, 0.0833, 0, 1.0, 1.0000, 0.0938, 0, 1.0, 1.0000, 0.1042, 0, 1.0, 1.0000, 0.1146, 0, 1.0, 1.0000, 0.1250, 0, 1.0, 1.0000, 0.1354, 0, 1.0, 1.0000, 0.1458, 0, 1.0, 1.0000, 0.1562, 0, 1.0, 1.0000, 0.1667, 0, 1.0, 1.0000, 0.1771, 0, 1.0, 1.0000, 0.1875, 0, 1.0, 1.0000, 0.1979, 0, 1.0, 1.0000, 0.2083, 0, 1.0, 1.0000, 0.2188, 0, 1.0, 1.0000, 0.2292, 0, 1.0, 1.0000, 0.2396, 0, 1.0, 1.0000, 0.2500, 0, 1.0, 1.0000, 0.2604, 0, 1.0, 1.0000, 0.2708, 0, 1.0, 1.0000, 0.2812, 0, 1.0, 1.0000, 0.2917, 0, 1.0, 1.0000, 0.3021, 0, 1.0, 1.0000, 0.3125, 0, 1.0, 1.0000, 0.3229, 0, 1.0, 1.0000, 0.3333, 0, 1.0, 1.0000, 0.3438, 0, 1.0, 1.0000, 0.3542, 0, 1.0, 1.0000, 0.3646, 0, 1.0, 1.0000, 0.3750, 0, 1.0, 1.0000, 0.3854, 0, 1.0, 1.0000, 0.3958, 0, 1.0, 1.0000, 0.4062, 0, 1.0, 1.0000, 0.4167, 0, 1.0, 1.0000, 0.4271, 0, 1.0, 1.0000, 0.4375, 0, 1.0, 1.0000, 0.4479, 0, 1.0, 1.0000, 0.4583, 0, 1.0, 1.0000, 0.4688, 0, 1.0, 1.0000, 0.4792, 0, 1.0, 1.0000, 0.4896, 0, 1.0, 1.0000, 0.5000, 0, 1.0, 1.0000, 0.5104, 0, 1.0, 1.0000, 0.5208, 0, 1.0, 1.0000, 0.5312, 0, 1.0, 1.0000, 0.5417, 0, 1.0, 1.0000, 0.5521, 0, 1.0, 1.0000, 0.5625, 0, 1.0, 1.0000, 0.5729, 0, 1.0, 1.0000, 0.5833, 0, 1.0, 1.0000, 0.5938, 0, 1.0, 1.0000, 0.6042, 0, 1.0, 1.0000, 0.6146, 0, 1.0, 1.0000, 0.6250, 0, 1.0, 1.0000, 0.6354, 0, 1.0, 1.0000, 0.6458, 0, 1.0, 1.0000, 0.6562, 0, 1.0, 1.0000, 0.6667, 0, 1.0, 1.0000, 0.6771, 0, 1.0, 1.0000, 0.6875, 0, 1.0, 1.0000, 0.6979, 0, 1.0, 1.0000, 0.7083, 0, 1.0, 1.0000, 0.7188, 0, 1.0, 1.0000, 0.7292, 0, 1.0, 1.0000, 0.7396, 0, 1.0, 1.0000, 0.7500, 0, 1.0, 1.0000, 0.7604, 0, 1.0, 1.0000, 0.7708, 0, 1.0, 1.0000, 0.7812, 0, 1.0, 1.0000, 0.7917, 0, 1.0, 1.0000, 0.8021, 0, 1.0, 1.0000, 0.8125, 0, 1.0, 1.0000, 0.8229, 0, 1.0, 1.0000, 0.8333, 0, 1.0, 1.0000, 0.8438, 0, 1.0, 1.0000, 0.8542, 0, 1.0, 1.0000, 0.8646, 0, 1.0, 1.0000, 0.8750, 0, 1.0, 1.0000, 0.8854, 0, 1.0, 1.0000, 0.8958, 0, 1.0, 1.0000, 0.9062, 0, 1.0, 1.0000, 0.9167, 0, 1.0, 1.0000, 0.9271, 0, 1.0, 1.0000, 0.9375, 0, 1.0, 1.0000, 0.9479, 0, 1.0, 1.0000, 0.9583, 0, 1.0, 1.0000, 0.9688, 0, 1.0, 1.0000, 0.9792, 0, 1.0, 1.0000, 0.9896, 0, 1.0, 1.0000, 1.0000, 0, 1.0, 1.0000, 1.0000, 0.0156, 1.0, 1.0000, 1.0000, 0.0312, 1.0, 1.0000, 1.0000, 0.0469, 1.0, 1.0000, 1.0000, 0.0625, 1.0, 1.0000, 1.0000, 0.0781, 1.0, 1.0000, 1.0000, 0.0938, 1.0, 1.0000, 1.0000, 0.1094, 1.0, 1.0000, 1.0000, 0.1250, 1.0, 1.0000, 1.0000, 0.1406, 1.0, 1.0000, 1.0000, 0.1562, 1.0, 1.0000, 1.0000, 0.1719, 1.0, 1.0000, 1.0000, 0.1875, 1.0, 1.0000, 1.0000, 0.2031, 1.0, 1.0000, 1.0000, 0.2188, 1.0, 1.0000, 1.0000, 0.2344, 1.0, 1.0000, 1.0000, 0.2500, 1.0, 1.0000, 1.0000, 0.2656, 1.0, 1.0000, 1.0000, 0.2812, 1.0, 1.0000, 1.0000, 0.2969, 1.0, 1.0000, 1.0000, 0.3125, 1.0, 1.0000, 1.0000, 0.3281, 1.0, 1.0000, 1.0000, 0.3438, 1.0, 1.0000, 1.0000, 0.3594, 1.0, 1.0000, 1.0000, 0.3750, 1.0, 1.0000, 1.0000, 0.3906, 1.0, 1.0000, 1.0000, 0.4062, 1.0, 1.0000, 1.0000, 0.4219, 1.0, 1.0000, 1.0000, 0.4375, 1.0, 1.0000, 1.0000, 0.4531, 1.0, 1.0000, 1.0000, 0.4688, 1.0, 1.0000, 1.0000, 0.4844, 1.0, 1.0000, 1.0000, 0.5000, 1.0, 1.0000, 1.0000, 0.5156, 1.0, 1.0000, 1.0000, 0.5312, 1.0, 1.0000, 1.0000, 0.5469, 1.0, 1.0000, 1.0000, 0.5625, 1.0, 1.0000, 1.0000, 0.5781, 1.0, 1.0000, 1.0000, 0.5938, 1.0, 1.0000, 1.0000, 0.6094, 1.0, 1.0000, 1.0000, 0.6250, 1.0, 1.0000, 1.0000, 0.6406, 1.0, 1.0000, 1.0000, 0.6562, 1.0, 1.0000, 1.0000, 0.6719, 1.0, 1.0000, 1.0000, 0.6875, 1.0, 1.0000, 1.0000, 0.7031, 1.0, 1.0000, 1.0000, 0.7188, 1.0, 1.0000, 1.0000, 0.7344, 1.0, 1.0000, 1.0000, 0.7500, 1.0, 1.0000, 1.0000, 0.7656, 1.0, 1.0000, 1.0000, 0.7812, 1.0, 1.0000, 1.0000, 0.7969, 1.0, 1.0000, 1.0000, 0.8125, 1.0, 1.0000, 1.0000, 0.8281, 1.0, 1.0000, 1.0000, 0.8438, 1.0, 1.0000, 1.0000, 0.8594, 1.0, 1.0000, 1.0000, 0.8750, 1.0, 1.0000, 1.0000, 0.8906, 1.0, 1.0000, 1.0000, 0.9062, 1.0, 1.0000, 1.0000, 0.9219, 1.0, 1.0000, 1.0000, 0.9375, 1.0, 1.0000, 1.0000, 0.9531, 1.0, 1.0000, 1.0000, 0.9688, 1.0, 1.0000, 1.0000, 0.9844, 1.0, 1.0000, 1.0000, 1.0000, 1.0 
+        var colormap = [
+            0.0104, 0, 0, 1.0, 0.0208, 0, 0, 1.0, 0.0312, 0, 0, 1.0, 0.0417, 0, 0, 1.0, 0.0521, 0, 0, 1.0, 0.0625, 0, 0, 1.0, 0.0729, 0, 0, 1.0, 0.0833, 0, 0, 1.0, 0.0938, 0, 0, 1.0, 0.1042, 0, 0, 1.0, 0.1146, 0, 0, 1.0, 0.1250, 0, 0, 1.0, 0.1354, 0, 0, 1.0, 0.1458, 0, 0, 1.0, 0.1562, 0, 0, 1.0, 0.1667, 0, 0, 1.0, 0.1771, 0, 0, 1.0, 0.1875, 0, 0, 1.0, 0.1979, 0, 0, 1.0, 0.2083, 0, 0, 1.0, 0.2188, 0, 0, 1.0, 0.2292, 0, 0, 1.0, 0.2396, 0, 0, 1.0, 0.2500, 0, 0, 1.0, 0.2604, 0, 0, 1.0, 0.2708, 0, 0, 1.0, 0.2812, 0, 0, 1.0, 0.2917, 0, 0, 1.0, 0.3021, 0, 0, 1.0, 0.3125, 0, 0, 1.0, 0.3229, 0, 0, 1.0, 0.3333, 0, 0, 1.0, 0.3438, 0, 0, 1.0, 0.3542, 0, 0, 1.0, 0.3646, 0, 0, 1.0, 0.3750, 0, 0, 1.0, 0.3854, 0, 0, 1.0, 0.3958, 0, 0, 1.0, 0.4062, 0, 0, 1.0, 0.4167, 0, 0, 1.0, 0.4271, 0, 0, 1.0, 0.4375, 0, 0, 1.0, 0.4479, 0, 0, 1.0, 0.4583, 0, 0, 1.0, 0.4688, 0, 0, 1.0, 0.4792, 0, 0, 1.0, 0.4896, 0, 0, 1.0, 0.5000, 0, 0, 1.0, 0.5104, 0, 0, 1.0, 0.5208, 0, 0, 1.0, 0.5312, 0, 0, 1.0, 0.5417, 0, 0, 1.0, 0.5521, 0, 0, 1.0, 0.5625, 0, 0, 1.0, 0.5729, 0, 0, 1.0, 0.5833, 0, 0, 1.0, 0.5938, 0, 0, 1.0, 0.6042, 0, 0, 1.0, 0.6146, 0, 0, 1.0, 0.6250, 0, 0, 1.0, 0.6354, 0, 0, 1.0, 0.6458, 0, 0, 1.0, 0.6562, 0, 0, 1.0, 0.6667, 0, 0, 1.0, 0.6771, 0, 0, 1.0, 0.6875, 0, 0, 1.0, 0.6979, 0, 0, 1.0, 0.7083, 0, 0, 1.0, 0.7188, 0, 0, 1.0, 0.7292, 0, 0, 1.0, 0.7396, 0, 0, 1.0, 0.7500, 0, 0, 1.0, 0.7604, 0, 0, 1.0, 0.7708, 0, 0, 1.0, 0.7812, 0, 0, 1.0, 0.7917, 0, 0, 1.0, 0.8021, 0, 0, 1.0, 0.8125, 0, 0, 1.0, 0.8229, 0, 0, 1.0, 0.8333, 0, 0, 1.0, 0.8438, 0, 0, 1.0, 0.8542, 0, 0, 1.0, 0.8646, 0, 0, 1.0, 0.8750, 0, 0, 1.0, 0.8854, 0, 0, 1.0, 0.8958, 0, 0, 1.0, 0.9062, 0, 0, 1.0, 0.9167, 0, 0, 1.0, 0.9271, 0, 0, 1.0, 0.9375, 0, 0, 1.0, 0.9479, 0, 0, 1.0, 0.9583, 0, 0, 1.0, 0.9688, 0, 0, 1.0, 0.9792, 0, 0, 1.0, 0.9896, 0, 0, 1.0, 1.0000, 0, 0, 1.0, 1.0000, 0.0104, 0, 1.0, 1.0000, 0.0208, 0, 1.0, 1.0000, 0.0312, 0, 1.0, 1.0000, 0.0417, 0, 1.0, 1.0000, 0.0521, 0, 1.0, 1.0000, 0.0625, 0, 1.0, 1.0000, 0.0729, 0, 1.0, 1.0000, 0.0833, 0, 1.0, 1.0000, 0.0938, 0, 1.0, 1.0000, 0.1042, 0, 1.0, 1.0000, 0.1146, 0, 1.0, 1.0000, 0.1250, 0, 1.0, 1.0000, 0.1354, 0, 1.0, 1.0000, 0.1458, 0, 1.0, 1.0000, 0.1562, 0, 1.0, 1.0000, 0.1667, 0, 1.0, 1.0000, 0.1771, 0, 1.0, 1.0000, 0.1875, 0, 1.0, 1.0000, 0.1979, 0, 1.0, 1.0000, 0.2083, 0, 1.0, 1.0000, 0.2188, 0, 1.0, 1.0000, 0.2292, 0, 1.0, 1.0000, 0.2396, 0, 1.0, 1.0000, 0.2500, 0, 1.0, 1.0000, 0.2604, 0, 1.0, 1.0000, 0.2708, 0, 1.0, 1.0000, 0.2812, 0, 1.0, 1.0000, 0.2917, 0, 1.0, 1.0000, 0.3021, 0, 1.0, 1.0000, 0.3125, 0, 1.0, 1.0000, 0.3229, 0, 1.0, 1.0000, 0.3333, 0, 1.0, 1.0000, 0.3438, 0, 1.0, 1.0000, 0.3542, 0, 1.0, 1.0000, 0.3646, 0, 1.0, 1.0000, 0.3750, 0, 1.0, 1.0000, 0.3854, 0, 1.0, 1.0000, 0.3958, 0, 1.0, 1.0000, 0.4062, 0, 1.0, 1.0000, 0.4167, 0, 1.0, 1.0000, 0.4271, 0, 1.0, 1.0000, 0.4375, 0, 1.0, 1.0000, 0.4479, 0, 1.0, 1.0000, 0.4583, 0, 1.0, 1.0000, 0.4688, 0, 1.0, 1.0000, 0.4792, 0, 1.0, 1.0000, 0.4896, 0, 1.0, 1.0000, 0.5000, 0, 1.0, 1.0000, 0.5104, 0, 1.0, 1.0000, 0.5208, 0, 1.0, 1.0000, 0.5312, 0, 1.0, 1.0000, 0.5417, 0, 1.0, 1.0000, 0.5521, 0, 1.0, 1.0000, 0.5625, 0, 1.0, 1.0000, 0.5729, 0, 1.0, 1.0000, 0.5833, 0, 1.0, 1.0000, 0.5938, 0, 1.0, 1.0000, 0.6042, 0, 1.0, 1.0000, 0.6146, 0, 1.0, 1.0000, 0.6250, 0, 1.0, 1.0000, 0.6354, 0, 1.0, 1.0000, 0.6458, 0, 1.0, 1.0000, 0.6562, 0, 1.0, 1.0000, 0.6667, 0, 1.0, 1.0000, 0.6771, 0, 1.0, 1.0000, 0.6875, 0, 1.0, 1.0000, 0.6979, 0, 1.0, 1.0000, 0.7083, 0, 1.0, 1.0000, 0.7188, 0, 1.0, 1.0000, 0.7292, 0, 1.0, 1.0000, 0.7396, 0, 1.0, 1.0000, 0.7500, 0, 1.0, 1.0000, 0.7604, 0, 1.0, 1.0000, 0.7708, 0, 1.0, 1.0000, 0.7812, 0, 1.0, 1.0000, 0.7917, 0, 1.0, 1.0000, 0.8021, 0, 1.0, 1.0000, 0.8125, 0, 1.0, 1.0000, 0.8229, 0, 1.0, 1.0000, 0.8333, 0, 1.0, 1.0000, 0.8438, 0, 1.0, 1.0000, 0.8542, 0, 1.0, 1.0000, 0.8646, 0, 1.0, 1.0000, 0.8750, 0, 1.0, 1.0000, 0.8854, 0, 1.0, 1.0000, 0.8958, 0, 1.0, 1.0000, 0.9062, 0, 1.0, 1.0000, 0.9167, 0, 1.0, 1.0000, 0.9271, 0, 1.0, 1.0000, 0.9375, 0, 1.0, 1.0000, 0.9479, 0, 1.0, 1.0000, 0.9583, 0, 1.0, 1.0000, 0.9688, 0, 1.0, 1.0000, 0.9792, 0, 1.0, 1.0000, 0.9896, 0, 1.0, 1.0000, 1.0000, 0, 1.0, 1.0000, 1.0000, 0.0156, 1.0, 1.0000, 1.0000, 0.0312, 1.0, 1.0000, 1.0000, 0.0469, 1.0, 1.0000, 1.0000, 0.0625, 1.0, 1.0000, 1.0000, 0.0781, 1.0, 1.0000, 1.0000, 0.0938, 1.0, 1.0000, 1.0000, 0.1094, 1.0, 1.0000, 1.0000, 0.1250, 1.0, 1.0000, 1.0000, 0.1406, 1.0, 1.0000, 1.0000, 0.1562, 1.0, 1.0000, 1.0000, 0.1719, 1.0, 1.0000, 1.0000, 0.1875, 1.0, 1.0000, 1.0000, 0.2031, 1.0, 1.0000, 1.0000, 0.2188, 1.0, 1.0000, 1.0000, 0.2344, 1.0, 1.0000, 1.0000, 0.2500, 1.0, 1.0000, 1.0000, 0.2656, 1.0, 1.0000, 1.0000, 0.2812, 1.0, 1.0000, 1.0000, 0.2969, 1.0, 1.0000, 1.0000, 0.3125, 1.0, 1.0000, 1.0000, 0.3281, 1.0, 1.0000, 1.0000, 0.3438, 1.0, 1.0000, 1.0000, 0.3594, 1.0, 1.0000, 1.0000, 0.3750, 1.0, 1.0000, 1.0000, 0.3906, 1.0, 1.0000, 1.0000, 0.4062, 1.0, 1.0000, 1.0000, 0.4219, 1.0, 1.0000, 1.0000, 0.4375, 1.0, 1.0000, 1.0000, 0.4531, 1.0, 1.0000, 1.0000, 0.4688, 1.0, 1.0000, 1.0000, 0.4844, 1.0, 1.0000, 1.0000, 0.5000, 1.0, 1.0000, 1.0000, 0.5156, 1.0, 1.0000, 1.0000, 0.5312, 1.0, 1.0000, 1.0000, 0.5469, 1.0, 1.0000, 1.0000, 0.5625, 1.0, 1.0000, 1.0000, 0.5781, 1.0, 1.0000, 1.0000, 0.5938, 1.0, 1.0000, 1.0000, 0.6094, 1.0, 1.0000, 1.0000, 0.6250, 1.0, 1.0000, 1.0000, 0.6406, 1.0, 1.0000, 1.0000, 0.6562, 1.0, 1.0000, 1.0000, 0.6719, 1.0, 1.0000, 1.0000, 0.6875, 1.0, 1.0000, 1.0000, 0.7031, 1.0, 1.0000, 1.0000, 0.7188, 1.0, 1.0000, 1.0000, 0.7344, 1.0, 1.0000, 1.0000, 0.7500, 1.0, 1.0000, 1.0000, 0.7656, 1.0, 1.0000, 1.0000, 0.7812, 1.0, 1.0000, 1.0000, 0.7969, 1.0, 1.0000, 1.0000, 0.8125, 1.0, 1.0000, 1.0000, 0.8281, 1.0, 1.0000, 1.0000, 0.8438, 1.0, 1.0000, 1.0000, 0.8594, 1.0, 1.0000, 1.0000, 0.8750, 1.0, 1.0000, 1.0000, 0.8906, 1.0, 1.0000, 1.0000, 0.9062, 1.0, 1.0000, 1.0000, 0.9219, 1.0, 1.0000, 1.0000, 0.9375, 1.0, 1.0000, 1.0000, 0.9531, 1.0, 1.0000, 1.0000, 0.9688, 1.0, 1.0000, 1.0000, 0.9844, 1.0, 1.0000, 1.0000, 1.0000, 1.0
         ];
         this.colormap = new Float32Array(colormap);
-        this.colormapTex = new tgl.Texture(colormap.length/4, 1, 4, true, false, true, this.colormap);
+        this.colormapTex = new tgl.Texture(colormap.length / 4, 1, 4, true, false, true, this.colormap);
 
         // Laplacian filter
         this.lapKernel = new Float32Array(9);
@@ -189,7 +187,7 @@
         ];
         this.logKernel = new Float32Array(logKernel);
         this.logKernelTex = new tgl.Texture(dim, dim, 1, true, false, true, this.logKernel);
-        
+
         this.timeVector = new Float32Array(linspace(0.0, this.numIntervals * this.deltaT, this.numIntervals));
         this.timeVectorTex = new tgl.Texture(this.numIntervals, 1, 1, true, false, true, this.timeVector);
         this.wl = 0.08;
@@ -199,20 +197,41 @@
         this.computePFFilter();
     }
 
-    Renderer.prototype.replaceNumSpads = function(shaderName) {
+    Renderer.prototype.replaceNumSpads = function (shaderName) {
         var pattern = new RegExp('{numSpads}');
         var shaderSource = Shaders[shaderName];
         return shaderSource.replace(pattern, this.numSpads);
     }
 
-    Renderer.prototype.setSpadPositions = function(numSpads, spadPos = null) {
-        if (spadPos != null) {
-            this.spadPos = spadPos;
+    Renderer.prototype.changeSpadResolution = function (numSpads) {
+        if (this.spadHeights === undefined || this.spadHeights.length != numSpads) {
+            this.setSpadPositions(numSpads);
+            this.createNLOSBuffers(ModifiedAttributes.NumSpads);
+            this.resetActiveBlock();
+            this.reset();
         }
-        var changePos = (this.spadHeights === undefined || this.spadHeights.length != numSpads);
-        if (changePos) {
+    }
+
+    Renderer.prototype.setSpadBoundaries = function(low, high) {
+        if (this.spadBoundaries === undefined || this.spadBoundaries[0] != low || this.spadBoundaries != high) {
+            this.spadBoundaries = [low, high];
+            this.setSpadPositions(this.numSpads, true);
+            this.resetActiveBlock();
+            this.reset();
+        }
+    }
+
+    Renderer.prototype.setSpadPos = function(spadPos) {
+        this.spadPos = spadPos;
+        this.resetActiveBlock();
+        this.reset();
+    }
+
+    Renderer.prototype.setSpadPositions = function (numSpads, changedBounds = false) {
+        var changePos = (this.spadHeights === undefined || this.spadHeights.length != numSpads || changedBounds);
+        if (changePos && this.spadBoundaries != undefined && numSpads != undefined) {
             this.numSpads = numSpads;
-            this.spadHeights = intermediatePositions(0.5, -0.5, numSpads);
+            this.spadHeights = intermediatePositions(this.spadBoundaries[1], this.spadBoundaries[0], numSpads);
             this.spadPoints = [];
 
             this.spads = [];
@@ -222,18 +241,18 @@
                 this.spadPoints.push(h);
             });
 
-            var spadGridData = new Float32Array(this.numSpads*4);
+            var spadGridData = new Float32Array(this.numSpads * 4);
             for (var i = 0; i < this.numSpads; i++) {
-                spadGridData[i*4]   = this.spadPoints[i*2];
-                spadGridData[i*4+1] = this.spadPoints[i*2+1];
-                spadGridData[i*4+2] = 0.0;
-                spadGridData[i*4+3] = 0.0;
+                spadGridData[i * 4] = this.spadPoints[i * 2];
+                spadGridData[i * 4 + 1] = this.spadPoints[i * 2 + 1];
+                spadGridData[i * 4 + 2] = 0.0;
+                spadGridData[i * 4 + 3] = 0.0;
             }
             this.spadGridTex = new tgl.Texture(this.numSpads, 1, 4, true, false, true, spadGridData);
             var spadNormalsData = spadGridData;
             for (var i = 0; i < this.numSpads; i++) {
-                spadNormalsData[i*4]   = -1.0;
-                spadNormalsData[i*4+1] =  0.0;
+                spadNormalsData[i * 4] = -1.0;
+                spadNormalsData[i * 4 + 1] = 0.0;
             }
             this.spadNormalsTex = new tgl.Texture(this.numSpads, 1, 4, true, false, true, spadNormalsData);
 
@@ -246,63 +265,63 @@
         }
     }
 
-    Renderer.prototype.resetActiveBlock = function() {
+    Renderer.prototype.resetActiveBlock = function () {
         this.activeBlock = 4;
     }
 
-    Renderer.prototype.setEmissionSpectrumType = function(type) {
+    Renderer.prototype.setEmissionSpectrumType = function (type) {
         this.emissionSpectrumType = type;
         this.computeEmissionSpectrum();
     }
 
-    Renderer.prototype.setEmitterTemperature = function(temperature) {
+    Renderer.prototype.setEmitterTemperature = function (temperature) {
         this.emitterTemperature = temperature;
         if (this.emissionSpectrumType == tcore.Renderer.SPECTRUM_INCANDESCENT)
             this.computeEmissionSpectrum();
     }
 
-    Renderer.prototype.setEmitterGas = function(gasId) {
+    Renderer.prototype.setEmitterGas = function (gasId) {
         this.emitterGas = gasId;
         if (this.emissionSpectrumType == tcore.Renderer.SPECTRUM_GAS_DISCHARGE)
             this.computeEmissionSpectrum();
     }
 
-    Renderer.prototype.computeEmissionSpectrum = function() {
+    Renderer.prototype.computeEmissionSpectrum = function () {
         if (!this.emissionSpectrum)
             this.emissionSpectrum = new Float32Array(tcore.Renderer.SPECTRUM_SAMPLES);
-        
+
         switch (this.emissionSpectrumType) {
-        case tcore.Renderer.SPECTRUM_WHITE:
-            for (var i = 0; i < tcore.Renderer.SPECTRUM_SAMPLES; ++i)
-                this.emissionSpectrum[i] = 1.0;
-            break;
-        case tcore.Renderer.SPECTRUM_INCANDESCENT:
-            var h = 6.626070040e-34;
-            var c = 299792458.0;
-            var kB = 1.3806488e-23;
-            var T = this.emitterTemperature;
-            
-            for (var i = 0; i < tcore.Renderer.SPECTRUM_SAMPLES; ++i) {
-                var l = (LAMBDA_MIN + (LAMBDA_MAX - LAMBDA_MIN)*(i + 0.5)/tcore.Renderer.SPECTRUM_SAMPLES)*1e-9;
-                var power = 1e-12*(2.0*h*c*c)/(l*l*l*l*l*(Math.exp(h*c/(l*kB*T)) - 1.0));
-                
-                this.emissionSpectrum[i] = power;
-            }
-            break;
-        case tcore.Renderer.SPECTRUM_GAS_DISCHARGE:
-            var wavelengths = GasDischargeLines[this.emitterGas].wavelengths;
-            var strengths = GasDischargeLines[this.emitterGas].strengths;
-            
-            for (var i = 0; i < tcore.Renderer.SPECTRUM_SAMPLES; ++i)
-                this.emissionSpectrum[i] = 0.0;
-            
-            for (var i = 0; i < wavelengths.length; ++i) {
-                var idx = Math.floor((wavelengths[i] - LAMBDA_MIN)/(LAMBDA_MAX - LAMBDA_MIN)*tcore.Renderer.SPECTRUM_SAMPLES);
-                if (idx < 0 || idx >= tcore.Renderer.SPECTRUM_SAMPLES)
-                    continue;
-                
-                this.emissionSpectrum[idx] += strengths[i];
-            }
+            case tcore.Renderer.SPECTRUM_WHITE:
+                for (var i = 0; i < tcore.Renderer.SPECTRUM_SAMPLES; ++i)
+                    this.emissionSpectrum[i] = 1.0;
+                break;
+            case tcore.Renderer.SPECTRUM_INCANDESCENT:
+                var h = 6.626070040e-34;
+                var c = 299792458.0;
+                var kB = 1.3806488e-23;
+                var T = this.emitterTemperature;
+
+                for (var i = 0; i < tcore.Renderer.SPECTRUM_SAMPLES; ++i) {
+                    var l = (LAMBDA_MIN + (LAMBDA_MAX - LAMBDA_MIN) * (i + 0.5) / tcore.Renderer.SPECTRUM_SAMPLES) * 1e-9;
+                    var power = 1e-12 * (2.0 * h * c * c) / (l * l * l * l * l * (Math.exp(h * c / (l * kB * T)) - 1.0));
+
+                    this.emissionSpectrum[i] = power;
+                }
+                break;
+            case tcore.Renderer.SPECTRUM_GAS_DISCHARGE:
+                var wavelengths = GasDischargeLines[this.emitterGas].wavelengths;
+                var strengths = GasDischargeLines[this.emitterGas].strengths;
+
+                for (var i = 0; i < tcore.Renderer.SPECTRUM_SAMPLES; ++i)
+                    this.emissionSpectrum[i] = 0.0;
+
+                for (var i = 0; i < wavelengths.length; ++i) {
+                    var idx = Math.floor((wavelengths[i] - LAMBDA_MIN) / (LAMBDA_MAX - LAMBDA_MIN) * tcore.Renderer.SPECTRUM_SAMPLES);
+                    if (idx < 0 || idx >= tcore.Renderer.SPECTRUM_SAMPLES)
+                        continue;
+
+                    this.emissionSpectrum[idx] += strengths[i];
+                }
         }
 
         this.computeSpectrumIcdf();
@@ -311,108 +330,117 @@
         this.emission.copy(this.emissionSpectrum);
         this.reset();
     }
-    
-    Renderer.prototype.computeSpectrumIcdf = function() {
+
+    Renderer.prototype.computeSpectrumIcdf = function () {
         if (!this.cdf) {
-            this.cdf  = new Float32Array(tcore.Renderer.SPECTRUM_SAMPLES + 1);
-            this.pdf  = new Float32Array(tcore.Renderer.SPECTRUM_SAMPLES);
+            this.cdf = new Float32Array(tcore.Renderer.SPECTRUM_SAMPLES + 1);
+            this.pdf = new Float32Array(tcore.Renderer.SPECTRUM_SAMPLES);
             this.icdf = new Float32Array(tcore.Renderer.ICDF_SAMPLES);
         }
-    
+
         var sum = 0.0;
         for (var i = 0; i < tcore.Renderer.SPECTRUM_SAMPLES; ++i)
             sum += this.emissionSpectrum[i];
-        
+
         /* Mix in 10% of a uniform sample distribution to stay on the safe side.
            Especially gas emission spectra with lots of emission lines
            tend to have small peaks that fall through the cracks otherwise */
         var safetyPadding = 0.1;
-        var normalization = tcore.Renderer.SPECTRUM_SAMPLES/sum;
-        
+        var normalization = tcore.Renderer.SPECTRUM_SAMPLES / sum;
+
         /* Precompute cdf and pdf (unnormalized for now) */
         this.cdf[0] = 0.0;
         for (var i = 0; i < tcore.Renderer.SPECTRUM_SAMPLES; ++i) {
-            this.emissionSpectrum[i] *= normalization;  
-            
+            this.emissionSpectrum[i] *= normalization;
+
             /* Also take into account the observer response when distributing samples.
                Otherwise tends to prioritize peaks just barely outside the visible spectrum */
-            var observerResponse = (1.0/3.0)*(
-                Math.abs(this.spectrumTable[i*4]) +
-                Math.abs(this.spectrumTable[i*4 + 1]) +
-                Math.abs(this.spectrumTable[i*4 + 2]));
-            
-            this.pdf[i] = observerResponse*(this.emissionSpectrum[i] + safetyPadding)/(1.0 + safetyPadding);
+            var observerResponse = (1.0 / 3.0) * (
+                Math.abs(this.spectrumTable[i * 4]) +
+                Math.abs(this.spectrumTable[i * 4 + 1]) +
+                Math.abs(this.spectrumTable[i * 4 + 2]));
+
+            this.pdf[i] = observerResponse * (this.emissionSpectrum[i] + safetyPadding) / (1.0 + safetyPadding);
             this.cdf[i + 1] = this.pdf[i] + this.cdf[i];
         }
-        
+
         /* All done! Time to normalize */
         var cdfSum = this.cdf[tcore.Renderer.SPECTRUM_SAMPLES];
         for (var i = 0; i < tcore.Renderer.SPECTRUM_SAMPLES; ++i) {
-            this.pdf[i] *= tcore.Renderer.SPECTRUM_SAMPLES/cdfSum;
+            this.pdf[i] *= tcore.Renderer.SPECTRUM_SAMPLES / cdfSum;
             this.cdf[i + 1] /= cdfSum;
         }
         /* Make sure we don't fall into any floating point pits */
         this.cdf[tcore.Renderer.SPECTRUM_SAMPLES] = 1.0;
-        
+
         /* Precompute an inverted mapping of the cdf. This is biased!
            Unfortunately we can't really afford to do runtime bisection
            on the GPU, so this will have to do. For our purposes a small
            amount of bias is tolerable anyway. */
         var cdfIdx = 0;
         for (var i = 0; i < tcore.Renderer.ICDF_SAMPLES; ++i) {
-            var target = Math.min((i + 1)/tcore.Renderer.ICDF_SAMPLES, 1.0);
+            var target = Math.min((i + 1) / tcore.Renderer.ICDF_SAMPLES, 1.0);
             while (this.cdf[cdfIdx] < target)
                 cdfIdx++;
-            this.icdf[i] = (cdfIdx - 1.0)/tcore.Renderer.SPECTRUM_SAMPLES;
+            this.icdf[i] = (cdfIdx - 1.0) / tcore.Renderer.SPECTRUM_SAMPLES;
         }
-        
+
         this.emissionIcdf.bind(0);
         this.emissionIcdf.copy(this.icdf);
         this.emissionPdf.bind(0);
         this.emissionPdf.copy(this.pdf);
     }
 
-    Renderer.prototype.getEmissionSpectrum = function() {
+    Renderer.prototype.getEmissionSpectrum = function () {
         return this.emissionSpectrum;
     }
-    
-    Renderer.prototype.setMaxPathLength = function(length) {
+
+    Renderer.prototype.setMaxPathLength = function (length) {
         this.maxPathLength = length;
         this.reset();
     }
-    
-    Renderer.prototype.setMaxSampleCount = function(count) {
+
+    Renderer.prototype.setMaxSampleCount = function (count) {
         this.maxSampleCount = count;
     }
 
-    Renderer.prototype.changeResolution = function(width, height) {
+    Renderer.prototype.changeResolution = function (width, height) {
         if (this.width && this.height) {
-            this.emitterPos[0] = (this.emitterPos[0] + 0.5)*width/this.width - 0.5;
-            this.emitterPos[1] = (this.emitterPos[1] + 0.5)*height/this.height - 0.5;
+            this.emitterPos[0] = (this.emitterPos[0] + 0.5) * width / this.width - 0.5;
+            this.emitterPos[1] = (this.emitterPos[1] + 0.5) * height / this.height - 0.5;
         }
-        
-        this.width  = width;
+
+        this.width = width;
         this.height = height;
-        this.aspect = this.width/this.height;
-        
-        this.screenBuffer   = new tgl.Texture(this.width, this.height, 4, true, false, true, null);
-        this.waveBuffer     = new tgl.Texture(this.width, this.height, 4, true, false, true, null);
-        this.capturedBuffer = new tgl.Texture(this.numIntervals, this.spadHeights.length, 4, true, false, true, null);
-        
+        this.aspect = this.width / this.height;
+
+        this.screenBuffer = new tgl.Texture(this.width, this.height, 4, true, false, true, null);
+        this.waveBuffer = new tgl.Texture(this.width, this.height, 4, true, false, true, null);
+
         this.resetActiveBlock();
         this.reset();
     }
-    
-    Renderer.prototype.changeScene = function(idx) {
+
+    Renderer.prototype.changeReconstructionResolution = function (width) {
+        if (this.numPixels != width) {
+            this.numPixels = width;
+            this.createNLOSBuffers(ModifiedAttributes.NumPixels);
+
+            this.resetActiveBlock();
+            this.reset();
+        }
+    }
+
+    Renderer.prototype.changeScene = function (idx) {
         this.resetActiveBlock();
         this.currentScene = idx;
         this.reset();
     }
 
-    Renderer.prototype.computeBackprojection = function(inputTex, outputBuffer, isComplex = false) {
+    Renderer.prototype.computeBackprojection = function (inputTex, outputBuffer, isComplex = false) {
         var gl = this.gl;
 
-        gl.viewport(0, 0, this.numPixels*this.numPixels, this.numSpads);
+        gl.viewport(0, 0, this.numPixels * this.numPixels, this.numSpads);
         this.fbo.attachTexture(this.intermediateBuffer, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         this.quadVbo.bind();
@@ -439,7 +467,7 @@
 
         gl.viewport(0, 0, this.numPixels, this.numPixels);
         this.fbo.attachTexture(outputBuffer, 0);
-        
+
         // Sum all spad points' results
         this.sumProgram.bind();
         this.intermediateBuffer.bind(0);
@@ -454,7 +482,7 @@
         // this.fbo.attachTexture(outputBuffer, 0);
     }
 
-    Renderer.prototype.findMax = function(inputTex, isComplex = false) {
+    Renderer.prototype.findMax = function (inputTex, isComplex = false) {
         // Find maximum value, dividing the area by 4 in each pass
         var numPixels = this.numPixels;
         var numPixels = this.numIntervals;
@@ -489,11 +517,11 @@
         return maxBuffers[current];
     }
 
-    Renderer.prototype.noFilter = function() {
+    Renderer.prototype.noFilter = function () {
         this.filteredBuffer = this.unfilteredBuffer;
     }
-    
-    Renderer.prototype.filterLap = function() {
+
+    Renderer.prototype.filterLap = function () {
         var gl = this.gl;
 
         this.fbo.attachTexture(this.filteredBuffer, 0);
@@ -512,9 +540,9 @@
         this.quadVbo.draw(this.sumProgram, gl.TRIANGLE_FAN);
     }
 
-    Renderer.prototype.filterGauss = function() {
+    Renderer.prototype.filterGauss = function () {
         var gl = this.gl;
-        
+
         this.fbo.attachTexture(this.halfFiltered, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -536,9 +564,9 @@
         this.quadVbo.draw(this.gaussProgram, gl.TRIANGLE_FAN);
     }
 
-    Renderer.prototype.filterLoG = function() {
+    Renderer.prototype.filterLoG = function () {
         var gl = this.gl;
-        
+
         this.fbo.attachTexture(this.filteredBuffer, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -551,8 +579,8 @@
         this.logProgram.uniformTexture("u_image", this.unfilteredBuffer);
         this.quadVbo.draw(this.logProgram, gl.TRIANGLE_FAN);
     }
-    
-    Renderer.prototype.computePFFilter = function() {
+
+    Renderer.prototype.computePFFilter = function () {
         var gl = this.gl;
 
         this.fbo.bind();
@@ -574,7 +602,7 @@
         this.fbo.unbind();
     }
 
-    Renderer.prototype.filterPF = function() {
+    Renderer.prototype.filterPF = function () {
         var gl = this.gl;
 
         gl.viewport(0, 0, this.numIntervals, this.numSpads);
@@ -591,36 +619,53 @@
         this.quadVbo.draw(this.pfProgram, gl.TRIANGLE_FAN);
     }
 
-    Renderer.prototype.createNLOSBuffers = function() {
-        // Common buffers for NLOS reconstruction
-        this.intermediateBuffer = new tgl.Texture(this.numPixels*this.numPixels, this.numSpads, 4, true, false, true, null);
-        this.unfilteredBuffer   = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
-        this.filteredBuffer     = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
-        // Gauss buffer
-        this.halfFiltered    = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
-        // PF buffers
-        this.interFiltBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
-        this.filterBuffer    = new tgl.Texture(this.numIntervals, 1, 4, true, false, true, null);
-
-        var xValues = linspace(this.bboxCorners[0], this.bboxCorners[2], this.numPixels);
-        var yValues = linspace(this.bboxCorners[1], this.bboxCorners[3], this.numPixels);
-        xv = xValues;
-        yv = yValues;
-        var planeGridData = new Float32Array(this.numPixels*this.numPixels*4);
-        var k = 0;
-        for (var i = 0; i < this.numPixels; i++) {
-            for (var j = 0; j < this.numPixels; j++) {
-                planeGridData[k]   = xValues[j];
-                planeGridData[k+1] = yValues[i];
-                planeGridData[k+2] = 0.0;
-                planeGridData[k+3] = 0.0;
-                k += 4;
-            }
-        }
-        this.planeGridTex = new tgl.Texture(this.numPixels*this.numPixels, 1, 4, true, false, true, planeGridData);
+    const ModifiedAttributes = {
+        All: 0,
+        NumPixels: 1,
+        NumSpads: 2,
+        BboxCorners: 3,
+        NumIntervals: 4
     }
 
-    Renderer.prototype.reset = function() {
+    Renderer.prototype.createNLOSBuffers = function (modifiedAttr) {
+        // Common buffers for NLOS reconstruction
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.NumSpads)
+            this.intermediateBuffer = new tgl.Texture(this.numPixels * this.numPixels, this.numSpads, 4, true, false, true, null);
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels) {
+            this.unfilteredBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
+            this.filteredBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
+            if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
+                this.capturedBuffer = new tgl.Texture(this.numIntervals, this.spadHeights.length, 4, true, false, true, null);
+            // Gauss buffer
+            this.halfFiltered = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
+        }
+        // PF buffers
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
+            this.interFiltBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals)
+            this.filterBuffer = new tgl.Texture(this.numIntervals, 1, 4, true, false, true, null);
+
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.BboxCorners) {
+            var xValues = linspace(this.bboxCorners[0], this.bboxCorners[2], this.numPixels);
+            var yValues = linspace(this.bboxCorners[1], this.bboxCorners[3], this.numPixels);
+            xv = xValues;
+            yv = yValues;
+            var planeGridData = new Float32Array(this.numPixels * this.numPixels * 4);
+            var k = 0;
+            for (var i = 0; i < this.numPixels; i++) {
+                for (var j = 0; j < this.numPixels; j++) {
+                    planeGridData[k] = xValues[j];
+                    planeGridData[k + 1] = yValues[i];
+                    planeGridData[k + 2] = 0.0;
+                    planeGridData[k + 3] = 0.0;
+                    k += 4;
+                }
+            }
+            this.planeGridTex = new tgl.Texture(this.numPixels * this.numPixels, 1, 4, true, false, true, planeGridData);
+        }
+    }
+
+    Renderer.prototype.reset = function () {
         if (!this.needsReset)
             return;
         this.needsReset = false;
@@ -631,45 +676,61 @@
         this.elapsedTimes = [];
         this.currentCall = 0;
         this.nlosElapsedTimes = [];
-        this.setSpadPositions(64, [0, -0.6]);
-        
-        this.fbo.bind();
-        this.fbo.drawBuffers(1);
-        // Scene buffers
-        this.fbo.attachTexture(this.screenBuffer, 0);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        this.fbo.attachTexture(this.capturedBuffer, 0);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        // Reconstruction buffers
-        this.fbo.attachTexture(this.intermediateBuffer, 0);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        this.fbo.attachTexture(this.unfilteredBuffer, 0);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        this.fbo.attachTexture(this.interFiltBuffer, 0);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        this.fbo.attachTexture(this.filteredBuffer, 0);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        this.fbo.unbind();
+        this.setSpadPos([0, -0.6]);
+        this.setSpadBoundaries(-0.5, 0.5);
+        this.setSpadPositions(64)
+
+        if (this.fbo != undefined) {
+            this.fbo.bind();
+            this.fbo.drawBuffers(1);
+            // Scene buffers
+            if (this.screenBuffer != undefined) {
+                this.fbo.attachTexture(this.screenBuffer, 0);
+                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            }
+            if (this.capturedBuffer != undefined) {
+                this.fbo.attachTexture(this.capturedBuffer, 0);
+                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            }
+            // Reconstruction buffers
+            if (this.intermediateBuffer != undefined) {
+                this.fbo.attachTexture(this.intermediateBuffer, 0);
+                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            }
+            if (this.unfilteredBuffer != undefined) {
+                this.fbo.attachTexture(this.unfilteredBuffer, 0);
+                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            }
+            if (this.interFiltBuffer != undefined) {
+                this.fbo.attachTexture(this.interFiltBuffer, 0);
+                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            }
+            if (this.filteredBuffer != undefined) {
+                this.fbo.attachTexture(this.filteredBuffer, 0);
+                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            }
+            this.fbo.unbind();
+        }
     }
 
-    Renderer.prototype.setSpreadType = function(type) {
+    Renderer.prototype.setSpreadType = function (type) {
         this.resetActiveBlock();
         this.spreadType = type;
         this.computeSpread();
         this.reset();
     }
-    
-    Renderer.prototype.setNormalizedEmitterPos = function(posA, posB) {
+
+    Renderer.prototype.setNormalizedEmitterPos = function (posA, posB) {
         this.setEmitterPos(
-            [posA[0]*this.width, posA[1]*this.height],
-            [posB[0]*this.width, posB[1]*this.height]
+            [posA[0] * this.width, posA[1] * this.height],
+            [posB[0] * this.width, posB[1] * this.height]
         );
     }
 
     // Compute intersection point between a ray (origin, dir) and a segment from a to b
     function intersect(origin, dir, a, b) {
-        var ba = (b[0]-a[0]) / (b[1]-a[1]);
-        var t = (ba * (origin[1]-a[1]) - origin[0] + a[0]) / (dir[0] - ba * dir[1]);
+        var ba = (b[0] - a[0]) / (b[1] - a[1]);
+        var t = (ba * (origin[1] - a[1]) - origin[0] + a[0]) / (dir[0] - ba * dir[1]);
         if (t >= 0) { // Intersects line
             var t2 = (origin[1] + t * dir[1] - a[1]) / (b[1] - a[1]);
             if (t2 >= 0 && t2 <= 1) { // Intersection inside the segment
@@ -679,123 +740,123 @@
         return [];
     }
 
-    Array.prototype.norm = function() {
-        return Math.sqrt(this[0]*this[0] + this[1]*this[1])
+    Array.prototype.norm = function () {
+        return Math.sqrt(this[0] * this[0] + this[1] * this[1])
     }
 
-    Renderer.prototype.setEmitterPos = function(posA, posB) {
-        this.emitterPos   = this.spreadType == tcore.Renderer.SPREAD_POINT ? posB : posA;
-        this.emitterAngle = this.spreadType == tcore.Renderer.SPREAD_POINT ? 0.0  : Math.atan2(posB[1] - posA[1], posB[0] - posA[0]);
+    Renderer.prototype.setEmitterPos = function (posA, posB) {
+        this.emitterPos = this.spreadType == tcore.Renderer.SPREAD_POINT ? posB : posA;
+        this.emitterAngle = this.spreadType == tcore.Renderer.SPREAD_POINT ? 0.0 : Math.atan2(posB[1] - posA[1], posB[0] - posA[0]);
         this.computeSpread();
 
-        this.laserPos = [((this.emitterPos[0]/this.width)*2.0 - 1.0)*this.aspect, 1.0 - (this.emitterPos[1]/this.height)*2.0];
+        this.laserPos = [((this.emitterPos[0] / this.width) * 2.0 - 1.0) * this.aspect, 1.0 - (this.emitterPos[1] / this.height) * 2.0];
         // this.laserGrid = [1.1999999284744263, 0.0005644477205350995]; // harcoded, TODO: see how to do it programatically
-        var laserFocus = [((posB[0]/this.width)*2.0 - 1.0)*this.aspect, 1.0 - (posB[1]/this.height)*2.0];
-        var dir = [laserFocus[0]-this.laserPos[0], laserFocus[1]-this.laserPos[1]];
+        var laserFocus = [((posB[0] / this.width) * 2.0 - 1.0) * this.aspect, 1.0 - (posB[1] / this.height) * 2.0];
+        var dir = [laserFocus[0] - this.laserPos[0], laserFocus[1] - this.laserPos[1]];
         var mod = dir.norm();
         if (mod == 0) {
             dir = [1, 0];
             mod = 1;
         }
         dir = [dir[0] / mod, dir[1] / mod];
-        this.laserGrid = intersect(this.laserPos, dir, [1.2,1.0], [1.2,-1.0]);
+        this.laserGrid = intersect(this.laserPos, dir, [1.2, 1.0], [1.2, -1.0]);
 
         if (this.laserGrid.length == 0) {
             console.log("The light is not reaching the relay wall");
-            this.laserGrid = [1.78,0];
+            this.laserGrid = [1.78, 0];
         }
 
         this.reset();
     }
 
-    Renderer.prototype.computeSpread = function() {
-        switch(this.spreadType) {
-        case tcore.Renderer.SPREAD_POINT:
-            this.emitterPower = 0.1;
-            this.spatialSpread = 0.0;
-            this.angularSpread = [0.0, Math.PI*2.0];
-            break;
-        case tcore.Renderer.SPREAD_CONE:
-            this.emitterPower = 0.03;
-            this.spatialSpread = 0.0;
-            this.angularSpread = [this.emitterAngle, Math.PI*0.3];
-            break;
-        case tcore.Renderer.SPREAD_BEAM:
-            this.emitterPower = 0.03;
-            this.spatialSpread = 0.4;
-            this.angularSpread = [this.emitterAngle, 0.0];
-            break;
-        case tcore.Renderer.SPREAD_LASER:
-            this.emitterPower = 0.05;
-            this.spatialSpread = 0.0;
-            this.angularSpread = [this.emitterAngle, 0.0];
-            break;
-        case tcore.Renderer.SPREAD_AREA:
-            this.emitterPower = 0.1;
-            this.spatialSpread = 0.4;
-            this.angularSpread = [this.emitterAngle, Math.PI];
-            break;
+    Renderer.prototype.computeSpread = function () {
+        switch (this.spreadType) {
+            case tcore.Renderer.SPREAD_POINT:
+                this.emitterPower = 0.1;
+                this.spatialSpread = 0.0;
+                this.angularSpread = [0.0, Math.PI * 2.0];
+                break;
+            case tcore.Renderer.SPREAD_CONE:
+                this.emitterPower = 0.03;
+                this.spatialSpread = 0.0;
+                this.angularSpread = [this.emitterAngle, Math.PI * 0.3];
+                break;
+            case tcore.Renderer.SPREAD_BEAM:
+                this.emitterPower = 0.03;
+                this.spatialSpread = 0.4;
+                this.angularSpread = [this.emitterAngle, 0.0];
+                break;
+            case tcore.Renderer.SPREAD_LASER:
+                this.emitterPower = 0.05;
+                this.spatialSpread = 0.0;
+                this.angularSpread = [this.emitterAngle, 0.0];
+                break;
+            case tcore.Renderer.SPREAD_AREA:
+                this.emitterPower = 0.1;
+                this.spatialSpread = 0.4;
+                this.angularSpread = [this.emitterAngle, Math.PI];
+                break;
         }
     }
 
-    Renderer.prototype.createQuadVbo = function() {
+    Renderer.prototype.createQuadVbo = function () {
         var vbo = new tgl.VertexBuffer();
         vbo.addAttribute("Position", 3, this.gl.FLOAT, false);
         vbo.addAttribute("TexCoord", 2, this.gl.FLOAT, false);
         vbo.init(4);
         vbo.copy(new Float32Array([
-             1.0,  1.0, 0.0, 1.0, 1.0,
-            -1.0,  1.0, 0.0, 0.0, 1.0,
+            1.0, 1.0, 0.0, 1.0, 1.0,
+            -1.0, 1.0, 0.0, 0.0, 1.0,
             -1.0, -1.0, 0.0, 0.0, 0.0,
-             1.0, -1.0, 0.0, 1.0, 0.0
+            1.0, -1.0, 0.0, 1.0, 0.0
         ]));
-        
+
         return vbo;
     }
 
-    Renderer.prototype.createQuadVbo2 = function() {
+    Renderer.prototype.createQuadVbo2 = function () {
         var vbo = new tgl.VertexBuffer();
         vbo.addAttribute("Position", 2, this.gl.FLOAT, false);
         vbo.init(4);
         vbo.copy(new Float32Array([
-            -1.0,  1.0,
-             1.0,  1.0,
-             1.0, -1.0,
+            -1.0, 1.0,
+            1.0, 1.0,
+            1.0, -1.0,
             -1.0, -1.0,
         ]));
-        
+
         return vbo;
     }
 
-    Renderer.prototype.totalRaysTraced = function() {
+    Renderer.prototype.totalRaysTraced = function () {
         return this.raysTraced;
     }
 
-    Renderer.prototype.maxRayCount = function() {
-        return this.maxPathLength*this.maxSampleCount;
+    Renderer.prototype.maxRayCount = function () {
+        return this.maxPathLength * this.maxSampleCount;
     }
 
-    Renderer.prototype.totalSamplesTraced = function() {
+    Renderer.prototype.totalSamplesTraced = function () {
         return this.samplesTraced;
     }
 
-    Renderer.prototype.progress = function() {
-        return Math.min(this.totalRaysTraced()/this.maxRayCount(), 1.0);
+    Renderer.prototype.progress = function () {
+        return Math.min(this.totalRaysTraced() / this.maxRayCount(), 1.0);
     }
 
-    Renderer.prototype.finished = function() {
+    Renderer.prototype.finished = function () {
         return this.totalSamplesTraced() >= this.maxSampleCount;
     }
 
-    Renderer.prototype.composite = function(count=this.activeBlock) {
+    Renderer.prototype.composite = function (count = this.activeBlock) {
         this.screenBuffer.bind(0);
         this.compositeProgram.bind();
         this.compositeProgram.uniformTexture("Frame", this.screenBuffer);
-        this.compositeProgram.uniformF("Exposure", this.width/(Math.max(this.samplesTraced, this.raySize*count)));
+        this.compositeProgram.uniformF("Exposure", this.width / (Math.max(this.samplesTraced, this.raySize * count)));
         this.quadVbo.draw(this.compositeProgram, this.gl.TRIANGLE_FAN);
     }
 
-    Renderer.prototype.redraw = function() {
+    Renderer.prototype.redraw = function () {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         this.gl.viewport(0, 0, this.width, this.height);
         this.gl.scissor(0, 0, this.width, this.height);
@@ -804,7 +865,7 @@
         this.renderNLOS();
     }
 
-    Renderer.prototype.render = function(timestamp) {
+    Renderer.prototype.render = function (timestamp) {
         this.needsReset = true;
         this.elapsedTimes.push(timestamp);
         if (this.nlosElapsedTimes.length == 0) {
@@ -812,10 +873,10 @@
         }
 
         var current = this.currentState;
-        var next    = 1 - current;
-        
+        var next = 1 - current;
+
         this.fbo.bind();
-        
+
         var gl = this.gl;
         gl.viewport(0, 0, this.raySize, this.raySize);
         gl.scissor(0, 0, this.raySize, this.activeBlock);
@@ -823,7 +884,7 @@
         this.fbo.drawBuffers(4);
         this.rayStates[next].attach(this.fbo);
         this.quadVbo.bind();
-        
+
         if (this.pathLength == 0) {
             this.initProgram.bind();
             this.rayStates[current].rngTex.bind(0);
@@ -836,79 +897,79 @@
             this.initProgram.uniformTexture("Emission", this.emission);
             this.initProgram.uniformTexture("ICDF", this.emissionIcdf);
             this.initProgram.uniformTexture("PDF", this.emissionPdf);
-            this.initProgram.uniform2F("EmitterPos", ((this.emitterPos[0]/this.width)*2.0 - 1.0)*this.aspect, 1.0 - (this.emitterPos[1]/this.height)*2.0);
+            this.initProgram.uniform2F("EmitterPos", ((this.emitterPos[0] / this.width) * 2.0 - 1.0) * this.aspect, 1.0 - (this.emitterPos[1] / this.height) * 2.0);
             this.initProgram.uniform2F("EmitterDir", Math.cos(this.angularSpread[0]), -Math.sin(this.angularSpread[0]));
             this.initProgram.uniformF("EmitterPower", this.emitterPower);
             this.initProgram.uniformF("SpatialSpread", this.spatialSpread);
             this.initProgram.uniform2F("AngularSpread", -this.angularSpread[0], this.angularSpread[1]);
             this.quadVbo.draw(this.initProgram, gl.TRIANGLE_FAN);
-            
+
             current = 1 - current;
-            next    = 1 - next;
+            next = 1 - next;
 
             this.rayStates[next].attach(this.fbo);
         }
-        
+
         var traceProgram = this.tracePrograms[this.currentScene];
         traceProgram.bind();
         this.rayStates[current].bind(traceProgram);
         this.quadVbo.draw(traceProgram, gl.TRIANGLE_FAN);
-        
+
         this.rayStates[next].detach(this.fbo);
-        
+
         gl.disable(gl.SCISSOR_TEST);
         gl.viewport(0, 0, this.width, this.height);
         gl.scissor(0, 0, this.width, this.height);
-        
+
         this.fbo.drawBuffers(1);
         this.fbo.attachTexture(this.waveBuffer, 0);
-        
+
         if (this.pathLength == 0 || this.wavesTraced == 0)
             gl.clear(gl.COLOR_BUFFER_BIT);
-        
+
         gl.enable(gl.BLEND);
-        
+
         this.rayProgram.bind();
         this.rayStates[current].posTex.bind(0);
-        this.rayStates[   next].posTex.bind(1);
+        this.rayStates[next].posTex.bind(1);
         this.rayStates[current].rgbTex.bind(2);
         this.rayStates[current].timeTex.bind(3);
-        this.rayStates[   next].timeTex.bind(4);
-        this.rayProgram.uniformTexture("PosDataA",  this.rayStates[current].posTex);
-        this.rayProgram.uniformTexture("PosDataB",  this.rayStates[   next].posTex);
-        this.rayProgram.uniformTexture("RgbData",   this.rayStates[current].rgbTex);
+        this.rayStates[next].timeTex.bind(4);
+        this.rayProgram.uniformTexture("PosDataA", this.rayStates[current].posTex);
+        this.rayProgram.uniformTexture("PosDataB", this.rayStates[next].posTex);
+        this.rayProgram.uniformTexture("RgbData", this.rayStates[current].rgbTex);
         this.rayProgram.uniformTexture("TimeDataA", this.rayStates[current].timeTex);
-        this.rayProgram.uniformTexture("TimeDataB", this.rayStates[   next].timeTex);
+        this.rayProgram.uniformTexture("TimeDataB", this.rayStates[next].timeTex);
         this.rayProgram.uniformF("Aspect", this.aspect);
         this.rayVbo.bind();
-        this.rayVbo.draw(this.rayProgram, gl.LINES, this.raySize*this.activeBlock*2);
+        this.rayVbo.draw(this.rayProgram, gl.LINES, this.raySize * this.activeBlock * 2);
 
-        this.raysTraced += this.raySize*this.activeBlock;
+        this.raysTraced += this.raySize * this.activeBlock;
         this.pathLength += 1;
 
         this.computeSpadValues(current, next);
-        
+
         this.quadVbo.bind();
 
         if (this.pathLength == this.maxPathLength || this.wavesTraced == 0) {
             this.fbo.attachTexture(this.screenBuffer, 0);
-            
+
             this.waveBuffer.bind(0);
             this.passProgram.bind();
             this.passProgram.uniformTexture("Frame", this.waveBuffer);
             this.quadVbo.draw(this.passProgram, gl.TRIANGLE_FAN);
-        
+
             if (this.pathLength == this.maxPathLength) {
-                this.samplesTraced += this.raySize*this.activeBlock
+                this.samplesTraced += this.raySize * this.activeBlock
                 this.wavesTraced += 1;
                 this.pathLength = 0;
-                
+
                 if (this.elapsedTimes.length > 5) {
                     var avgTime = 0;
                     for (var i = 1; i < this.elapsedTimes.length; ++i)
                         avgTime += this.elapsedTimes[i] - this.elapsedTimes[i - 1];
                     avgTime /= this.elapsedTimes.length - 1;
-                    
+
                     /* Let's try to stay at reasonable frame times. Targeting 16ms is
                        a bit tricky because there's a lot of variability in how often
                        the browser executes this loop and 16ms might well not be
@@ -917,16 +978,16 @@
                         this.activeBlock = Math.max(4, this.activeBlock - 4);
                     else
                         this.activeBlock = Math.min(512, this.activeBlock + 4);
-                    
+
                     this.elapsedTimes = [this.elapsedTimes[this.elapsedTimes.length - 1]];
                 }
 
                 this.elapsedTimes = [];
             }
         }
-        
+
         gl.disable(gl.BLEND);
-        
+
         this.fbo.unbind();
 
         if (this.pathLength == 0) {
@@ -939,12 +1000,12 @@
 
             this.nlosElapsedTimes.push(timestamp);
         }
-        
+
         this.currentState = next;
         this.currentCall++;
     }
 
-    Renderer.prototype.renderNLOS = function() {
+    Renderer.prototype.renderNLOS = function () {
         var gl = this.gl;
 
         this.fbo.bind();
@@ -973,7 +1034,7 @@
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         this.fbo.unbind();
-        
+
         // Render the result
         gl.viewport(this.width, 0, this.width, this.height);
         gl.scissor(this.width, 0, this.width, this.height);
@@ -993,45 +1054,45 @@
         gl.disable(gl.BLEND);
     }
 
-    Renderer.prototype.computeSpadValues = function(current, next) {
+    Renderer.prototype.computeSpadValues = function (current, next) {
         var gl = this.gl;
-        
+
         gl.viewport(0, 0, this.numIntervals, this.spadHeights.length);
         this.fbo.attachTexture(this.capturedBuffer, 0);
-        
+
         this.hProgram.bind();
         this.rayStates[current].posTex.bind(0);
-        this.rayStates[   next].posTex.bind(1);
+        this.rayStates[next].posTex.bind(1);
         this.rayStates[current].rgbTex.bind(2);
         this.rayStates[current].timeTex.bind(3);
-        this.rayStates[   next].timeTex.bind(4);
+        this.rayStates[next].timeTex.bind(4);
         this.spadGridTex.bind(5);
         this.spadNormalsTex.bind(6);
         this.hProgram.uniformF("tmax", this.maxTime);
         this.hProgram.uniformF("spadRadius", this.spadRadius);
         //this.hProgram.uniformI("numSpads", this.spadHeights.length);
-        this.hProgram.uniform2F("startPoint", this.spads[this.numSpads-1].pos[0], this.spads[this.numSpads-1].pos[1]);
+        this.hProgram.uniform2F("startPoint", this.spads[this.numSpads - 1].pos[0], this.spads[this.numSpads - 1].pos[1]);
         this.hProgram.uniform2F("spadDist", 0.0, this.spadHeights[0] - this.spadHeights[1]);
         this.hProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-        this.hProgram.uniformTexture("PosDataA",  this.rayStates[current].posTex);
-        this.hProgram.uniformTexture("PosDataB",  this.rayStates[   next].posTex);
-        this.hProgram.uniformTexture("RgbData",   this.rayStates[current].rgbTex);
+        this.hProgram.uniformTexture("PosDataA", this.rayStates[current].posTex);
+        this.hProgram.uniformTexture("PosDataB", this.rayStates[next].posTex);
+        this.hProgram.uniformTexture("RgbData", this.rayStates[current].rgbTex);
         this.hProgram.uniformTexture("TimeDataA", this.rayStates[current].timeTex);
-        this.hProgram.uniformTexture("SpadGrid",    this.spadGridTex);
+        this.hProgram.uniformTexture("SpadGrid", this.spadGridTex);
         this.hProgram.uniformTexture("SpadNormals", this.spadNormalsTex);
         this.rayVbo2.bind();
-        this.rayVbo2.draw(this.hProgram, gl.POINTS, this.raySize*this.activeBlock);
+        this.rayVbo2.draw(this.hProgram, gl.POINTS, this.raySize * this.activeBlock);
 
         // Restore previous viewport
         gl.viewport(0, 0, this.width, this.height);
     }
 
-    SpectrumRenderer = function(canvas, spectrum) {
+    SpectrumRenderer = function (canvas, spectrum) {
         this.canvas = canvas;
         this.context = this.canvas.getContext('2d');
         this.spectrum = spectrum;
         this.smooth = true;
-        
+
         this.spectrumFill = new Image();
         this.spectrumFill.src = 'Spectrum.png';
         this.spectrumFill.addEventListener('load', this.loadPattern.bind(this));
@@ -1039,45 +1100,45 @@
             this.loadPattern();
     }
 
-    SpectrumRenderer.prototype.setSpectrum = function(spectrum) {
+    SpectrumRenderer.prototype.setSpectrum = function (spectrum) {
         this.spectrum = spectrum;
         this.draw();
     }
 
-    SpectrumRenderer.prototype.loadPattern = function() {
+    SpectrumRenderer.prototype.loadPattern = function () {
         this.pattern = this.context.createPattern(this.spectrumFill, 'repeat-y');
         this.draw();
     }
 
-    SpectrumRenderer.prototype.setColor = function(r, g, b) {
+    SpectrumRenderer.prototype.setColor = function (r, g, b) {
         this.context.strokeStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
     }
 
-    SpectrumRenderer.prototype.drawLine = function(p) {
+    SpectrumRenderer.prototype.drawLine = function (p) {
         this.context.moveTo(p[0], p[1]);
         for (var i = 2; i < p.length; i += 2)
             this.context.lineTo(p[i], p[i + 1]);
     }
 
-    SpectrumRenderer.prototype.setSmooth = function(smooth) {
+    SpectrumRenderer.prototype.setSmooth = function (smooth) {
         this.smooth = smooth;
     }
 
-    SpectrumRenderer.prototype.draw = function() {
+    SpectrumRenderer.prototype.draw = function () {
         var ctx = this.context;
-        
+
         var w = this.canvas.width;
         var h = this.canvas.height;
         var marginX = 10;
         var marginY = 20;
-        
+
         ctx.clearRect(0, 0, w, h);
-        
-        var graphW = w - 2*marginX;
-        var graphH = h - 2*marginY;
-        var graphX = 0*0.5 + marginX;
-        var graphY = 0*0.5 + h - marginY;
-        
+
+        var graphW = w - 2 * marginX;
+        var graphH = h - 2 * marginY;
+        var graphX = 0 * 0.5 + marginX;
+        var graphY = 0 * 0.5 + h - marginY;
+
         var axisX0 = 360;
         var axisX1 = 750;
         var axisY0 = 0.0;
@@ -1085,10 +1146,10 @@
         var xTicks = 50.0;
         var yTicks = 0.2;
         var tickSize = 10;
-        
-        var mapX = function(x) { return graphX + Math.floor(graphW*(x - axisX0)/(axisX1 - axisX0)); };
-        var mapY = function(y) { return graphY - Math.floor(graphH*(y - axisY0)/(axisY1 - axisY0)); };
-        
+
+        var mapX = function (x) { return graphX + Math.floor(graphW * (x - axisX0) / (axisX1 - axisX0)); };
+        var mapY = function (y) { return graphY - Math.floor(graphH * (y - axisY0) / (axisY1 - axisY0)); };
+
         ctx.beginPath();
         this.setColor(128, 128, 128);
         ctx.lineWidth = 1;
@@ -1099,21 +1160,21 @@
             this.drawLine([graphX, mapY(gy), graphX + graphW, mapY(gy)]);
         ctx.stroke();
         ctx.setLineDash([]);
-        
+
         var max = 0.0;
         for (var i = 0; i < this.spectrum.length; ++i)
             max = Math.max(this.spectrum[i], max);
         max *= 1.1;
-            
+
         var grapher = this;
-        var drawGraph = function() {
+        var drawGraph = function () {
             var spectrum = grapher.spectrum;
             var path = new Path2D();
             path.moveTo(0, h);
             for (var gx = axisX0; gx <= axisX1; gx += grapher.smooth ? 15 : 1) {
                 var x = mapX(gx);
-                var sx = spectrum.length*(gx - LAMBDA_MIN)/(LAMBDA_MAX - LAMBDA_MIN);
-                var y = mapY(spectrum[Math.max(Math.min(Math.floor(sx), spectrum.length - 1), 0)]/max);
+                var sx = spectrum.length * (gx - LAMBDA_MIN) / (LAMBDA_MAX - LAMBDA_MIN);
+                var y = mapY(spectrum[Math.max(Math.min(Math.floor(sx), spectrum.length - 1), 0)] / max);
                 if (gx == axisX0)
                     path.moveTo(x, y);
                 else
@@ -1121,19 +1182,19 @@
             }
             return path;
         };
-        
+
         var filled = drawGraph();
         filled.lineTo(graphX + graphW, graphY);
         filled.lineTo(graphX, graphY);
         ctx.fillStyle = this.pattern;
         ctx.fill(filled);
         ctx.fillStyle = "black";
-        
+
         var outline = drawGraph();
         this.setColor(0, 0, 0);
         ctx.lineWidth = 2;
         ctx.stroke(outline);
-        
+
         ctx.beginPath();
         this.setColor(128, 128, 128);
         ctx.lineWidth = 2;
@@ -1145,7 +1206,7 @@
             graphX + tickSize, graphY - graphH
         ]);
         ctx.stroke();
-        
+
         ctx.beginPath();
         ctx.lineWidth = 2;
         for (var gx = axisX0 - 10 + xTicks; gx < axisX1; gx += xTicks)
@@ -1153,14 +1214,14 @@
         for (var gy = axisY0 + yTicks; gy < axisY1; gy += yTicks)
             this.drawLine([graphX, mapY(gy), graphX + tickSize, mapY(gy)]);
         ctx.stroke();
-        
+
         ctx.font = "15px serif";
         ctx.textAlign = "center";
         for (var gx = axisX0 - 10 + xTicks; gx < axisX1; gx += xTicks)
             ctx.fillText(gx, mapX(gx), graphY + 15);
         ctx.fillText("λ", graphX + graphW, graphY + 16);
     }
-    
+
     exports.Renderer = Renderer;
     exports.SpectrumRenderer = SpectrumRenderer;
 })(window.transientcore = window.transientcore || {});
