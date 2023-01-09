@@ -24,6 +24,42 @@ var Shaders = {
         '    gl_Position = vec4(Position, 1.0);\n' +
         '}\n',
 
+    'bp-conf-frag':
+        '#include "preamble"\n\n'                                                          +
+
+        'uniform float tmax;\n\n'                                                          +
+
+        'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
+
+        'uniform float numPixels;\n'                                                       +
+        'uniform vec2 laserPos;\n'                                                         +
+        'uniform vec2 spadPos;\n'                                                          +
+        'uniform vec2 wallPos; // laser and spad grid\n\n'                                 +
+
+        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
+        '        // positions of the considered pixels, on a row\n\n'                      +
+
+        'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
+
+        'void main() {\n'                                                                  +
+        '    float x = floor(mPos.x * numPixels); // [0, numPixels)\n'                     +
+        '    float y = floor(mPos.y * numPixels); // [0, numPixels)\n'                     +
+        '    float pos = x + numPixels * (numPixels - 1.0 - y); // [0, numPixels^2-1)\n'   +
+        '    pos = (pos + 0.5) / (numPixels * numPixels); // (0, 1)\n\n'                   +
+
+        '    vec2 pixelPos = texture2D(planeGrid, vec2(pos, 0.5)).xy;\n'                   +
+        '    float dlp = distance(wallPos, laserPos); // distance laser device to capture' +
+                                                               'd (illuminated) point\n'   +
+        '    float dsp = distance(wallPos, spadPos); // distance spad device to captured ' +
+                                                                               'point\n'   +
+        '    float ds  = distance(wallPos, pixelPos); // distance captured (illuminated) ' +
+                                                        'point to reconstructed point\n'   +
+        '    float dt = 2.0 * ds + dsp + dlp;\n\n'                                         +
+
+        '    float t = dt / tmax;\n'                                                       +
+        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
+        '}\n',
+
     'bp-frag':
         '#include "preamble"\n\n'                                                          +
 
@@ -31,16 +67,11 @@ var Shaders = {
 
         'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
 
-        '//uniform float dsp; // distance spad device to captured points\n'                +
-        '    // should be different for each point but i did not set \n'                   +
-        '    // the device position or account for it in time\n'                           +
-        '//uniform vec2 spadPos;\n'                                                        +
         'uniform vec2 laserPos;\n'                                                         +
         'uniform vec2 laserGrid; // could be more than one, actually\n'                    +
         'uniform vec2 spadPos;\n'                                                          +
         'uniform sampler2D spadGrid;\n\n'                                                  +
 
-        '//uniform float numPixels; // I guess it is set with scissor or sth like that?\n' +
         'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
         '        // positions of the considered pixels, on a row\n\n'                      +
 
@@ -51,9 +82,9 @@ var Shaders = {
         '    vec2 wallSpad = texture2D(spadGrid, vec2(mPos.y, 0.5)).xy;\n'                 +
         '    float dlp = distance(laserGrid, laserPos);\n'                                 +
         '    float dl  = distance(laserGrid, pixelPos);\n'                                 +
-        '    float dsp = distance(wallSpad, spadPos);\n'                                   +
+        '    float dsp = distance(wallSpad, spadPos); // distance spad device to captured' +
+                                                                             ' points\n'   +
         '    float ds  = distance(wallSpad, pixelPos);\n'                                  +
-        '    //dsp = 0.0;\n'                                                               +
         '    float dt = ds + dsp + dl + dlp;\n\n'                                          +
 
         '    float t = dt / tmax;\n'                                                       +
@@ -65,41 +96,27 @@ var Shaders = {
 
         'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
 
-        'uniform float numPixels;\n'                                                       +
-        'uniform int isComplex;\n\n'                                                       +
+        'uniform float numPixels;\n\n'                                                     +
 
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
 
         'const int numSpads = {numSpads};\n\n'                                             +
 
         'void main() {\n'                                                                  +
-        '    float np = float(numPixels);\n'                                               +
-        '    float x = floor(mPos.x * np);\n'                                              +
-        '    float y = floor(mPos.y * np);\n'                                              +
-        '    float pos = x + np * (np - 1.0 - y);\n'                                       +
-        '    pos = (pos + 0.5) / (np * np);\n\n'                                           +
+        '    float x = floor(mPos.x * numPixels);\n'                                       +
+        '    float y = floor(mPos.y * numPixels);\n'                                       +
+        '    float pos = x + numPixels * (numPixels - 1.0 - y);\n'                         +
+        '    pos = (pos + 0.5) / (numPixels * numPixels);\n\n'                             +
 
         '    float spadDist = 1.0 / float(numSpads);\n\n'                                  +
 
-        '    //float fluenceAccum = 0.0;\n'                                                +
         '    vec2 fluenceAccum = vec2(0.0);\n'                                             +
         '    for (int i = 0; i < numSpads; i++) {\n'                                       +
         '        fluenceAccum += texture2D(fluence, vec2(pos, spadDist * (float(i) + 0.5)' +
                                                                               ')).xy;\n'   +
         '    }\n\n'                                                                        +
 
-        '    if (isComplex == 0) {\n'                                                      +
-        '        // Not a complex number\n'                                                +
-        '        gl_FragColor = vec4(abs(fluenceAccum), 0.0, 1.0);\n'                      +
-        '    } else {\n'                                                                   +
-        '        // Complex number, compute module (abs)\n'                                +
-        '        // Result not valid: it accumulates in a texture and sum of abs != abs o' +
-                                                                               'f sum\n'   +
-        '        // gl_FragColor = vec4(length(fluenceAccum), 0.0, 0.0, 1.0);\n'           +
-        '        // So, save both components\n'                                            +
-        '        gl_FragColor = vec4(fluenceAccum, 0.0, 1.0);\n'                           +
-        '    }\n\n'                                                                        +
-
+        '    gl_FragColor = vec4(fluenceAccum, 0.0, 1.0);\n'                               +
         '}\n',
 
     'bp-vert':
@@ -402,17 +419,59 @@ var Shaders = {
         '	gl_FragColor = meanColor;\n'                                                     +
         '}\n',
 
+    'h-conf-vert':
+        '#include "preamble"\n\n'                                                          +
+
+        'uniform sampler2D PosDataA;\n'                                                    +
+        'uniform sampler2D PosDataB;\n'                                                    +
+        'uniform sampler2D RgbData;\n'                                                     +
+        'uniform sampler2D TimeDataA;\n\n'                                                 +
+
+        'uniform float tmax;\n'                                                            +
+        'uniform float spadRadius;\n'                                                      +
+        'uniform vec2 spadPos;    // Position of the physical spad device\n'               +
+        'uniform vec2 SpadGrid;   // Position scanned by device\n'                         +
+        'uniform vec2 SpadNormal;\n\n'                                                     +
+
+        'attribute vec2 TexCoord;\n\n'                                                     +
+
+        'varying vec3 vColor;\n\n'                                                         +
+
+        'const int numSpads = {numSpads};\n\n'                                             +
+
+        'void main() {\n'                                                                  +
+        '    gl_Position = vec4(vec3(-1.0), 1.0);\n\n'                                     +
+
+        '    vec2 posA = texture2D(PosDataA, TexCoord.xy).xy;\n'                           +
+        '    vec2 posB = texture2D(PosDataB, TexCoord.xy).xy;\n'                           +
+        '    vec2 dir = posB - posA;\n'                                                    +
+        '    float t0 = texture2D(TimeDataA, TexCoord.xy).x;\n'                            +
+        '    float biasCorrection = clamp(length(dir)/max(abs(dir.x), abs(dir.y)), 1.0, 1' +
+                                                                           '.414214);\n\n' +
+
+        '    SpadGrid = texture2D(SpadGrid, vec2(y, 0.5)).xy;\n'                           +
+        '    if (distance(posA, SpadGrid) <= spadRadius) {\n'                              +
+        '        float t = t0 + distance(posA, spadPos); // Time needed to reach the sens' +
+                                               'or, assuming vacuum and no occlusions\n'   +
+        '        float x = t / tmax * 2.0 - 1.0;\n\n'                                      +
+
+        '        vec2 dir = spadPos - posA;\n'                                             +
+        '        float cosine = dot(SpadNormal, dir);\n\n'                                 +
+
+        '        gl_PointSize = 1.0;\n'                                                    +
+        '        gl_Position = vec4(x, 0.0, 0.0, 1.0);\n'                                  +
+        '        vColor = max(vec3(0.0), cosine * texture2D(RgbData, TexCoord.xy).rgb*bia' +
+                                      'sCorrection / vec3(spadRadius*spadRadius*PI));\n'   +
+        '    }\n'                                                                          +
+        '}\n',
+
     'h-frag':
         '#include "preamble"\n\n'                                                   +
-
-        'uniform vec2 spadDist;   // Distance between spad points\n\n'              +
 
         'varying vec3 vColor;\n\n'                                                  +
 
         'void main() {\n'                                                           +
-        '    //gl_FragColor = vec4(vColor, 1.0);\n'                                 +
         '    gl_FragColor = vec4((vColor.r+vColor.g+vColor.b)/3.0,0.0,0.0, 1.0);\n' +
-        '    //gl_FragColor = vec4(spadDist, 0.0, 1.0);\n'                          +
         '}\n',
 
     'h-vert':
@@ -427,10 +486,7 @@ var Shaders = {
 
         'uniform float tmax;\n'                                                            +
         'uniform float spadRadius;\n'                                                      +
-        'uniform vec2 spadPos;    // Position of the physical spad device\n'               +
-        'uniform vec2 startPoint; // Location of first spad point (lowest y value)\n'      +
-        'uniform vec2 spadDist;   // Distance between spad points\n'                       +
-        '//uniform int numSpads;\n\n'                                                      +
+        'uniform vec2 spadPos;    // Position of the physical spad device\n\n'             +
 
         'attribute vec2 TexCoord;\n\n'                                                     +
 
@@ -456,12 +512,11 @@ var Shaders = {
         '        if (distance(posA, spadPoint) <= spadRadius) {\n'                         +
         '            float t = t0 + distance(posA, spadPos); // Time needed to reach the ' +
                                            'sensor, assuming vacuum and no occlusions\n'   +
-        '            //t = t0;\n'                                                          +
         '            float x = t / tmax * 2.0 - 1.0;\n'                                    +
         '            y = 2.0 * y - 1.0;\n\n'                                               +
 
         '            vec2 n = texture2D(SpadNormals, vec2(y, 0.5)).xy;\n'                  +
-        '            n = vec2(-1.0, 0.0);\n'                                               +
+        '            //n = vec2(-1.0, 0.0);\n'                                             +
         '            vec2 dir = spadPos - posA;\n'                                         +
         '            float cosine = dot(n, dir);\n\n'                                      +
 
@@ -471,42 +526,7 @@ var Shaders = {
                                   '*biasCorrection / vec3(spadRadius*spadRadius*PI));\n'   +
         '            break;\n'                                                             +
         '        }\n'                                                                      +
-        '    }\n\n'                                                                        +
-
-        '    /*vec2 endPoint = startPoint + vec2(numSpads-1) * spadDist;\n'                +
-        '    vec2 nv = (posA - startPoint) / spadDist;\n'                                  +
-        '    float n = mix(nv.x, nv.y, float(spadDist.y != 0.0));\n'                       +
-        '    // the if works but the mix or sum of mults do not\n'                         +
-        '    if (spadDist.y == 0.0) {\n'                                                   +
-        '        n = nv.x;\n'                                                              +
-        '    } else {\n'                                                                   +
-        '        n = nv.y;\n'                                                              +
         '    }\n'                                                                          +
-        '    if (n < 0.0) {\n'                                                             +
-        '        n = 0.0;\n'                                                               +
-        '    } else {\n'                                                                   +
-        '        float integerPart, decimalPart;\n'                                        +
-        '        integerPart = floor(n);\n'                                                +
-        '        decimalPart = n - integerPart;\n'                                         +
-        '        n = integerPart + float(decimalPart > 0.5);\n'                            +
-        '    }\n'                                                                          +
-        '    vec2 spadPoint = startPoint + vec2(n) * spadDist;\n'                          +
-        '    if (distance(posA, spadPoint) > spadRadius) {\n'                              +
-        '        gl_Position = vec4(vec3(-1.0), 1.0);\n'                                   +
-        '    } else {\n'                                                                   +
-        '        float dsp = distance(posA, spadPos);\n'                                   +
-        '        dsp = 0.0;\n'                                                             +
-        '        float t = (t0 + dsp) / tmax;\n'                                           +
-        '        gl_Position = vec4(2.0*t-1.0, (n+0.5)*2.0/float(numSpads)-1.0, 0.0, 1.0)' +
-                                                                                   ';\n'   +
-        '        gl_PointSize = 1.0;\n'                                                    +
-        '        vec2 n = vec2(-1.0, 0.0);\n'                                              +
-        '        vec2 dir = spadPos - posA;\n'                                             +
-        '        float cosine = dot(n, dir);\n'                                            +
-        '        cosine = 1.0;\n'                                                          +
-        '        vColor = cosine * texture2D(RgbData, TexCoord.xy).rgb*biasCorrection; //' +
-                                                  ' / vec3(spadRadius*spadRadius*PI);\n'   +
-        '    }*/\n'                                                                        +
         '}\n',
 
     'init-frag':
@@ -1255,8 +1275,8 @@ var Shaders = {
         '        vec2 fluenceVec = texture2D(fluence, mPos).xy;\n'                         +
         '        // If complex number, compute module (abs), otherwise, use only the firs' +
                                                                          't component\n'   +
-        '        float fluenceTex = fluenceVec.x * float(1 - isComplex) + length(fluenceV' +
-                                                             'ec) * float(isComplex);\n'   +
+        '        float fluenceTex = abs(fluenceVec.x) * float(1 - isComplex) + length(flu' +
+                                                        'enceVec) * float(isComplex);\n'   +
         '        gl_FragColor = texture2D(colormap, vec2(fluenceTex / texture2D(maxValue,' +
                                                                ' vec2(0.5)).x, 0.5));\n'   +
         '    }\n'                                                                          +

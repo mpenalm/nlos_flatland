@@ -101,9 +101,11 @@
         this.spadRadius = 0.007;
         this.setSpadPos([0, -0.6]);
         this.bboxCorners = [-1.78, 1.0, 0.22, -1.0]; // upper left, bottom right
+        this.isConf = false;
 
         // Shader programs to reconstruct the hidden scene
         this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-frag");
+        this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-frag");
         // this.sumProgram      = new tgl.Shader(Shaders, "bp-vert", "replacedSum"); // added in setSpadPositions
         this.lapProgram = new tgl.Shader(Shaders, "bp-vert", "lap-frag");
         this.gaussProgram = new tgl.Shader(Shaders, "bp-vert", "gauss-frag");
@@ -164,7 +166,7 @@
         this.computePFFilter();
     }
 
-    Renderer.prototype.createVBOs = function() {
+    Renderer.prototype.createVBOs = function () {
         var gl = this.gl;
 
         this.rayVbo = new tgl.VertexBuffer();
@@ -232,9 +234,16 @@
         this.reset();
     }
 
+    Renderer.prototype.setConfocal = function (isConf) {
+        // Will have to change if we add more capture methods
+        this.isConf = isConf;
+        this.resetActiveBlock();
+        this.reset();
+    }
+
     Renderer.prototype.setSpadPositions = function (changedBounds = false) {
         var changePos = (this.spadHeights === undefined || this.spadHeights.length != this.numSpads || changedBounds);
-        
+
         if (changePos && this.spadBoundaries != undefined && this.numSpads != undefined) {
             this.spadHeights = intermediatePositions(this.spadBoundaries[1], this.spadBoundaries[0], this.numSpads);
             this.spadPoints = [];
@@ -254,12 +263,12 @@
                 spadGridData[i * 4 + 3] = 0.0;
             }
             this.spadGridTex = new tgl.Texture(this.numSpads, 1, 4, true, false, true, spadGridData);
-            var spadNormalsData = spadGridData;
+            this.spadNormalsData = spadGridData;
             for (var i = 0; i < this.numSpads; i++) {
-                spadNormalsData[i * 4] = -1.0;
-                spadNormalsData[i * 4 + 1] = 0.0;
+                this.spadNormalsData[i * 4] = -1.0;
+                this.spadNormalsData[i * 4 + 1] = 0.0;
             }
-            this.spadNormalsTex = new tgl.Texture(this.numSpads, 1, 4, true, false, true, spadNormalsData);
+            this.spadNormalsTex = new tgl.Texture(this.numSpads, 1, 4, true, false, true, this.spadNormalsData);
 
             var bpSumFrag = this.replaceNumSpads("bp-sum-frag");
             Shaders["replacedSum"] = bpSumFrag;
@@ -442,49 +451,60 @@
         this.reset();
     }
 
-    Renderer.prototype.computeBackprojection = function (inputTex, outputBuffer, isComplex = false) {
+    Renderer.prototype.computeBackprojection = function (inputTex, outputBuffer) {
         var gl = this.gl;
-
-        gl.viewport(0, 0, this.numPixels * this.numPixels, this.numSpads);
-        this.fbo.attachTexture(this.intermediateBuffer, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
         this.quadVbo.bind();
 
-        // Backprojection divided by spad points
-        this.bpProgram.bind();
-        inputTex.bind(0);
-        this.colormapTex.bind(1);
-        this.spadGridTex.bind(2);
-        this.planeGridTex.bind(3);
-        this.bpProgram.uniformF("tmax", this.maxTime);
-        this.bpProgram.uniformF("deltaT", this.deltaT);
-        this.bpProgram.uniformI("numIntervals", this.numIntervals);
-        this.bpProgram.uniformTexture("fluence", inputTex);
-        this.bpProgram.uniformTexture("colormap", this.colormapTex);
-        // this.bpProgram.uniformF("dsp", 0.0);
-        this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-        this.bpProgram.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
-        this.bpProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-        this.bpProgram.uniformTexture("spadGrid", this.spadGridTex);
-        this.bpProgram.uniformTexture("planeGrid", this.planeGridTex);
-        this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
-        // this.fbo.attachTexture(this.intermediateBuffer, 0);
+        if (this.isConf) {
+            // Confocal data
+            gl.viewport(0, 0, this.numPixels, this.numPixels);
+            this.fbo.attachTexture(outputBuffer, 0);
 
-        gl.viewport(0, 0, this.numPixels, this.numPixels);
-        this.fbo.attachTexture(outputBuffer, 0);
+            this.bpConfProgram.bind();
+            inputTex.bind(0);
+            this.bpConfProgram.uniformF("tmax", this.maxTime);
+            this.bpConfProgram.uniformF("numPixels", this.numPixels);
+            this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+            this.bpConfProgram.uniform2F("wallPos", this.laserGrid[0], this.laserGrid[1]);
+            this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+            this.bpConfProgram.uniformTexture("fluence", this.inputTex);
+            this.bpConfProgram.uniformTexture("planeGrid", this.planeGridTex);
+            this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
+        } else {
+            // Non-confocal data
+            gl.viewport(0, 0, this.numPixels * this.numPixels, this.numSpads);
+            this.fbo.attachTexture(this.intermediateBuffer, 0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
 
-        // Sum all spad points' results
-        this.sumProgram.bind();
-        this.intermediateBuffer.bind(0);
-        this.colormapTex.bind(1);
-        this.sumProgram.uniformF("maxValue", 1.0);
-        this.sumProgram.uniformF("numPixels", this.numPixels);
-        this.sumProgram.uniformF("Aspect", this.aspect);
-        this.sumProgram.uniformI("isComplex", isComplex);
-        this.sumProgram.uniformTexture("fluence", this.intermediateBuffer);
-        this.sumProgram.uniformTexture("colormap", this.colormapTex);
-        this.quadVbo.draw(this.sumProgram, gl.TRIANGLE_FAN);
-        // this.fbo.attachTexture(outputBuffer, 0);
+            // Backprojection divided by spad points
+            this.bpProgram.bind();
+            inputTex.bind(0);
+            this.spadGridTex.bind(1);
+            this.planeGridTex.bind(2);
+            this.bpProgram.uniformF("tmax", this.maxTime);
+            this.bpProgram.uniformI("numIntervals", this.numIntervals);
+            this.bpProgram.uniformTexture("fluence", inputTex);
+            this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+            this.bpProgram.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
+            this.bpProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+            this.bpProgram.uniformTexture("spadGrid", this.spadGridTex);
+            this.bpProgram.uniformTexture("planeGrid", this.planeGridTex);
+            this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
+            // this.fbo.attachTexture(this.intermediateBuffer, 0);
+
+            gl.viewport(0, 0, this.numPixels, this.numPixels);
+            this.fbo.attachTexture(outputBuffer, 0);
+
+            // Sum all spad points' results
+            this.sumProgram.bind();
+            this.intermediateBuffer.bind(0);
+            this.sumProgram.uniformF("maxValue", 1.0);
+            this.sumProgram.uniformF("numPixels", this.numPixels);
+            this.sumProgram.uniformF("Aspect", this.aspect);
+            this.sumProgram.uniformTexture("fluence", this.intermediateBuffer);
+            this.quadVbo.draw(this.sumProgram, gl.TRIANGLE_FAN);
+            // this.fbo.attachTexture(outputBuffer, 0);
+        }
     }
 
     Renderer.prototype.findMax = function (inputTex, isComplex = false) {
@@ -629,31 +649,42 @@
         NumPixels: 1,
         NumSpads: 2,
         BboxCorners: 3,
-        NumIntervals: 4
+        NumIntervals: 4,
+        Confocality: 5,
     }
 
     Renderer.prototype.createNLOSBuffers = function (modifiedAttr) {
         // Common buffers for NLOS reconstruction
-        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.NumSpads)
-            if (this.numPixels != undefined && this.numSpads != undefined)
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.NumSpads || modifiedAttr == ModifiedAttributes.Confocality)
+            if (this.numPixels != undefined && this.numSpads != undefined && !this.isConf)
                 this.intermediateBuffer = new tgl.Texture(this.numPixels * this.numPixels, this.numSpads, 4, true, false, true, null);
+            else
+                this.intermediateBuffer = null;
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels) {
             if (this.numPixels != undefined) {
                 this.unfilteredBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
                 this.filteredBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
             }
         }
-        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
-            if (this.numIntervals != undefined && this.numSpads != undefined)
-                this.capturedBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads || modifiedAttr == ModifiedAttributes.Confocality)
+            if (this.numIntervals != undefined && this.numSpads != undefined) {
+                if (!this.isConf)
+                    this.capturedBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
+                else
+                    this.capturedBuffer = new tgl.Texture(this.numIntervals, 1, 4, true, false, true, null);
+            }
         // Gauss buffer
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels)
             if (this.numPixels != undefined)
                 this.halfFiltered = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
         // PF buffers
-        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
-            if (this.numIntervals != undefined && this.numSpads != undefined)
-                this.interFiltBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads || modifiedAttr == ModifiedAttributes.Confocality)
+            if (this.numIntervals != undefined && this.numSpads != undefined){
+                if (!this.isConf)
+                    this.interFiltBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
+                else
+                    this.interFiltBuffer = new tgl.Texture(this.numIntervals, 1, 4, true, false, true, null);
+            }
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals)
             if (this.numIntervals != undefined)
                 this.filterBuffer = new tgl.Texture(this.numIntervals, 1, 4, true, false, true, null);
@@ -1027,7 +1058,7 @@
 
         if (this.filterType === 'pf') {
             this.filterPF();
-            this.computeBackprojection(this.interFiltBuffer, this.filteredBuffer, true);
+            this.computeBackprojection(this.interFiltBuffer, this.filteredBuffer);
         } else {
             this.computeBackprojection(this.capturedBuffer, this.unfilteredBuffer);
             if (this.filterType === 'gauss')
@@ -1084,8 +1115,6 @@
         this.hProgram.uniformF("tmax", this.maxTime);
         this.hProgram.uniformF("spadRadius", this.spadRadius);
         //this.hProgram.uniformI("numSpads", this.spadHeights.length);
-        this.hProgram.uniform2F("startPoint", this.spads[this.numSpads - 1].pos[0], this.spads[this.numSpads - 1].pos[1]);
-        this.hProgram.uniform2F("spadDist", 0.0, this.spadHeights[0] - this.spadHeights[1]);
         this.hProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
         this.hProgram.uniformTexture("PosDataA", this.rayStates[current].posTex);
         this.hProgram.uniformTexture("PosDataB", this.rayStates[next].posTex);

@@ -3,36 +3,23 @@
 uniform sampler2D fluence; // x time, y spad
 
 uniform float numPixels;
-uniform int isComplex;
 
 varying vec2 mPos; // Pixel coordinates [0,1]
 
 const int numSpads = {numSpads};
 
 void main() {
-    float np = float(numPixels);
-    float x = floor(mPos.x * np);
-    float y = floor(mPos.y * np);
-    float pos = x + np * (np - 1.0 - y);
-    pos = (pos + 0.5) / (np * np);
+    float x = floor(mPos.x * numPixels);
+    float y = floor(mPos.y * numPixels);
+    float pos = x + numPixels * (numPixels - 1.0 - y);
+    pos = (pos + 0.5) / (numPixels * numPixels);
 
     float spadDist = 1.0 / float(numSpads);
 
-    //float fluenceAccum = 0.0;
     vec2 fluenceAccum = vec2(0.0);
     for (int i = 0; i < numSpads; i++) {
         fluenceAccum += texture2D(fluence, vec2(pos, spadDist * (float(i) + 0.5))).xy;
     }
 
-    if (isComplex == 0) {
-        // Not a complex number
-        gl_FragColor = vec4(abs(fluenceAccum), 0.0, 1.0);
-    } else {
-        // Complex number, compute module (abs)
-        // Result not valid: it accumulates in a texture and sum of abs != abs of sum
-        // gl_FragColor = vec4(length(fluenceAccum), 0.0, 0.0, 1.0);
-        // So, save both components
-        gl_FragColor = vec4(fluenceAccum, 0.0, 1.0);
-    }
-
+    gl_FragColor = vec4(fluenceAccum, 0.0, 1.0);
 }

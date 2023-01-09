@@ -165,7 +165,10 @@ Transient.prototype.setupUI = function() {
         renderer.changeReconstructionResolution(width);
     });
     recResolutionSelector.select(3);
-    var captureMethodSelector = new tui.ButtonGroup("capture-selector", true, config.capture_methods, function() {});
+    var captureMethodSelector = new tui.ButtonGroup("capture-selector", true, config.capture_methods, function(idx) {
+        renderer.setConfocal(Boolean(idx));
+    });
+    captureMethodSelector.select(0);
     var spadNumberSelector = new tui.ButtonGroup("spad-selector", false, config.spad_num, function(idx) {
         renderer.changeSpadResolution(config.spad_num[idx]);
     });

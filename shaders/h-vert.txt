@@ -10,9 +10,6 @@ uniform sampler2D SpadNormals;
 uniform float tmax;
 uniform float spadRadius;
 uniform vec2 spadPos;    // Position of the physical spad device
-uniform vec2 startPoint; // Location of first spad point (lowest y value)
-uniform vec2 spadDist;   // Distance between spad points
-//uniform int numSpads;
 
 attribute vec2 TexCoord;
 
@@ -36,12 +33,11 @@ void main() {
 
         if (distance(posA, spadPoint) <= spadRadius) {
             float t = t0 + distance(posA, spadPos); // Time needed to reach the sensor, assuming vacuum and no occlusions
-            //t = t0;
             float x = t / tmax * 2.0 - 1.0;
             y = 2.0 * y - 1.0;
 
             vec2 n = texture2D(SpadNormals, vec2(y, 0.5)).xy;
-            n = vec2(-1.0, 0.0);
+            //n = vec2(-1.0, 0.0);
             vec2 dir = spadPos - posA;
             float cosine = dot(n, dir);
 
@@ -51,37 +47,4 @@ void main() {
             break;
         }
     }
-
-    /*vec2 endPoint = startPoint + vec2(numSpads-1) * spadDist;
-    vec2 nv = (posA - startPoint) / spadDist;
-    float n = mix(nv.x, nv.y, float(spadDist.y != 0.0));
-    // the if works but the mix or sum of mults do not
-    if (spadDist.y == 0.0) {
-        n = nv.x;
-    } else {
-        n = nv.y;
-    }
-    if (n < 0.0) {
-        n = 0.0;
-    } else {
-        float integerPart, decimalPart;
-        integerPart = floor(n);
-        decimalPart = n - integerPart;
-        n = integerPart + float(decimalPart > 0.5);
-    }
-    vec2 spadPoint = startPoint + vec2(n) * spadDist;
-    if (distance(posA, spadPoint) > spadRadius) {
-        gl_Position = vec4(vec3(-1.0), 1.0);
-    } else {
-        float dsp = distance(posA, spadPos);
-        dsp = 0.0;
-        float t = (t0 + dsp) / tmax;
-        gl_Position = vec4(2.0*t-1.0, (n+0.5)*2.0/float(numSpads)-1.0, 0.0, 1.0);
-        gl_PointSize = 1.0;
-        vec2 n = vec2(-1.0, 0.0);
-        vec2 dir = spadPos - posA;
-        float cosine = dot(n, dir);
-        cosine = 1.0;
-        vColor = cosine * texture2D(RgbData, TexCoord.xy).rgb*biasCorrection; // / vec3(spadRadius*spadRadius*PI);
-    }*/
 }
