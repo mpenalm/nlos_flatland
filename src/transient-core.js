@@ -723,6 +723,7 @@
         this.currentCall = 0;
         this.nlosElapsedTimes = [];
         this.setSpadPos([0, -0.6]);
+        this.confCounter = 0;
 
         if (this.fbo != undefined) {
             this.fbo.bind();
@@ -737,7 +738,7 @@
                 this.gl.clear(this.gl.COLOR_BUFFER_BIT);
             }
             // Reconstruction buffers
-            if (this.intermediateBuffer != undefined) {
+            if (this.intermediateBuffer != undefined && this.intermediateBuffer != null) {
                 this.fbo.attachTexture(this.intermediateBuffer, 0);
                 this.gl.clear(this.gl.COLOR_BUFFER_BIT);
             }
@@ -889,7 +890,43 @@
     }
 
     Renderer.prototype.finished = function () {
-        return this.totalSamplesTraced() >= this.maxSampleCount;
+        if (!this.isConf)
+            return this.totalSamplesTraced() >= this.maxSampleCount;
+        else {
+            if (this.totalSamplesTraced() >= this.maxSampleCount) {
+                this.confCounter++;
+                if (this.confCounter == this.numSpads)
+                    return true;
+                this.laserGrid = [this.spadPoints[2*this.confCounter], this.spadPoints[2*this.confCounter+1]];
+                this.partialReset();
+                var emPos = [((this.emitterPos[0] / this.width) * 2.0 - 1.0) * this.aspect, 1.0 - (this.emitterPos[1] / this.height) * 2.0];
+                this.setNormalizedEmitterPos(emPos, this.laserGrid);
+            }
+            return false;
+        }
+    }
+
+    Renderer.prototype.partialReset = function() {
+        this.wavesTraced = 0;
+        this.raysTraced = 0;
+        this.samplesTraced = 0;
+        this.pathLength = 0;
+        this.elapsedTimes = [];
+
+        if (this.fbo != undefined) {
+            this.fbo.bind();
+            this.fbo.drawBuffers(1);
+            // Scene buffers
+            if (this.screenBuffer != undefined) {
+                this.fbo.attachTexture(this.screenBuffer, 0);
+                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            }
+            if (this.capturedBuffer != undefined) {
+                this.fbo.attachTexture(this.capturedBuffer, 0);
+                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            }
+            this.fbo.unbind();
+        }
     }
 
     Renderer.prototype.composite = function (count = this.activeBlock) {
