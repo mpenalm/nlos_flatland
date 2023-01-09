@@ -186,8 +186,8 @@ Transient.prototype.setupUI = function() {
     parent.insertBefore(spadPositionsSlider.label, spadPositionsSlider.nextSibling);
     spadPositionsSlider.label.textContent = "[-0.5, 0.5]";
     spadPositionsSlider.noUiSlider.on('update', function(values) {
-        var low = values[0];
-        var high = values[1];
+        var low = parseFloat(values[0]);
+        var high = parseFloat(values[1]);
         renderer.setSpadBoundaries(low, high);
         spadPositionsSlider.label.textContent = "[" + low + "," + high + "]";
     })

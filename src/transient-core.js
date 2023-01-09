@@ -100,8 +100,7 @@
         this.maxTime = this.numIntervals * this.deltaT; // fix the maxTime to a value that corresponds with integer numIntervals
         this.spadRadius = 0.007;
         this.setSpadPos([0, -0.6]);
-        this.reconstructionSquare = [-1.78, 1.0, 0.22, -1.0]; // upper left, bottom right
-        this.bboxCorners = this.reconstructionSquare;
+        this.bboxCorners = [-1.78, 1.0, 0.22, -1.0]; // upper left, bottom right
 
         // Shader programs to reconstruct the hidden scene
         this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-frag");
@@ -126,38 +125,7 @@
         this.currentState = 0;
         this.rayStates = [new tcore.RayState(this.raySize), new tcore.RayState(this.raySize)];
 
-        this.rayVbo = new tgl.VertexBuffer();
-        this.rayVbo.addAttribute("TexCoord", 3, gl.FLOAT, false);
-        this.rayVbo.init(this.rayCount * 2);
-
-        var vboData = new Float32Array(this.rayCount * 2 * 3);
-        for (var i = 0; i < this.rayCount; ++i) {
-            var u = ((i % this.raySize) + 0.5) / this.raySize;
-            var v = (Math.floor(i / this.raySize) + 0.5) / this.raySize;
-            vboData[i * 6 + 0] = vboData[i * 6 + 3] = u;
-            vboData[i * 6 + 1] = vboData[i * 6 + 4] = v;
-            vboData[i * 6 + 2] = 0.0;
-            vboData[i * 6 + 5] = 1.0;
-        }
-        this.rayVbo.copy(vboData);
-
-        this.rayVbo2 = new tgl.VertexBuffer();
-        this.rayVbo2.addAttribute("TexCoord", 2, gl.FLOAT, false);
-        this.rayVbo2.init(this.rayCount);
-
-        var vboData2 = new Float32Array(this.rayCount * 2);
-        for (var i = 0; i < this.rayCount; ++i) {
-            var u = ((i % this.raySize) + 0.5) / this.raySize;
-            var v = (Math.floor(i / this.raySize) + 0.5) / this.raySize;
-            vboData2[i * 2 + 0] = u;
-            vboData2[i * 2 + 1] = v;
-        }
-        this.rayVbo2.copy(vboData2);
-
-        this.fbo = new tgl.RenderTarget();
-
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.blendFunc(gl.ONE, gl.ONE);
+        this.createVBOs();
 
         this.createNLOSBuffers(ModifiedAttributes.All);
 
@@ -193,8 +161,44 @@
         this.wl = 0.08;
 
         this.filterType = 'pf';
-        // this.filterType = '';
         this.computePFFilter();
+    }
+
+    Renderer.prototype.createVBOs = function() {
+        var gl = this.gl;
+
+        this.rayVbo = new tgl.VertexBuffer();
+        this.rayVbo.addAttribute("TexCoord", 3, gl.FLOAT, false);
+        this.rayVbo.init(this.rayCount * 2);
+
+        var vboData = new Float32Array(this.rayCount * 2 * 3);
+        for (var i = 0; i < this.rayCount; ++i) {
+            var u = ((i % this.raySize) + 0.5) / this.raySize;
+            var v = (Math.floor(i / this.raySize) + 0.5) / this.raySize;
+            vboData[i * 6 + 0] = vboData[i * 6 + 3] = u;
+            vboData[i * 6 + 1] = vboData[i * 6 + 4] = v;
+            vboData[i * 6 + 2] = 0.0;
+            vboData[i * 6 + 5] = 1.0;
+        }
+        this.rayVbo.copy(vboData);
+
+        this.rayVbo2 = new tgl.VertexBuffer();
+        this.rayVbo2.addAttribute("TexCoord", 2, gl.FLOAT, false);
+        this.rayVbo2.init(this.rayCount);
+
+        var vboData2 = new Float32Array(this.rayCount * 2);
+        for (var i = 0; i < this.rayCount; ++i) {
+            var u = ((i % this.raySize) + 0.5) / this.raySize;
+            var v = (Math.floor(i / this.raySize) + 0.5) / this.raySize;
+            vboData2[i * 2 + 0] = u;
+            vboData2[i * 2 + 1] = v;
+        }
+        this.rayVbo2.copy(vboData2);
+
+        this.fbo = new tgl.RenderTarget();
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.blendFunc(gl.ONE, gl.ONE);
     }
 
     Renderer.prototype.replaceNumSpads = function (shaderName) {
@@ -205,33 +209,34 @@
 
     Renderer.prototype.changeSpadResolution = function (numSpads) {
         if (this.spadHeights === undefined || this.spadHeights.length != numSpads) {
-            this.setSpadPositions(numSpads);
+            this.numSpads = numSpads;
+            this.setSpadPositions();
             this.createNLOSBuffers(ModifiedAttributes.NumSpads);
             this.resetActiveBlock();
             this.reset();
         }
     }
 
-    Renderer.prototype.setSpadBoundaries = function(low, high) {
+    Renderer.prototype.setSpadBoundaries = function (low, high) {
         if (this.spadBoundaries === undefined || this.spadBoundaries[0] != low || this.spadBoundaries != high) {
             this.spadBoundaries = [low, high];
-            this.setSpadPositions(this.numSpads, true);
+            this.setSpadPositions(true);
             this.resetActiveBlock();
             this.reset();
         }
     }
 
-    Renderer.prototype.setSpadPos = function(spadPos) {
+    Renderer.prototype.setSpadPos = function (spadPos) {
         this.spadPos = spadPos;
         this.resetActiveBlock();
         this.reset();
     }
 
-    Renderer.prototype.setSpadPositions = function (numSpads, changedBounds = false) {
-        var changePos = (this.spadHeights === undefined || this.spadHeights.length != numSpads || changedBounds);
-        if (changePos && this.spadBoundaries != undefined && numSpads != undefined) {
-            this.numSpads = numSpads;
-            this.spadHeights = intermediatePositions(this.spadBoundaries[1], this.spadBoundaries[0], numSpads);
+    Renderer.prototype.setSpadPositions = function (changedBounds = false) {
+        var changePos = (this.spadHeights === undefined || this.spadHeights.length != this.numSpads || changedBounds);
+        
+        if (changePos && this.spadBoundaries != undefined && this.numSpads != undefined) {
+            this.spadHeights = intermediatePositions(this.spadBoundaries[1], this.spadBoundaries[0], this.numSpads);
             this.spadPoints = [];
 
             this.spads = [];
@@ -630,38 +635,48 @@
     Renderer.prototype.createNLOSBuffers = function (modifiedAttr) {
         // Common buffers for NLOS reconstruction
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.NumSpads)
-            this.intermediateBuffer = new tgl.Texture(this.numPixels * this.numPixels, this.numSpads, 4, true, false, true, null);
+            if (this.numPixels != undefined && this.numSpads != undefined)
+                this.intermediateBuffer = new tgl.Texture(this.numPixels * this.numPixels, this.numSpads, 4, true, false, true, null);
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels) {
-            this.unfilteredBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
-            this.filteredBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
-            if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
-                this.capturedBuffer = new tgl.Texture(this.numIntervals, this.spadHeights.length, 4, true, false, true, null);
-            // Gauss buffer
-            this.halfFiltered = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
+            if (this.numPixels != undefined) {
+                this.unfilteredBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
+                this.filteredBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
+            }
         }
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
+            if (this.numIntervals != undefined && this.numSpads != undefined)
+                this.capturedBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
+        // Gauss buffer
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels)
+            if (this.numPixels != undefined)
+                this.halfFiltered = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
         // PF buffers
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
-            this.interFiltBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
+            if (this.numIntervals != undefined && this.numSpads != undefined)
+                this.interFiltBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals)
-            this.filterBuffer = new tgl.Texture(this.numIntervals, 1, 4, true, false, true, null);
+            if (this.numIntervals != undefined)
+                this.filterBuffer = new tgl.Texture(this.numIntervals, 1, 4, true, false, true, null);
 
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.BboxCorners) {
-            var xValues = linspace(this.bboxCorners[0], this.bboxCorners[2], this.numPixels);
-            var yValues = linspace(this.bboxCorners[1], this.bboxCorners[3], this.numPixels);
-            xv = xValues;
-            yv = yValues;
-            var planeGridData = new Float32Array(this.numPixels * this.numPixels * 4);
-            var k = 0;
-            for (var i = 0; i < this.numPixels; i++) {
-                for (var j = 0; j < this.numPixels; j++) {
-                    planeGridData[k] = xValues[j];
-                    planeGridData[k + 1] = yValues[i];
-                    planeGridData[k + 2] = 0.0;
-                    planeGridData[k + 3] = 0.0;
-                    k += 4;
+            if (this.numPixels != undefined && this.bboxCorners != undefined) {
+                var xValues = linspace(this.bboxCorners[0], this.bboxCorners[2], this.numPixels);
+                var yValues = linspace(this.bboxCorners[1], this.bboxCorners[3], this.numPixels);
+                xv = xValues;
+                yv = yValues;
+                var planeGridData = new Float32Array(this.numPixels * this.numPixels * 4);
+                var k = 0;
+                for (var i = 0; i < this.numPixels; i++) {
+                    for (var j = 0; j < this.numPixels; j++) {
+                        planeGridData[k] = xValues[j];
+                        planeGridData[k + 1] = yValues[i];
+                        planeGridData[k + 2] = 0.0;
+                        planeGridData[k + 3] = 0.0;
+                        k += 4;
+                    }
                 }
+                this.planeGridTex = new tgl.Texture(this.numPixels * this.numPixels, 1, 4, true, false, true, planeGridData);
             }
-            this.planeGridTex = new tgl.Texture(this.numPixels * this.numPixels, 1, 4, true, false, true, planeGridData);
         }
     }
 
@@ -677,8 +692,6 @@
         this.currentCall = 0;
         this.nlosElapsedTimes = [];
         this.setSpadPos([0, -0.6]);
-        this.setSpadBoundaries(-0.5, 0.5);
-        this.setSpadPositions(64)
 
         if (this.fbo != undefined) {
             this.fbo.bind();
