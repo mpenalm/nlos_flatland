@@ -17,7 +17,8 @@ varying vec2 mPos; // Pixel coordinates [0,1]
 void main() {
     float x = floor(mPos.x * numPixels); // [0, numPixels)
     float y = floor(mPos.y * numPixels); // [0, numPixels)
-    float pos = x + numPixels * (numPixels - 1.0 - y); // [0, numPixels^2-1)
+    gl_FragColor = vec4(x > 0.5, y > 0.5, (x > 0.5) && (y > 0.5), true);
+    /*float pos = x + numPixels * (numPixels - 1.0 - y); // [0, numPixels^2-1)
     pos = (pos + 0.5) / (numPixels * numPixels); // (0, 1)
 
     vec2 pixelPos = texture2D(planeGrid, vec2(pos, 0.5)).xy;
@@ -27,5 +28,6 @@ void main() {
     float dt = 2.0 * ds + dsp + dlp;
 
     float t = dt / tmax;
-    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));
+    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));*/
+    gl_FragColor = vec4(x, y, 0.0, 1.0);
 }

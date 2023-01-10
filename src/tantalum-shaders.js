@@ -44,7 +44,8 @@ var Shaders = {
         'void main() {\n'                                                                  +
         '    float x = floor(mPos.x * numPixels); // [0, numPixels)\n'                     +
         '    float y = floor(mPos.y * numPixels); // [0, numPixels)\n'                     +
-        '    float pos = x + numPixels * (numPixels - 1.0 - y); // [0, numPixels^2-1)\n'   +
+        '    gl_FragColor = vec4(x > 0.5, y > 0.5, (x > 0.5) && (y > 0.5), true);\n'       +
+        '    /*float pos = x + numPixels * (numPixels - 1.0 - y); // [0, numPixels^2-1)\n' +
         '    pos = (pos + 0.5) / (numPixels * numPixels); // (0, 1)\n\n'                   +
 
         '    vec2 pixelPos = texture2D(planeGrid, vec2(pos, 0.5)).xy;\n'                   +
@@ -57,7 +58,8 @@ var Shaders = {
         '    float dt = 2.0 * ds + dsp + dlp;\n\n'                                         +
 
         '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
+        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));*/\n'                      +
+        '    gl_FragColor = vec4(x, y, 0.0, 1.0);\n'                                       +
         '}\n',
 
     'bp-frag':
@@ -420,49 +422,46 @@ var Shaders = {
         '}\n',
 
     'h-conf-vert':
-        '#include "preamble"\n\n'                                                          +
+        '#include "preamble"\n\n'                                                           +
 
-        'uniform sampler2D PosDataA;\n'                                                    +
-        'uniform sampler2D PosDataB;\n'                                                    +
-        'uniform sampler2D RgbData;\n'                                                     +
-        'uniform sampler2D TimeDataA;\n\n'                                                 +
+        'uniform sampler2D PosDataA;\n'                                                     +
+        'uniform sampler2D PosDataB;\n'                                                     +
+        'uniform sampler2D RgbData;\n'                                                      +
+        'uniform sampler2D TimeDataA;\n\n'                                                  +
 
-        'uniform float tmax;\n'                                                            +
-        'uniform float spadRadius;\n'                                                      +
-        'uniform vec2 spadPos;    // Position of the physical spad device\n'               +
-        'uniform vec2 SpadGrid;   // Position scanned by device\n'                         +
-        'uniform vec2 SpadNormal;\n\n'                                                     +
+        'uniform float tmax;\n'                                                             +
+        'uniform float spadRadius;\n'                                                       +
+        'uniform vec2 spadPos;    // Position of the physical spad device\n'                +
+        'uniform vec2 SpadGrid;   // Position scanned by device and illuminated by laser\n' +
+        'uniform vec2 SpadNormal;\n\n'                                                      +
 
-        'attribute vec2 TexCoord;\n\n'                                                     +
+        'attribute vec2 TexCoord;\n\n'                                                      +
 
-        'varying vec3 vColor;\n\n'                                                         +
+        'varying vec3 vColor;\n\n'                                                          +
 
-        'const int numSpads = {numSpads};\n\n'                                             +
+        'void main() {\n'                                                                   +
+        '    gl_Position = vec4(vec3(-1.0), 1.0);\n\n'                                      +
 
-        'void main() {\n'                                                                  +
-        '    gl_Position = vec4(vec3(-1.0), 1.0);\n\n'                                     +
+        '    vec2 posA = texture2D(PosDataA, TexCoord.xy).xy;\n'                            +
+        '    vec2 posB = texture2D(PosDataB, TexCoord.xy).xy;\n'                            +
+        '    vec2 dir = posB - posA;\n'                                                     +
+        '    float t0 = texture2D(TimeDataA, TexCoord.xy).x;\n'                             +
+        '    float biasCorrection = clamp(length(dir)/max(abs(dir.x), abs(dir.y)), 1.0, 1'  +
+                                                                           '.414214);\n\n'  +
 
-        '    vec2 posA = texture2D(PosDataA, TexCoord.xy).xy;\n'                           +
-        '    vec2 posB = texture2D(PosDataB, TexCoord.xy).xy;\n'                           +
-        '    vec2 dir = posB - posA;\n'                                                    +
-        '    float t0 = texture2D(TimeDataA, TexCoord.xy).x;\n'                            +
-        '    float biasCorrection = clamp(length(dir)/max(abs(dir.x), abs(dir.y)), 1.0, 1' +
-                                                                           '.414214);\n\n' +
+        '    if (distance(posA, SpadGrid) <= spadRadius) {\n'                               +
+        '        float t = t0 + distance(posA, spadPos); // Time needed to reach the sens'  +
+                                               'or, assuming vacuum and no occlusions\n'    +
+        '        float x = t / tmax * 2.0 - 1.0;\n\n'                                       +
 
-        '    SpadGrid = texture2D(SpadGrid, vec2(y, 0.5)).xy;\n'                           +
-        '    if (distance(posA, SpadGrid) <= spadRadius) {\n'                              +
-        '        float t = t0 + distance(posA, spadPos); // Time needed to reach the sens' +
-                                               'or, assuming vacuum and no occlusions\n'   +
-        '        float x = t / tmax * 2.0 - 1.0;\n\n'                                      +
+        '        vec2 dir = spadPos - posA;\n'                                              +
+        '        float cosine = dot(SpadNormal, dir);\n\n'                                  +
 
-        '        vec2 dir = spadPos - posA;\n'                                             +
-        '        float cosine = dot(SpadNormal, dir);\n\n'                                 +
-
-        '        gl_PointSize = 1.0;\n'                                                    +
-        '        gl_Position = vec4(x, 0.0, 0.0, 1.0);\n'                                  +
-        '        vColor = max(vec3(0.0), cosine * texture2D(RgbData, TexCoord.xy).rgb*bia' +
-                                      'sCorrection / vec3(spadRadius*spadRadius*PI));\n'   +
-        '    }\n'                                                                          +
+        '        gl_PointSize = 1.0;\n'                                                     +
+        '        gl_Position = vec4(x, 0.0, 0.0, 1.0);\n'                                   +
+        '        vColor = max(vec3(0.0), cosine * texture2D(RgbData, TexCoord.xy).rgb*bia'  +
+                                      'sCorrection / vec3(spadRadius*spadRadius*PI));\n'    +
+        '    }\n'                                                                           +
         '}\n',
 
     'h-frag':
@@ -1263,7 +1262,6 @@ var Shaders = {
         'uniform sampler2D colormap;\n\n'                                                  +
 
         'uniform sampler2D maxValue; // it would be nice to check what is faster\n'        +
-        'uniform int numSpads;\n'                                                          +
         'uniform int isComplex;\n\n'                                                       +
 
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
@@ -1273,12 +1271,14 @@ var Shaders = {
         '        gl_FragColor = vec4(vec3(0.0), 1.0);\n'                                   +
         '    } else {\n'                                                                   +
         '        vec2 fluenceVec = texture2D(fluence, mPos).xy;\n'                         +
-        '        // If complex number, compute module (abs), otherwise, use only the firs' +
-                                                                         't component\n'   +
+        '        // If complex number, compute module (length), otherwise, use only the f' +
+                                                                      'irst component\n'   +
         '        float fluenceTex = abs(fluenceVec.x) * float(1 - isComplex) + length(flu' +
                                                         'enceVec) * float(isComplex);\n'   +
         '        gl_FragColor = texture2D(colormap, vec2(fluenceTex / texture2D(maxValue,' +
                                                                ' vec2(0.5)).x, 0.5));\n'   +
+        '        gl_FragColor = texture2D(fluence, mPos);\n'                               +
+        '        //gl_FragColor = vec4(mPos, 0.0, 1.0);\n'                                 +
         '    }\n'                                                                          +
         '}\n',
 

@@ -58,6 +58,15 @@
         return kernel;
     }
 
+    function scene2canvas(pos, aspect, width, height) {
+        var result = [0, 0];
+        result[0] = pos[0] / (2*aspect) + 0.5;
+        result[1] = 0.5 - pos[1] / 2;
+        result[0] *= width;
+        result[1] *= height;
+        return result;
+    }
+
     var SpadData = function (pos, radius, deltaT, maxTime) {
         this.pos = pos;
         this.radius = radius;
@@ -71,7 +80,7 @@
         this.quadVbo2 = this.createQuadVbo2();
 
         this.maxSampleCount = 100000;
-        this.spreadType = tcore.Renderer.SPREAD_POINT;
+        this.spreadType = tcore.Renderer.SPREAD_LASER;
         this.emissionSpectrumType = tcore.Renderer.SPECTRUM_WHITE;
         this.emitterTemperature = 5000.0;
         this.emitterGas = 0;
@@ -84,8 +93,9 @@
         this.passProgram = new tgl.Shader(Shaders, "compose-vert", "pass-frag");
         this.initProgram = new tgl.Shader(Shaders, "init-vert", "init-frag");
         this.rayProgram = new tgl.Shader(Shaders, "ray-vert", "ray-frag");
+        this.hConfProgram = new tgl.Shader(Shaders, "h-conf-vert", "h-frag");
         // this.hProgram         = new tgl.Shader(Shaders,       "h-vert",       "h-frag"); // added in setSpadPositions
-        this.tracePrograms = []
+        this.tracePrograms = [];
         for (var i = 0; i < scenes.length; ++i)
             this.tracePrograms.push(new tgl.Shader(Shaders, "trace-vert", scenes[i]));
 
@@ -236,7 +246,17 @@
 
     Renderer.prototype.setConfocal = function (isConf) {
         // Will have to change if we add more capture methods
-        this.isConf = isConf;
+        if (this.isConf != isConf) {
+            this.isConf = isConf;
+            if (!isConf) {
+                this.laserGrid = [1.2, (this.spadBoundaries[0] + this.spadBoundaries[1]) / 2];
+                this.setEmitterPos(this.emitterPos, scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
+            } else {
+                this.laserGrid = [this.spadPoints[2 * this.confCounter], this.spadPoints[2 * this.confCounter + 1]];
+                this.setEmitterPos(this.emitterPos, scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
+            }
+            this.createNLOSBuffers(ModifiedAttributes.Confocality);
+        }
         this.resetActiveBlock();
         this.reset();
     }
@@ -461,15 +481,19 @@
             this.fbo.attachTexture(outputBuffer, 0);
 
             this.bpConfProgram.bind();
-            inputTex.bind(0);
-            this.bpConfProgram.uniformF("tmax", this.maxTime);
-            this.bpConfProgram.uniformF("numPixels", this.numPixels);
-            this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-            this.bpConfProgram.uniform2F("wallPos", this.laserGrid[0], this.laserGrid[1]);
-            this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-            this.bpConfProgram.uniformTexture("fluence", this.inputTex);
-            this.bpConfProgram.uniformTexture("planeGrid", this.planeGridTex);
-            this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
+            // inputTex.bind(0);
+            // this.planeGridTex.bind(1);
+            // this.bpConfProgram.uniformF("tmax", this.maxTime);
+            // this.bpConfProgram.uniformF("numPixels", this.numPixels);
+            // this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+            // this.bpConfProgram.uniform2F("wallPos", this.laserGrid[0], this.laserGrid[1]);
+            // this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+            // this.bpConfProgram.uniformTexture("fluence", this.inputTex);
+            // this.bpConfProgram.uniformTexture("planeGrid", this.planeGridTex);
+            this.quadVbo.draw(this.bpConfProgram, gl.TRIANGLE_FAN);
+
+            result = outputBuffer.getArray(this.numPixels*this.numPixels);
+            this.fbo.bind();
         } else {
             // Non-confocal data
             gl.viewport(0, 0, this.numPixels * this.numPixels, this.numSpads);
@@ -679,7 +703,7 @@
                 this.halfFiltered = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
         // PF buffers
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads || modifiedAttr == ModifiedAttributes.Confocality)
-            if (this.numIntervals != undefined && this.numSpads != undefined){
+            if (this.numIntervals != undefined && this.numSpads != undefined) {
                 if (!this.isConf)
                     this.interFiltBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
                 else
@@ -724,6 +748,7 @@
         this.nlosElapsedTimes = [];
         this.setSpadPos([0, -0.6]);
         this.confCounter = 0;
+        console.log('reset');
 
         if (this.fbo != undefined) {
             this.fbo.bind();
@@ -789,13 +814,12 @@
         return Math.sqrt(this[0] * this[0] + this[1] * this[1])
     }
 
-    Renderer.prototype.setEmitterPos = function (posA, posB) {
+    Renderer.prototype.setEmitterPos = function (posA, posB, reset = true) {
         this.emitterPos = this.spreadType == tcore.Renderer.SPREAD_POINT ? posB : posA;
         this.emitterAngle = this.spreadType == tcore.Renderer.SPREAD_POINT ? 0.0 : Math.atan2(posB[1] - posA[1], posB[0] - posA[0]);
         this.computeSpread();
 
         this.laserPos = [((this.emitterPos[0] / this.width) * 2.0 - 1.0) * this.aspect, 1.0 - (this.emitterPos[1] / this.height) * 2.0];
-        // this.laserGrid = [1.1999999284744263, 0.0005644477205350995]; // harcoded, TODO: see how to do it programatically
         var laserFocus = [((posB[0] / this.width) * 2.0 - 1.0) * this.aspect, 1.0 - (posB[1] / this.height) * 2.0];
         var dir = [laserFocus[0] - this.laserPos[0], laserFocus[1] - this.laserPos[1]];
         var mod = dir.norm();
@@ -811,7 +835,8 @@
             this.laserGrid = [1.78, 0];
         }
 
-        this.reset();
+        if (reset)
+            this.reset();
     }
 
     Renderer.prototype.computeSpread = function () {
@@ -893,20 +918,21 @@
         if (!this.isConf)
             return this.totalSamplesTraced() >= this.maxSampleCount;
         else {
+            if (this.confCounter >= this.numSpads)
+                return true;
             if (this.totalSamplesTraced() >= this.maxSampleCount) {
                 this.confCounter++;
-                if (this.confCounter == this.numSpads)
+                if (this.confCounter >= this.numSpads)
                     return true;
-                this.laserGrid = [this.spadPoints[2*this.confCounter], this.spadPoints[2*this.confCounter+1]];
+                this.laserGrid = [this.spadPoints[2 * this.confCounter], this.spadPoints[2 * this.confCounter + 1]];
+                this.setEmitterPos(this.emitterPos, scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
                 this.partialReset();
-                var emPos = [((this.emitterPos[0] / this.width) * 2.0 - 1.0) * this.aspect, 1.0 - (this.emitterPos[1] / this.height) * 2.0];
-                this.setNormalizedEmitterPos(emPos, this.laserGrid);
             }
             return false;
         }
     }
 
-    Renderer.prototype.partialReset = function() {
+    Renderer.prototype.partialReset = function () {
         this.wavesTraced = 0;
         this.raysTraced = 0;
         this.samplesTraced = 0;
@@ -1079,7 +1105,7 @@
 
             this.renderNLOS();
 
-            this.nlosElapsedTimes.push(timestamp);
+            //this.nlosElapsedTimes.push(timestamp);
         }
 
         this.currentState = next;
@@ -1115,7 +1141,7 @@
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         this.fbo.unbind();
-
+/*
         // Render the result
         gl.viewport(this.width, 0, this.width, this.height);
         gl.scissor(this.width, 0, this.width, this.height);
@@ -1131,37 +1157,74 @@
         this.showProgram.uniformTexture("fluence", this.filteredBuffer);
         this.showProgram.uniformTexture("maxValue", maxValueTex);
         this.quadVbo.draw(this.showProgram, gl.TRIANGLE_FAN);
+*/
 
+        gl.viewport(this.width, 0, this.width, this.height);
+        gl.scissor(this.width, 0, this.width, this.height);
+
+        this.showProgram.bind();
+        this.colormapTex.bind(0);
+        this.filteredBuffer.bind(1);
+        maxValueTex.bind(2);
+        this.showProgram.uniformF("Aspect", this.aspect);
+        this.showProgram.uniformI("numSpads", this.numSpads);
+        this.showProgram.uniformI("isComplex", this.filterType === 'pf');
+        this.showProgram.uniformTexture("colormap", this.colormapTex);
+        this.showProgram.uniformTexture("fluence", this.filteredBuffer);
+        this.showProgram.uniformTexture("maxValue", maxValueTex);
+        this.quadVbo.draw(this.showProgram, gl.TRIANGLE_FAN);
         gl.disable(gl.BLEND);
     }
 
     Renderer.prototype.computeSpadValues = function (current, next) {
         var gl = this.gl;
 
-        gl.viewport(0, 0, this.numIntervals, this.spadHeights.length);
-        this.fbo.attachTexture(this.capturedBuffer, 0);
+        if (!this.isConf) {
+            gl.viewport(0, 0, this.numIntervals, this.numSpads);
+            this.fbo.attachTexture(this.capturedBuffer, 0);
 
-        this.hProgram.bind();
-        this.rayStates[current].posTex.bind(0);
-        this.rayStates[next].posTex.bind(1);
-        this.rayStates[current].rgbTex.bind(2);
-        this.rayStates[current].timeTex.bind(3);
-        this.rayStates[next].timeTex.bind(4);
-        this.spadGridTex.bind(5);
-        this.spadNormalsTex.bind(6);
-        this.hProgram.uniformF("tmax", this.maxTime);
-        this.hProgram.uniformF("spadRadius", this.spadRadius);
-        //this.hProgram.uniformI("numSpads", this.spadHeights.length);
-        this.hProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-        this.hProgram.uniformTexture("PosDataA", this.rayStates[current].posTex);
-        this.hProgram.uniformTexture("PosDataB", this.rayStates[next].posTex);
-        this.hProgram.uniformTexture("RgbData", this.rayStates[current].rgbTex);
-        this.hProgram.uniformTexture("TimeDataA", this.rayStates[current].timeTex);
-        this.hProgram.uniformTexture("SpadGrid", this.spadGridTex);
-        this.hProgram.uniformTexture("SpadNormals", this.spadNormalsTex);
-        this.rayVbo2.bind();
-        this.rayVbo2.draw(this.hProgram, gl.POINTS, this.raySize * this.activeBlock);
+            this.hProgram.bind();
+            this.rayStates[current].posTex.bind(0);
+            this.rayStates[next].posTex.bind(1);
+            this.rayStates[current].rgbTex.bind(2);
+            this.rayStates[current].timeTex.bind(3);
+            this.rayStates[next].timeTex.bind(4);
+            this.spadGridTex.bind(5);
+            this.spadNormalsTex.bind(6);
+            this.hProgram.uniformF("tmax", this.maxTime);
+            this.hProgram.uniformF("spadRadius", this.spadRadius);
+            this.hProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+            this.hProgram.uniformTexture("PosDataA", this.rayStates[current].posTex);
+            this.hProgram.uniformTexture("PosDataB", this.rayStates[next].posTex);
+            this.hProgram.uniformTexture("RgbData", this.rayStates[current].rgbTex);
+            this.hProgram.uniformTexture("TimeDataA", this.rayStates[current].timeTex);
+            this.hProgram.uniformTexture("SpadGrid", this.spadGridTex);
+            this.hProgram.uniformTexture("SpadNormals", this.spadNormalsTex);
+            this.rayVbo2.bind();
+            this.rayVbo2.draw(this.hProgram, gl.POINTS, this.raySize * this.activeBlock);
+        } else {
+            gl.viewport(0, 0, this.numIntervals, 1);
+            this.fbo.attachTexture(this.capturedBuffer, 0);
 
+            this.hConfProgram.bind();
+            this.rayStates[current].posTex.bind(0);
+            this.rayStates[next].posTex.bind(1);
+            this.rayStates[current].rgbTex.bind(2);
+            this.rayStates[current].timeTex.bind(3);
+            this.rayStates[next].timeTex.bind(4);
+            this.spadNormalsTex.bind(6);
+            this.hConfProgram.uniformF("tmax", this.maxTime);
+            this.hConfProgram.uniformF("spadRadius", this.spadRadius);
+            this.hConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+            this.hConfProgram.uniform2F("SpadGrid", this.laserGrid[0], this.laserGrid[1]);
+            this.hConfProgram.uniform2F("SpadNormal", this.spadNormalsData[2 * this.confCounter], this.spadNormalsData[2 * this.confCounter + 1]);
+            this.hConfProgram.uniformTexture("PosDataA", this.rayStates[current].posTex);
+            this.hConfProgram.uniformTexture("PosDataB", this.rayStates[next].posTex);
+            this.hConfProgram.uniformTexture("RgbData", this.rayStates[current].rgbTex);
+            this.hConfProgram.uniformTexture("TimeDataA", this.rayStates[current].timeTex);
+            this.hConfProgram.bind();
+            this.rayVbo2.draw(this.hConfProgram, gl.POINTS, this.raySize * this.activeBlock);
+        }
         // Restore previous viewport
         gl.viewport(0, 0, this.width, this.height);
     }
