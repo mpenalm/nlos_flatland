@@ -282,10 +282,16 @@ var tgl = {'init': function(gl, multiBufExt) {
             gl.uniform2f(id, f1, f2);
     }
 
-    tgl.Shader.prototype.uniformI = function(name, f) {
+    tgl.Shader.prototype.uniformFV = function(name, v) {
         var id = this.uniformIndex(name);
         if (id != -1)
-            gl.uniform1i(id, f);
+            gl.uniform1fv(id, v);
+    }
+
+    tgl.Shader.prototype.uniformI = function(name, i) {
+        var id = this.uniformIndex(name);
+        if (id != -1)
+            gl.uniform1i(id, i);
     }
     
     tgl.VertexBuffer = function() {

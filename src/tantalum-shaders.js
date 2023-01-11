@@ -44,8 +44,7 @@ var Shaders = {
         'void main() {\n'                                                                  +
         '    float x = floor(mPos.x * numPixels); // [0, numPixels)\n'                     +
         '    float y = floor(mPos.y * numPixels); // [0, numPixels)\n'                     +
-        '    gl_FragColor = vec4(x > 0.5, y > 0.5, (x > 0.5) && (y > 0.5), true);\n'       +
-        '    /*float pos = x + numPixels * (numPixels - 1.0 - y); // [0, numPixels^2-1)\n' +
+        '    float pos = x + numPixels * (numPixels - 1.0 - y); // [0, numPixels^2-1)\n'   +
         '    pos = (pos + 0.5) / (numPixels * numPixels); // (0, 1)\n\n'                   +
 
         '    vec2 pixelPos = texture2D(planeGrid, vec2(pos, 0.5)).xy;\n'                   +
@@ -58,8 +57,8 @@ var Shaders = {
         '    float dt = 2.0 * ds + dsp + dlp;\n\n'                                         +
 
         '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));*/\n'                      +
-        '    gl_FragColor = vec4(x, y, 0.0, 1.0);\n'                                       +
+        '    gl_FragColor = vec4(t, 0.0, 0.0, 1.0);\n'                                     +
+        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
         '}\n',
 
     'bp-frag':
@@ -823,7 +822,7 @@ var Shaders = {
         'void main() {\n'                                                               +
         '    float t = texture2D(timeTex, vec2(mPos.x, 0.5)).x;\n'                      +
         '    float tmax = deltaT * float(numIntervals);\n'                              +
-        '    float sigma = wl;\n\n'                                                     +
+        '    float sigma = 3.0*wl;\n\n'                                                 +
 
         '    //float pf = exp(-(t-tmax/2.0) * (t-tmax/2.0) / (4*sigma*sigma)) *\n'      +
         '    //    exp(2i * pi / wl * t);\n\n'                                          +
@@ -1277,8 +1276,6 @@ var Shaders = {
                                                         'enceVec) * float(isComplex);\n'   +
         '        gl_FragColor = texture2D(colormap, vec2(fluenceTex / texture2D(maxValue,' +
                                                                ' vec2(0.5)).x, 0.5));\n'   +
-        '        gl_FragColor = texture2D(fluence, mPos);\n'                               +
-        '        //gl_FragColor = vec4(mPos, 0.0, 1.0);\n'                                 +
         '    }\n'                                                                          +
         '}\n',
 
