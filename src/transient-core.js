@@ -531,7 +531,7 @@
     Renderer.prototype.findMax = function (inputTex, isComplex = false) {
         // Find maximum value, dividing the area by 4 in each pass
         var numPixels = this.numPixels;
-        var numPixels = this.numIntervals;
+        // var numPixels = this.numIntervals;
         var maxBuffers = [inputTex];
 
         var gl = this.gl;
@@ -643,9 +643,10 @@
         this.pfKernelProgram.uniformF("deltaT", this.deltaT);
         this.pfKernelProgram.uniformF("wl", this.wl);
         this.pfKernelProgram.uniformTexture("timeTex", this.timeVectorTex);
+        this.quadVbo.bind();
         this.quadVbo.draw(this.pfKernelProgram, gl.TRIANGLE_FAN);
 
-        //this.pfFilterValues = this.filterBuffer.getArray(this.numIntervals);
+        this.pfFilterValues = this.filterBuffer.getArray(this.numIntervals);
         this.fbo.unbind();
     }
 
@@ -660,7 +661,6 @@
         this.pfProgram.bind();
         this.capturedBuffer.bind(0);
         this.filterBuffer.bind(1);
-        this.pfProgram.uniformI("u_numPixels", this.numPixels);
         this.pfProgram.uniformTexture("u_image", this.capturedBuffer);
         this.pfProgram.uniformTexture("u_kernel", this.filterBuffer);
         this.quadVbo.draw(this.pfProgram, gl.TRIANGLE_FAN);
@@ -1146,14 +1146,14 @@
 
         var maxValueTex = this.findMax(this.filteredBuffer, this.filterType === 'pf');
 
-        // this.filterPF();
+        this.filterPF();
         // var maxValueTex = this.findMax(this.interFiltBuffer, true);
 
-        // var h = this.interFiltBuffer.getArray(this.h.length);
-        // this.fbo.bind();
-        // for (let i = 0; i < this.h.length; i++) {
-        //     this.h[i] += h[4*i];
-        // }
+        var h = this.interFiltBuffer.getArray(this.h.length);
+        for (let i = 0; i < this.h.length; i++) {
+            this.h[i] += h[4*i];
+        }
+        this.fbo.bind();
         // Clear captured signal
         this.fbo.attachTexture(this.capturedBuffer, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
@@ -1168,6 +1168,7 @@
         this.colormapTex.bind(0);
         this.filteredBuffer.bind(1);
         // this.interFiltBuffer.bind(1);
+        // this.filterBuffer.bind(1);
         maxValueTex.bind(2);
         this.showProgram.uniformF("Aspect", this.aspect);
         this.showProgram.uniformI("numSpads", this.numSpads);
@@ -1176,7 +1177,9 @@
         this.showProgram.uniformTexture("colormap", this.colormapTex);
         this.showProgram.uniformTexture("fluence", this.filteredBuffer);
         // this.showProgram.uniformTexture("fluence", this.interFiltBuffer);
+        // this.showProgram.uniformTexture("fluence", this.filterBuffer);
         this.showProgram.uniformTexture("maxValue", maxValueTex);
+        this.quadVbo.bind();
         this.quadVbo.draw(this.showProgram, gl.TRIANGLE_FAN);
         gl.disable(gl.BLEND);
     }

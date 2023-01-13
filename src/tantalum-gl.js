@@ -57,10 +57,6 @@ var tgl = {'init': function(gl, multiBufExt) {
         }
 
         if (tex2) {
-            if (offset > 1) {
-                array1 = texels;
-            }
-
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex2.glName, 0);
             var texels2 = null;
             if (this.type === gl.FLOAT)
@@ -75,11 +71,6 @@ var tgl = {'init': function(gl, multiBufExt) {
                 for (let j = 0; j < offset; j++) {
                     texels[i+offset+j] = texels2[i+j];
                 }
-            }
-
-            if (offset > 1) {
-                array2 = texels2;
-                array = texels;
             }
         }
     
@@ -116,10 +107,6 @@ var tgl = {'init': function(gl, multiBufExt) {
         }
 
         if (tex2) {
-            if (offset > 1) {
-                array1 = texels;
-            }
-
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex2.glName, 0);
             var texels2 = null;
             if (this.type === gl.FLOAT)
@@ -134,11 +121,6 @@ var tgl = {'init': function(gl, multiBufExt) {
                 for (let j = 0; j < offset; j++) {
                     texels[i+offset+j] = texels2[i+j];
                 }
-            }
-
-            if (offset > 1) {
-                array2 = texels2;
-                array = texels;
             }
         }
     

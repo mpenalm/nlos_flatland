@@ -787,20 +787,18 @@ var Shaders = {
         'uniform sampler2D u_image;\n'                                                     +
         'uniform sampler2D u_kernel;\n\n'                                                  +
 
-        '#define KERNEL_SIZE 512\n'                                                        +
-        'uniform int u_numPixels;\n\n'                                                     +
+        '#define KERNEL_SIZE 4096\n'                                                       +
+        '#define KERNEL_INTERVAL 1.0 / 4096.0\n'                                           +
+        '#define KERNEL_START_IDX 0.5 + KERNEL_INTERVAL / 2.0\n\n'                         +
 
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
 
         'void main() {\n'                                                                  +
-        '	// vec2 textCoord = gl_FragCoord.xy / u_textureSize;\n'                          +
-        '    float knlInterval = 1.0 / float(KERNEL_SIZE);\n'                              +
-        '    vec2 oneImgPixel = vec2(0.0, 1.0 / float(u_numPixels));\n'                    +
         '	vec4 meanColor = vec4(0);\n'                                                     +
-        '	int ms = KERNEL_SIZE / 2;\n'                                                     +
         '	for (int i = 0; i < KERNEL_SIZE; i++) {\n'                                       +
-        '        float knlIdx = (float(i) + 0.5) * knlInterval;\n'                         +
-        '		meanColor += texture2D(u_image, mPos + oneImgPixel*vec2(i - ms)) *\n'           +
+        '        float imgIdx = (float(i) + 0.5) * KERNEL_INTERVAL;\n'                     +
+        '		float knlIdx = KERNEL_START_IDX + mPos.x - imgIdx;\n'                           +
+        '		meanColor += texture2D(u_image, vec2(imgIdx, mPos.y)) *\n'                      +
         '            texture2D(u_kernel, vec2(knlIdx, 0.5)) * vec4(knlIdx > 0.0 && knlIdx' +
                                                                             ' < 1.0);\n'   +
         '	}\n'                                                                             +
@@ -822,12 +820,12 @@ var Shaders = {
         'void main() {\n'                                                               +
         '    float t = texture2D(timeTex, vec2(mPos.x, 0.5)).x;\n'                      +
         '    float tmax = deltaT * float(numIntervals);\n'                              +
-        '    float sigma = 3.0*wl;\n\n'                                                 +
+        '    float sigma = wl;\n\n'                                                     +
 
         '    //float pf = exp(-(t-tmax/2.0) * (t-tmax/2.0) / (4*sigma*sigma)) *\n'      +
         '    //    exp(2i * pi / wl * t);\n\n'                                          +
 
-        '    float realPart = exp(-(t-tmax/2.0) * (t-tmax/2.0) / (4.0*sigma*sigma));\n' +
+        '    float realPart = exp(-(t-tmax/2.0) * (t-tmax/2.0) / (2.0*sigma*sigma));\n' +
         '    float imagExp = 2.0 * PI / wl * t;\n\n'                                    +
 
         '    vec2 baseImag = vec2(cos(imagExp), sin(imagExp));\n\n'                     +
@@ -954,7 +952,7 @@ var Shaders = {
         'void intersect(Ray ray, inout Intersection isect) {\n'                            +
         '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 3.0, isect);\n'                +
         '    lineIntersect(ray, vec2( 1.2, -1.0), vec2( 1.2,   1.0), 0.0, isect);\n'       +
-        '    lineIntersect(ray, vec2(-0.95, 0.2), vec2(-0.95, -0.2), 0.0, isect);\n'       +
+        '    lineIntersect(ray, vec2(0.0, 0.2), vec2(0.0, -0.2), 0.0, isect);\n'           +
         '}\n\n'                                                                            +
 
         'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
