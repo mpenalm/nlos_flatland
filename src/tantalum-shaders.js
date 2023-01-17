@@ -784,7 +784,7 @@ var Shaders = {
         '#include "preamble"\n\n'                                                          +
 
         '// our texture\n'                                                                 +
-        'uniform sampler2D u_image;\n'                                                     +
+        'uniform sampler2D u_impulse;\n'                                                   +
         'uniform sampler2D u_kernel;\n\n'                                                  +
 
         '#define KERNEL_SIZE 4096\n'                                                       +
@@ -795,13 +795,28 @@ var Shaders = {
 
         'void main() {\n'                                                                  +
         '	vec4 meanColor = vec4(0);\n'                                                     +
+        '	float j = floor(mPos.x * float(KERNEL_SIZE)) + float(KERNEL_SIZE / 2);\n'        +
         '	for (int i = 0; i < KERNEL_SIZE; i++) {\n'                                       +
-        '        float imgIdx = (float(i) + 0.5) * KERNEL_INTERVAL;\n'                     +
-        '		float knlIdx = KERNEL_START_IDX + mPos.x - imgIdx;\n'                           +
-        '		meanColor += texture2D(u_image, vec2(imgIdx, mPos.y)) *\n'                      +
+        '        float impIdx = (float(i) + 0.5) * KERNEL_INTERVAL;\n'                     +
+        '		float knlIdx = ((j - float(i)) + 0.5) * KERNEL_INTERVAL;\n'                     +
+        '		float impulsePixel = texture2D(u_impulse, vec2(impIdx, mPos.y)).x;\n'           +
+        '		meanColor += vec4(impulsePixel, impulsePixel, 0.0, 1.0) *\n'                    +
         '            texture2D(u_kernel, vec2(knlIdx, 0.5)) * vec4(knlIdx > 0.0 && knlIdx' +
                                                                             ' < 1.0);\n'   +
         '	}\n'                                                                             +
+        '/*\n'                                                                             +
+        '	vec2 onePixel = vec2(KERNEL_INTERVAL, 0.0);\n'                                   +
+        '	int ms = KERNEL_SIZE / 2;\n'                                                     +
+        '	for (int i = 0; i < KERNEL_SIZE; i++) {\n'                                       +
+        '		vec2 coordImpulse = mPos + onePixel*vec2(i-ms);\n'                              +
+        '		bool inx = coordImpulse.x > 0.0 && coordImpulse.x < 1.0;\n'                     +
+        '		float impulsePixel = texture2D(u_impulse, coordImpulse).x;\n\n'                 +
+
+        '		vec2 coordKernel = onePixel*vec2(i) + vec2(0.5*KERNEL_INTERVAL, 0.5);\n'        +
+        '		meanColor += vec4(impulsePixel, impulsePixel, 0.0, 1.0) *\n'                    +
+        '			texture2D(u_kernel, coordKernel) * vec4(inx);\n'                               +
+        '	}*/\n\n'                                                                         +
+
         '	gl_FragColor = meanColor;\n'                                                     +
         '}\n',
 

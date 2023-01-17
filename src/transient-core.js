@@ -2,6 +2,8 @@
     var LAMBDA_MIN = 360.0;
     var LAMBDA_MAX = 750.0;
 
+    var DEBUG = false;
+
     function intermediatePositions(start, end, n) {
         if (n == 1) {
             return [(start + end) / 2.0];
@@ -170,9 +172,9 @@
 
         this.timeVector = new Float32Array(linspace(0.0, this.numIntervals * this.deltaT, this.numIntervals));
         this.timeVectorTex = new tgl.Texture(this.numIntervals, 1, 1, true, false, true, this.timeVector);
-        this.wl = 0.12;
+        this.wl = 0.02;
 
-        this.filterType = 'none';
+        this.filterType = 'pf';
         this.computePFFilter();
     }
 
@@ -646,7 +648,7 @@
         this.quadVbo.bind();
         this.quadVbo.draw(this.pfKernelProgram, gl.TRIANGLE_FAN);
 
-        this.pfFilterValues = this.filterBuffer.getArray(this.numIntervals);
+        //this.pfFilterValues = this.filterBuffer.getArray(this.numIntervals);
         this.fbo.unbind();
     }
 
@@ -692,10 +694,16 @@
             if (this.numIntervals != undefined && this.numSpads != undefined) {
                 if (!this.isConf) {
                     this.capturedBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
-                    this.h = new Float32Array(this.numIntervals * this.numSpads);
+                    if (DEBUG) {
+                        this.h = new Float32Array(this.numIntervals * this.numSpads);
+                        this.hFilt = new Float32Array(2*this.h.length);
+                    }
                 } else {
                     this.capturedBuffer = new tgl.Texture(this.numIntervals, 1, 4, true, false, true, null);
-                    this.h = new Float32Array(this.numIntervals);
+                    if (DEBUG) {
+                        this.h = new Float32Array(this.numIntervals);
+                        this.hFilt = new Float32Array(2*this.h.length);
+                    }
                 }
             }
         // Gauss buffer
@@ -757,6 +765,8 @@
         if (this.h != undefined) {
             for (var i = 0; i < this.h.length; i++) {
                 this.h[i] = 0;
+                this.hFilt[2*i] = 0;
+                this.hFilt[2*i+1] = 0;
             }
         }
 
@@ -1149,11 +1159,17 @@
         this.filterPF();
         // var maxValueTex = this.findMax(this.interFiltBuffer, true);
 
-        var h = this.interFiltBuffer.getArray(this.h.length);
-        for (let i = 0; i < this.h.length; i++) {
-            this.h[i] += h[4*i];
+        if (DEBUG) {
+            var h = this.capturedBuffer.getArray(this.h.length);
+            var hFilt = this.interFiltBuffer.getArray(this.h.length);
+            for (let i = 0; i < this.h.length; i++) {
+                this.h[i] += h[4*i];
+                this.hFilt[2*i] += hFilt[4*i];
+                this.hFilt[2*i+1] += hFilt[4*i+1];
+            }
+            // getArray unbounds current framebuffer
+            this.fbo.bind();
         }
-        this.fbo.bind();
         // Clear captured signal
         this.fbo.attachTexture(this.capturedBuffer, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
