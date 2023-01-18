@@ -1,7 +1,6 @@
 var Transient = function() {
     this.canvas         = document.getElementById("transient-canvas");
     this.overlay        = document.getElementById("transient-overlay");
-    this.content        = document.getElementById("transient-content");
     this.controls       = document.getElementById("transient-controls");
 
     this.boundRenderLoop = this.renderLoop.bind(this);
@@ -133,27 +132,50 @@ Transient.prototype.setupUI = function() {
         sceneNames.push(config.scenes[i].name);
     }
     
-    this.renderer = new transientcore.Renderer(this.gl, this.canvas.width/2, this.canvas.height, sceneShaders);
+    this.renderer = new transientcore.Renderer(this.gl, (this.canvas.width-10)/2, this.canvas.height, sceneShaders);
 
     /* Let's try and make member variables in JS a little less verbose... */
     var renderer = this.renderer;
-    var content = this.content;
     var canvas = this.canvas;
 
     this.progressBar = new tui.ProgressBar("render-progress", true);
     
-    var resolutionLabels = [];
-    for (var i = 0; i < config.resolutions.length; ++i)
-        resolutionLabels.push(config.resolutions[i][0] + "x" + config.resolutions[i][1]);
+    var filterTypes = [];
+    config.filters.forEach(filt => {
+        filt = filt.toLowerCase();
+        words = filt.split(" ");
+        if (words.length == 1) {
+            if (filt[0] == 'l')
+                filt = "lap";
+            else if (filt[0] == 'g')
+                filt = "gauss";
+        } else {
+            filt = "";
+            words.forEach(w => {
+                filt = filt.concat(w[0]);
+            });
+        }
+        filterTypes.push(filt);
+    });
 
-    new tui.ButtonGroup("resolution-selector", false, resolutionLabels, function(idx) {
-        var width = config.resolutions[idx][0];
-        var height = config.resolutions[idx][1];
-                        content.style.width = width + "px";
-        content.style.height = height + "px";
-        canvas.width = width*2;
-        canvas.height = height;
-        renderer.changeResolution(width, height);
+    var wlSlider = new tui.Slider("wl-slider", 1, 15, true, function(wl) {
+        this.setLabel("wl = " + wl + "cm");
+        wl = wl/100;
+        renderer.setWavelength(wl);
+    });
+    wlSlider.setValue(2);
+
+    // var sigmaSlider = new tui.Slider("sigma-slider", );
+    document.getElementById("filter-parameter").style.visibility = "hidden";
+
+    new tui.ButtonGroup("filter-selector", true, config.filters, function(idx) {
+        renderer.setFilterType(filterTypes[idx]);
+        if (idx < 2) {
+            document.getElementById("filter-parameter").style.visibility = "hidden";
+        } else {
+            document.getElementById("filter-parameter").style.visibility = "visible";
+            wlSlider.show(filterTypes[idx] === 'pf');
+        }
     });
 
     resolutionLabels = [];

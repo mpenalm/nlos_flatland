@@ -143,6 +143,7 @@
 
         this.createNLOSBuffers(ModifiedAttributes.All);
 
+        this.separationWidth = 10;
         this.changeResolution(width, height);
         this.setEmitterPos([width / 2, height / 2], [width / 2, height / 2]);
         this.computeEmissionSpectrum();
@@ -174,7 +175,7 @@
         this.timeVectorTex = new tgl.Texture(this.numIntervals, 1, 1, true, false, true, this.timeVector);
         this.wl = 0.02;
 
-        this.filterType = 'pf';
+        this.filterType = 'none';
         this.computePFFilter();
     }
 
@@ -301,25 +302,15 @@
         }
     }
 
+    Renderer.prototype.setWavelength = function(wl) {
+        this.wl = wl;
+        this.computePFFilter();
+        if (this.finished())
+            this.redraw();
+    }
+
     Renderer.prototype.resetActiveBlock = function () {
         this.activeBlock = 4;
-    }
-
-    Renderer.prototype.setEmissionSpectrumType = function (type) {
-        this.emissionSpectrumType = type;
-        this.computeEmissionSpectrum();
-    }
-
-    Renderer.prototype.setEmitterTemperature = function (temperature) {
-        this.emitterTemperature = temperature;
-        if (this.emissionSpectrumType == tcore.Renderer.SPECTRUM_INCANDESCENT)
-            this.computeEmissionSpectrum();
-    }
-
-    Renderer.prototype.setEmitterGas = function (gasId) {
-        this.emitterGas = gasId;
-        if (this.emissionSpectrumType == tcore.Renderer.SPECTRUM_GAS_DISCHARGE)
-            this.computeEmissionSpectrum();
     }
 
     Renderer.prototype.computeEmissionSpectrum = function () {
@@ -427,10 +418,6 @@
         this.emissionPdf.copy(this.pdf);
     }
 
-    Renderer.prototype.getEmissionSpectrum = function () {
-        return this.emissionSpectrum;
-    }
-
     Renderer.prototype.setMaxPathLength = function (length) {
         this.maxPathLength = length;
         this.reset();
@@ -461,9 +448,8 @@
         if (this.numPixels != width) {
             this.numPixels = width;
             this.createNLOSBuffers(ModifiedAttributes.NumPixels);
-
-            this.resetActiveBlock();
-            this.reset();
+            if (this.finished())
+                this.redraw();
         }
     }
 
@@ -477,11 +463,13 @@
         var gl = this.gl;
         this.quadVbo.bind();
 
+        // Clear previous result
+        gl.viewport(0, 0, this.numPixels, this.numPixels);
+        this.fbo.attachTexture(outputBuffer, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
         if (this.isConf) {
             // Confocal data
-            gl.viewport(0, 0, this.numPixels, this.numPixels);
-            this.fbo.attachTexture(outputBuffer, 0);
-
             this.bpConfProgram.bind();
             inputTex.bind(0);
             this.planeGridTex.bind(1);
@@ -513,7 +501,6 @@
             this.bpProgram.uniformTexture("spadGrid", this.spadGridTex);
             this.bpProgram.uniformTexture("planeGrid", this.planeGridTex);
             this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
-            // this.fbo.attachTexture(this.intermediateBuffer, 0);
 
             gl.viewport(0, 0, this.numPixels, this.numPixels);
             this.fbo.attachTexture(outputBuffer, 0);
@@ -526,7 +513,6 @@
             this.sumProgram.uniformF("Aspect", this.aspect);
             this.sumProgram.uniformTexture("fluence", this.intermediateBuffer);
             this.quadVbo.draw(this.sumProgram, gl.TRIANGLE_FAN);
-            // this.fbo.attachTexture(outputBuffer, 0);
         }
     }
 
@@ -565,10 +551,6 @@
         return maxBuffers[current];
     }
 
-    Renderer.prototype.noFilter = function () {
-        this.filteredBuffer = this.unfilteredBuffer;
-    }
-
     Renderer.prototype.filterLap = function () {
         var gl = this.gl;
 
@@ -578,13 +560,10 @@
         // Filter the reconstruction with Laplacian
         this.lapProgram.bind();
         this.unfilteredBuffer.bind(0);
-        this.colormapTex.bind(1);
         this.lapProgram.uniformF("Aspect", this.aspect);
-        this.lapProgram.uniformF("maxValue", 1.0);
         this.lapProgram.uniformF("numPixels", this.numPixels);
         this.lapProgram.uniformFV("kernel", this.lapKernel);
         this.lapProgram.uniformTexture("fluence", this.unfilteredBuffer);
-        this.lapProgram.uniformTexture("colormap", this.colormapTex);
         this.quadVbo.draw(this.sumProgram, gl.TRIANGLE_FAN);
     }
 
@@ -675,6 +654,7 @@
         BboxCorners: 3,
         NumIntervals: 4,
         Confocality: 5,
+        FilterType: 6,
     }
 
     Renderer.prototype.createNLOSBuffers = function (modifiedAttr) {
@@ -684,10 +664,14 @@
                 this.intermediateBuffer = new tgl.Texture(this.numPixels * this.numPixels, this.numSpads, 4, true, false, true, null);
             else
                 this.intermediateBuffer = null;
-        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels) {
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.FilterType) {
             if (this.numPixels != undefined) {
                 this.unfilteredBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
-                this.filteredBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
+                if (this.filterType === 'none')
+                    this.filteredBuffer = this.unfilteredBuffer;
+                else
+                    this.filteredBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
+                this.accumBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
             }
         }
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads || modifiedAttr == ModifiedAttributes.Confocality)
@@ -770,6 +754,8 @@
             }
         }
 
+        this.capturedBufferArray = []; // to save confocal captures for each laser position
+
         if (this.fbo != undefined) {
             this.fbo.bind();
             this.fbo.drawBuffers(1);
@@ -797,6 +783,10 @@
             }
             if (this.filteredBuffer != undefined) {
                 this.fbo.attachTexture(this.filteredBuffer, 0);
+                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            }
+            if (this.accumBuffer != undefined) {
+                this.fbo.attachTexture(this.accumBuffer, 0);
                 this.gl.clear(this.gl.COLOR_BUFFER_BIT);
             }
             this.fbo.unbind();
@@ -857,6 +847,16 @@
 
         if (reset)
             this.reset();
+    }
+
+    Renderer.prototype.setFilterType = function(type) {
+        var prev = this.filterType;
+        this.filterType = type;
+        if (prev === 'none' || type === 'none') {
+            this.createNLOSBuffers(ModifiedAttributes.FilterType);
+        }
+        if (this.finished())
+            this.redraw();
     }
 
     Renderer.prototype.computeSpread = function () {
@@ -984,10 +984,19 @@
     }
 
     Renderer.prototype.redraw = function () {
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        this.gl.viewport(0, 0, this.width, this.height);
-        this.gl.scissor(0, 0, this.width, this.height);
+        var gl = this.gl;
+
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.viewport(0, 0, this.width, this.height);
+        gl.scissor(0, 0, this.width, this.height);
         this.composite();
+
+        gl.enable(gl.SCISSOR_TEST);
+        gl.scissor(this.width, 0, this.separationWidth, this.height);
+        gl.clearColor(1.0, 1.0, 1.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.disable(gl.SCISSOR_TEST);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
         this.renderNLOS();
     }
@@ -1123,6 +1132,13 @@
             gl.scissor(0, 0, this.width, this.height);
             this.composite();
 
+            gl.enable(gl.SCISSOR_TEST);
+            gl.scissor(this.width, 0, this.separationWidth, this.height);
+            gl.clearColor(1.0, 1.0, 1.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.disable(gl.SCISSOR_TEST);
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
             this.renderNLOS();
 
             this.nlosElapsedTimes.push(timestamp);
@@ -1150,14 +1166,10 @@
                 this.filterLoG();
             else if (this.filterType === 'lap')
                 this.filterLap();
-            else
-                this.noFilter();
+            // else filterType === 'none', and this.filteredBuffer == this.unfilteredBuffer
         }
 
         var maxValueTex = this.findMax(this.filteredBuffer, this.filterType === 'pf');
-
-        this.filterPF();
-        // var maxValueTex = this.findMax(this.interFiltBuffer, true);
 
         if (DEBUG) {
             var h = this.capturedBuffer.getArray(this.h.length);
@@ -1167,33 +1179,28 @@
                 this.hFilt[2*i] += hFilt[4*i];
                 this.hFilt[2*i+1] += hFilt[4*i+1];
             }
-            // getArray unbounds current framebuffer
+            // getArray unbinds current framebuffer
             this.fbo.bind();
         }
         // Clear captured signal
-        this.fbo.attachTexture(this.capturedBuffer, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        //this.fbo.attachTexture(this.capturedBuffer, 0);
+        //gl.clear(gl.COLOR_BUFFER_BIT);
 
         this.fbo.unbind();
 
         // Render the result
-        gl.viewport(this.width, 0, this.width, this.height);
-        gl.scissor(this.width, 0, this.width, this.height);
+        gl.viewport(this.width + this.separationWidth, 0, this.width, this.height);
+        gl.scissor(this.width + this.separationWidth, 0, this.width, this.height);
 
         this.showProgram.bind();
         this.colormapTex.bind(0);
         this.filteredBuffer.bind(1);
-        // this.interFiltBuffer.bind(1);
-        // this.filterBuffer.bind(1);
         maxValueTex.bind(2);
         this.showProgram.uniformF("Aspect", this.aspect);
         this.showProgram.uniformI("numSpads", this.numSpads);
         this.showProgram.uniformI("isComplex", this.filterType === 'pf');
-        // this.showProgram.uniformI("isComplex", true);
         this.showProgram.uniformTexture("colormap", this.colormapTex);
         this.showProgram.uniformTexture("fluence", this.filteredBuffer);
-        // this.showProgram.uniformTexture("fluence", this.interFiltBuffer);
-        // this.showProgram.uniformTexture("fluence", this.filterBuffer);
         this.showProgram.uniformTexture("maxValue", maxValueTex);
         this.quadVbo.bind();
         this.quadVbo.draw(this.showProgram, gl.TRIANGLE_FAN);
@@ -1253,141 +1260,5 @@
         gl.viewport(0, 0, this.width, this.height);
     }
 
-    SpectrumRenderer = function (canvas, spectrum) {
-        this.canvas = canvas;
-        this.context = this.canvas.getContext('2d');
-        this.spectrum = spectrum;
-        this.smooth = true;
-
-        this.spectrumFill = new Image();
-        this.spectrumFill.src = 'Spectrum.png';
-        this.spectrumFill.addEventListener('load', this.loadPattern.bind(this));
-        if (this.spectrumFill.complete)
-            this.loadPattern();
-    }
-
-    SpectrumRenderer.prototype.setSpectrum = function (spectrum) {
-        this.spectrum = spectrum;
-        this.draw();
-    }
-
-    SpectrumRenderer.prototype.loadPattern = function () {
-        this.pattern = this.context.createPattern(this.spectrumFill, 'repeat-y');
-        this.draw();
-    }
-
-    SpectrumRenderer.prototype.setColor = function (r, g, b) {
-        this.context.strokeStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
-    }
-
-    SpectrumRenderer.prototype.drawLine = function (p) {
-        this.context.moveTo(p[0], p[1]);
-        for (var i = 2; i < p.length; i += 2)
-            this.context.lineTo(p[i], p[i + 1]);
-    }
-
-    SpectrumRenderer.prototype.setSmooth = function (smooth) {
-        this.smooth = smooth;
-    }
-
-    SpectrumRenderer.prototype.draw = function () {
-        var ctx = this.context;
-
-        var w = this.canvas.width;
-        var h = this.canvas.height;
-        var marginX = 10;
-        var marginY = 20;
-
-        ctx.clearRect(0, 0, w, h);
-
-        var graphW = w - 2 * marginX;
-        var graphH = h - 2 * marginY;
-        var graphX = 0 * 0.5 + marginX;
-        var graphY = 0 * 0.5 + h - marginY;
-
-        var axisX0 = 360;
-        var axisX1 = 750;
-        var axisY0 = 0.0;
-        var axisY1 = 1.0;
-        var xTicks = 50.0;
-        var yTicks = 0.2;
-        var tickSize = 10;
-
-        var mapX = function (x) { return graphX + Math.floor(graphW * (x - axisX0) / (axisX1 - axisX0)); };
-        var mapY = function (y) { return graphY - Math.floor(graphH * (y - axisY0) / (axisY1 - axisY0)); };
-
-        ctx.beginPath();
-        this.setColor(128, 128, 128);
-        ctx.lineWidth = 1;
-        ctx.setLineDash([1, 2]);
-        for (var gx = axisX0 - 10 + xTicks; gx <= axisX1; gx += xTicks)
-            this.drawLine([mapX(gx), graphY, mapX(gx), graphY - graphH]);
-        for (var gy = axisY0 + yTicks; gy <= axisY1; gy += yTicks)
-            this.drawLine([graphX, mapY(gy), graphX + graphW, mapY(gy)]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        var max = 0.0;
-        for (var i = 0; i < this.spectrum.length; ++i)
-            max = Math.max(this.spectrum[i], max);
-        max *= 1.1;
-
-        var grapher = this;
-        var drawGraph = function () {
-            var spectrum = grapher.spectrum;
-            var path = new Path2D();
-            path.moveTo(0, h);
-            for (var gx = axisX0; gx <= axisX1; gx += grapher.smooth ? 15 : 1) {
-                var x = mapX(gx);
-                var sx = spectrum.length * (gx - LAMBDA_MIN) / (LAMBDA_MAX - LAMBDA_MIN);
-                var y = mapY(spectrum[Math.max(Math.min(Math.floor(sx), spectrum.length - 1), 0)] / max);
-                if (gx == axisX0)
-                    path.moveTo(x, y);
-                else
-                    path.lineTo(x, y);
-            }
-            return path;
-        };
-
-        var filled = drawGraph();
-        filled.lineTo(graphX + graphW, graphY);
-        filled.lineTo(graphX, graphY);
-        ctx.fillStyle = this.pattern;
-        ctx.fill(filled);
-        ctx.fillStyle = "black";
-
-        var outline = drawGraph();
-        this.setColor(0, 0, 0);
-        ctx.lineWidth = 2;
-        ctx.stroke(outline);
-
-        ctx.beginPath();
-        this.setColor(128, 128, 128);
-        ctx.lineWidth = 2;
-        this.drawLine([
-            graphX + graphW, graphY - tickSize,
-            graphX + graphW, graphY,
-            graphX, graphY,
-            graphX, graphY - graphH,
-            graphX + tickSize, graphY - graphH
-        ]);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.lineWidth = 2;
-        for (var gx = axisX0 - 10 + xTicks; gx < axisX1; gx += xTicks)
-            this.drawLine([mapX(gx), graphY, mapX(gx), graphY - tickSize]);
-        for (var gy = axisY0 + yTicks; gy < axisY1; gy += yTicks)
-            this.drawLine([graphX, mapY(gy), graphX + tickSize, mapY(gy)]);
-        ctx.stroke();
-
-        ctx.font = "15px serif";
-        ctx.textAlign = "center";
-        for (var gx = axisX0 - 10 + xTicks; gx < axisX1; gx += xTicks)
-            ctx.fillText(gx, mapX(gx), graphY + 15);
-        ctx.fillText("λ", graphX + graphW, graphY + 16);
-    }
-
     exports.Renderer = Renderer;
-    exports.SpectrumRenderer = SpectrumRenderer;
 })(window.transientcore = window.transientcore || {});

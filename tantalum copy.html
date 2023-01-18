@@ -24,7 +24,7 @@
 
 <body onload="t = new Transient();">
     <div class="tantalum-render2" id="transient-content">
-        <canvas id="transient-canvas" width="1640" height="461"></canvas>
+        <canvas id="transient-canvas" width="1650" height="461"></canvas>
         <div id="transient-overlay" class="render-loading">Loading...</div>
     </div>
     <div class="tantalum-controls" id="transient-controls" style="visibility: hidden">
@@ -34,16 +34,6 @@
             <div class="col-3-12 col-left col-padding">
                 <h3 class="control-title">Download</h3>
                 <div class="button stretch-button active" id="save-button">Download as PNG</div>
-            </div>
-            <div class="col-8-12 col-left col-padding">
-                <h3 class="control-title">Resolution</h3>
-                <div id="resolution-selector"></div>
-            </div>
-        </div>
-        <div class="control-row clearfix">
-            <div class="col-3-12 col-left col-padding">
-                <h3 class="control-title">Scene</h3>
-                <div id="scene-selector"></div>
             </div>
             <div class="col-5-12 col-left col-padding">
                 <h3 class="control-title">Reconstruction resolution</h3>
@@ -62,6 +52,23 @@
             <div class="col-8-12 col-left col-padding">
                 <h3 class="control-title">Segment of the relay wall seen by the SPAD</h3>
                 <div class="slider-styled" id="spad-positions-selector"></div>
+            </div>
+        </div>
+        <div class="control-row clearfix">
+            <div class="col-3-12 col-left col-padding">
+                <h3 class="control-title">Scene</h3>
+                <div id="scene-selector"></div>
+            </div>
+            <div class="col-4-12 col-left col-padding" id="filter-parameter">
+                <h3 class="control-title">Filter parameters</h3>
+                <div class="center-tight">
+                    <div id="wl-slider"></div>
+                    <div id="sigma-slider"></div>
+                </div>
+            </div>
+            <div class="col-3-12 col-left col-padding">
+                <h3 class="control-title">Filtering strategy</h3>
+                <div id="filter-selector"></div>
             </div>
         </div>
         <div class="control-row clearfix">
