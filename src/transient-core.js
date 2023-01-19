@@ -2,7 +2,7 @@
     var LAMBDA_MIN = 360.0;
     var LAMBDA_MAX = 750.0;
 
-    var DEBUG = false;
+    var DEBUG = true;
 
     function intermediatePositions(start, end, n) {
         if (n == 1) {
@@ -464,36 +464,31 @@
         this.quadVbo.bind();
 
         // Clear previous result
-        gl.viewport(0, 0, this.numPixels, this.numPixels);
-        this.fbo.attachTexture(outputBuffer, 0);
+        gl.viewport(0, 0, this.numPixels * this.numPixels, this.numSpads);
+        this.fbo.attachTexture(this.intermediateBuffer, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
+        // Backprojection divided by spad points
         if (this.isConf) {
             // Confocal data
             this.bpConfProgram.bind();
             inputTex.bind(0);
-            this.planeGridTex.bind(1);
+            this.spadGridTex.bind(1);
+            this.planeGridTex.bind(2);
             this.bpConfProgram.uniformF("tmax", this.maxTime);
-            this.bpConfProgram.uniformF("numPixels", this.numPixels);
-            this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-            this.bpConfProgram.uniform2F("wallPos", this.laserGrid[0], this.laserGrid[1]);
-            this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
             this.bpConfProgram.uniformTexture("fluence", inputTex);
+            this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+            this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+            this.bpConfProgram.uniformTexture("wallGrid", this.spadGridTex);
             this.bpConfProgram.uniformTexture("planeGrid", this.planeGridTex);
             this.quadVbo.draw(this.bpConfProgram, gl.TRIANGLE_FAN);
         } else {
             // Non-confocal data
-            gl.viewport(0, 0, this.numPixels * this.numPixels, this.numSpads);
-            this.fbo.attachTexture(this.intermediateBuffer, 0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-
-            // Backprojection divided by spad points
             this.bpProgram.bind();
             inputTex.bind(0);
             this.spadGridTex.bind(1);
             this.planeGridTex.bind(2);
             this.bpProgram.uniformF("tmax", this.maxTime);
-            this.bpProgram.uniformI("numIntervals", this.numIntervals);
             this.bpProgram.uniformTexture("fluence", inputTex);
             this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
             this.bpProgram.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
@@ -501,19 +496,19 @@
             this.bpProgram.uniformTexture("spadGrid", this.spadGridTex);
             this.bpProgram.uniformTexture("planeGrid", this.planeGridTex);
             this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
-
-            gl.viewport(0, 0, this.numPixels, this.numPixels);
-            this.fbo.attachTexture(outputBuffer, 0);
-
-            // Sum all spad points' results
-            this.sumProgram.bind();
-            this.intermediateBuffer.bind(0);
-            this.sumProgram.uniformF("maxValue", 1.0);
-            this.sumProgram.uniformF("numPixels", this.numPixels);
-            this.sumProgram.uniformF("Aspect", this.aspect);
-            this.sumProgram.uniformTexture("fluence", this.intermediateBuffer);
-            this.quadVbo.draw(this.sumProgram, gl.TRIANGLE_FAN);
         }
+
+        // Clear previous result
+        gl.viewport(0, 0, this.numPixels, this.numPixels);
+        this.fbo.attachTexture(outputBuffer, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // Sum all spad points' results
+        this.sumProgram.bind();
+        this.intermediateBuffer.bind(0);
+        this.sumProgram.uniformF("numPixels", this.numPixels);
+        this.sumProgram.uniformTexture("fluence", this.intermediateBuffer);
+        this.quadVbo.draw(this.sumProgram, gl.TRIANGLE_FAN);
     }
 
     Renderer.prototype.findMax = function (inputTex, isComplex = false) {
@@ -659,8 +654,8 @@
 
     Renderer.prototype.createNLOSBuffers = function (modifiedAttr) {
         // Common buffers for NLOS reconstruction
-        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.NumSpads || modifiedAttr == ModifiedAttributes.Confocality)
-            if (this.numPixels != undefined && this.numSpads != undefined && !this.isConf)
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.NumSpads)
+            if (this.numPixels != undefined && this.numSpads != undefined)
                 this.intermediateBuffer = new tgl.Texture(this.numPixels * this.numPixels, this.numSpads, 4, true, false, true, null);
             else
                 this.intermediateBuffer = null;
@@ -674,20 +669,12 @@
                 this.accumBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
             }
         }
-        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads || modifiedAttr == ModifiedAttributes.Confocality)
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
             if (this.numIntervals != undefined && this.numSpads != undefined) {
-                if (!this.isConf) {
-                    this.capturedBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
-                    if (DEBUG) {
-                        this.h = new Float32Array(this.numIntervals * this.numSpads);
-                        this.hFilt = new Float32Array(2*this.h.length);
-                    }
-                } else {
-                    this.capturedBuffer = new tgl.Texture(this.numIntervals, 1, 4, true, false, true, null);
-                    if (DEBUG) {
-                        this.h = new Float32Array(this.numIntervals);
-                        this.hFilt = new Float32Array(2*this.h.length);
-                    }
+                this.capturedBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
+                if (DEBUG) {
+                    this.h = new Float32Array(this.numIntervals * this.numSpads);
+                    this.hFilt = new Float32Array(2*this.h.length);
                 }
             }
         // Gauss buffer
@@ -695,12 +682,9 @@
             if (this.numPixels != undefined)
                 this.halfFiltered = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
         // PF buffers
-        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads || modifiedAttr == ModifiedAttributes.Confocality)
+        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
             if (this.numIntervals != undefined && this.numSpads != undefined) {
-                if (!this.isConf)
-                    this.interFiltBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
-                else
-                    this.interFiltBuffer = new tgl.Texture(this.numIntervals, 1, 4, true, false, true, null);
+                this.interFiltBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
             }
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals)
             if (this.numIntervals != undefined)
@@ -745,7 +729,6 @@
             this.laserGrid = [this.spadPoints[0], this.spadPoints[1]];
             this.setEmitterPos(this.emitterPos, scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
         }
-        console.log('reset');
         if (this.h != undefined) {
             for (var i = 0; i < this.h.length; i++) {
                 this.h[i] = 0;
@@ -753,8 +736,6 @@
                 this.hFilt[2*i+1] = 0;
             }
         }
-
-        this.capturedBufferArray = []; // to save confocal captures for each laser position
 
         if (this.fbo != undefined) {
             this.fbo.bind();
@@ -967,10 +948,6 @@
                 this.fbo.attachTexture(this.screenBuffer, 0);
                 this.gl.clear(this.gl.COLOR_BUFFER_BIT);
             }
-            if (this.capturedBuffer != undefined) {
-                this.fbo.attachTexture(this.capturedBuffer, 0);
-                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-            }
             this.fbo.unbind();
         }
     }
@@ -1173,18 +1150,37 @@
 
         if (DEBUG) {
             var h = this.capturedBuffer.getArray(this.h.length);
-            var hFilt = this.interFiltBuffer.getArray(this.h.length);
+            // var hFilt = this.interFiltBuffer.getArray(this.h.length);
             for (let i = 0; i < this.h.length; i++) {
-                this.h[i] += h[4*i];
-                this.hFilt[2*i] += hFilt[4*i];
-                this.hFilt[2*i+1] += hFilt[4*i+1];
+                if (h[4*i+3] > 1)
+                    this.h[i] = h[4*i] / (h[4*i+3]-1);
+                else
+                    this.h[i] = h[4*i];
+                // this.hFilt[2*i] = hFilt[4*i];
+                // this.hFilt[2*i+1] = hFilt[4*i+1];
             }
+            // if (this.isConf && this.v === undefined)
+            //     this.v = [];
+            // if (this.isConf && this.v.length <= this.confCounter) {
+            //     var max = 0;
+            //     var min = 0;
+            //     this.h.forEach(el => {
+            //         if (el > max)
+            //             max = el;
+            //         if (el < min)
+            //             min = el;
+            //     });
+            //     if (max > 0)
+            //         this.v.push(max);
+            //     else
+            //         this.v.push(min);
+            // }
             // getArray unbinds current framebuffer
             this.fbo.bind();
         }
         // Clear captured signal
-        //this.fbo.attachTexture(this.capturedBuffer, 0);
-        //gl.clear(gl.COLOR_BUFFER_BIT);
+        // this.fbo.attachTexture(this.capturedBuffer, 0);
+        // gl.clear(gl.COLOR_BUFFER_BIT);
 
         this.fbo.unbind();
 
@@ -1245,6 +1241,7 @@
             this.rayStates[next].timeTex.bind(4);
             this.spadNormalsTex.bind(6);
             this.hConfProgram.uniformF("tmax", this.maxTime);
+            this.hConfProgram.uniformF("yNorm", (this.confCounter + 0.5) / this.numSpads);
             this.hConfProgram.uniformF("spadRadius", this.spadRadius);
             this.hConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
             this.hConfProgram.uniform2F("SpadGrid", this.laserGrid[0], this.laserGrid[1]);

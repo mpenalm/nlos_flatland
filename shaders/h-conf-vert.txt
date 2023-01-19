@@ -6,6 +6,7 @@ uniform sampler2D RgbData;
 uniform sampler2D TimeDataA;
 
 uniform float tmax;
+uniform float yNorm;
 uniform float spadRadius;
 uniform vec2 spadPos;    // Position of the physical spad device
 uniform vec2 SpadGrid;   // Position scanned by device and illuminated by laser
@@ -27,12 +28,13 @@ void main() {
     if (distance(posA, SpadGrid) <= spadRadius) {
         float t = t0 + distance(posA, spadPos); // Time needed to reach the sensor, assuming vacuum and no occlusions
         float x = t / tmax * 2.0 - 1.0;
+        float y = 1.0 - 2.0 * yNorm;
 
         vec2 dir = spadPos - posA;
         float cosine = dot(SpadNormal, dir);
 
         gl_PointSize = 1.0;
-        gl_Position = vec4(x, 0.0, 0.0, 1.0);
+        gl_Position = vec4(x, y, 0.0, 1.0);
         vColor = max(vec3(0.0), cosine * texture2D(RgbData, TexCoord.xy).rgb*biasCorrection / vec3(spadRadius*spadRadius*PI));
     }
 }

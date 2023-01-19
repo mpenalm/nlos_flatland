@@ -24,7 +24,7 @@ var Shaders = {
         '    gl_Position = vec4(Position, 1.0);\n' +
         '}\n',
 
-    'bp-conf-frag':
+    'bp-conf-frag-old':
         '#include "preamble"\n\n'                                                          +
 
         'uniform float tmax;\n\n'                                                          +
@@ -57,7 +57,38 @@ var Shaders = {
         '    float dt = 2.0 * ds + dsp + dlp;\n\n'                                         +
 
         '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = vec4(t, 0.0, 0.0, 1.0);\n'                                     +
+        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
+        '}\n',
+
+    'bp-conf-frag':
+        '#include "preamble"\n\n'                                                          +
+
+        'uniform float tmax;\n\n'                                                          +
+
+        'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
+
+        'uniform vec2 laserPos;\n'                                                         +
+        'uniform vec2 spadPos;\n'                                                          +
+        'uniform sampler2D wallGrid; // laser and spad grid\n\n'                           +
+
+        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
+        '        // positions of the considered pixels, on a row\n\n'                      +
+
+        'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
+
+        'void main() {\n'                                                                  +
+        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 0.5)).xy;\n'                +
+        '    vec2 wallPos = texture2D(wallGrid, vec2(mPos.y, 0.5)).xy;\n\n'                +
+
+        '    float dlp = distance(wallPos, laserPos); // distance laser device to capture' +
+                                                               'd (illuminated) point\n'   +
+        '    float dsp = distance(wallPos, spadPos); // distance spad device to captured ' +
+                                                                               'point\n'   +
+        '    float ds  = distance(wallPos, pixelPos); // distance captured (illuminated) ' +
+                                                        'point to reconstructed point\n'   +
+        '    float dt = 2.0 * ds + dsp + dlp;\n\n'                                         +
+
+        '    float t = dt / tmax;\n'                                                       +
         '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
         '}\n',
 
@@ -429,6 +460,7 @@ var Shaders = {
         'uniform sampler2D TimeDataA;\n\n'                                                  +
 
         'uniform float tmax;\n'                                                             +
+        'uniform float yNorm;\n'                                                            +
         'uniform float spadRadius;\n'                                                       +
         'uniform vec2 spadPos;    // Position of the physical spad device\n'                +
         'uniform vec2 SpadGrid;   // Position scanned by device and illuminated by laser\n' +
@@ -451,13 +483,14 @@ var Shaders = {
         '    if (distance(posA, SpadGrid) <= spadRadius) {\n'                               +
         '        float t = t0 + distance(posA, spadPos); // Time needed to reach the sens'  +
                                                'or, assuming vacuum and no occlusions\n'    +
-        '        float x = t / tmax * 2.0 - 1.0;\n\n'                                       +
+        '        float x = t / tmax * 2.0 - 1.0;\n'                                         +
+        '        float y = 1.0 - 2.0 * yNorm;\n\n'                                          +
 
         '        vec2 dir = spadPos - posA;\n'                                              +
         '        float cosine = dot(SpadNormal, dir);\n\n'                                  +
 
         '        gl_PointSize = 1.0;\n'                                                     +
-        '        gl_Position = vec4(x, 0.0, 0.0, 1.0);\n'                                   +
+        '        gl_Position = vec4(x, y, 0.0, 1.0);\n'                                     +
         '        vColor = max(vec3(0.0), cosine * texture2D(RgbData, TexCoord.xy).rgb*bia'  +
                                       'sCorrection / vec3(spadRadius*spadRadius*PI));\n'    +
         '    }\n'                                                                           +
