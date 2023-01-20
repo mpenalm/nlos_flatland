@@ -1,0 +1,5 @@
+#include "preamble"
+
+void main() {
+    gl_FragColor = vec4(0.8118, 0.3373, 0.2431, 1.0);
+}

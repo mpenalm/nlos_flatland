@@ -484,7 +484,7 @@ var Shaders = {
         '        float t = t0 + distance(posA, spadPos); // Time needed to reach the sens'  +
                                                'or, assuming vacuum and no occlusions\n'    +
         '        float x = t / tmax * 2.0 - 1.0;\n'                                         +
-        '        float y = 1.0 - 2.0 * yNorm;\n\n'                                          +
+        '        float y = 2.0 * yNorm - 1.0;\n\n'                                          +
 
         '        vec2 dir = spadPos - posA;\n'                                              +
         '        float cosine = dot(SpadNormal, dir);\n\n'                                  +
@@ -1026,6 +1026,79 @@ var Shaders = {
         '    }\n'                                                                          +
         '}\n',
 
+    'scene11':
+        '#include "trace-frag"\n\n'                                                        +
+
+        '#include "bsdf"\n'                                                                +
+        '#include "intersect"\n\n'                                                         +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 3.0, isect);\n'                +
+        '    lineIntersect(ray, vec2( 1.2, -1.0), vec2( 1.2,   1.0), 0.0, isect);\n'       +
+        '    lineIntersect(ray, vec2(0.0, 0.2), vec2(0.0, -0.2), 0.0, isect);\n'           +
+        '    lineIntersect(ray, vec2(0.0, 0.2), vec2(0.2, 0.54641), 0.0, isect);\n'        +
+        '    lineIntersect(ray, vec2(-0.2, -0.54641), vec2(0.0, -0.2), 0.0, isect);\n'     +
+        '}\n\n'                                                                            +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
+                                             'out vec3 throughput, out float tMult) {\n'   +
+        '    tMult = 1.0;\n'                                                               +
+        '    if (isect.mat == 1.0) {\n'                                                    +
+        '        float ior = sqrt(sellmeierIor(vec3(1.0396, 0.2318, 1.0105), vec3(0.0060,' +
+                                                         ' 0.0200, 103.56), lambda));\n'   +
+        '        if (wiLocal.y < 0.0) {\n'                                                 +
+        '            // The ray comes from inside the dielectric material - it will take ' +
+                                                                        'longer times\n'   +
+        '            tMult = ior;\n'                                                       +
+        '        }\n'                                                                      +
+        '        return sampleDielectric(state, wiLocal, ior);\n'                          +
+        '    } else if (isect.mat == 2.0) {\n'                                             +
+        '        return sampleMirror(wiLocal);\n'                                          +
+        '    } else if (isect.mat == 3.0) {\n'                                             +
+        '        throughput *= vec3(0.0);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else {\n'                                                                   +
+        '        throughput *= vec3(0.5);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    }\n'                                                                          +
+        '}\n',
+
+    'scene12':
+        '#include "trace-frag"\n\n'                                                        +
+
+        '#include "bsdf"\n'                                                                +
+        '#include "intersect"\n\n'                                                         +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 3.0, isect);\n'                +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, 1.0), 0.0, isect);\n'           +
+        '    lineIntersect(ray, vec2(0.4,  0.3), vec2(0.4, 1.3), 0.0, isect);\n'           +
+        '    lineIntersect(ray, vec2(0.7,  1.6), vec2(1.2, 1.1), 0.0, isect);\n'           +
+        '}\n\n'                                                                            +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
+                                             'out vec3 throughput, out float tMult) {\n'   +
+        '    tMult = 1.0;\n'                                                               +
+        '    if (isect.mat == 1.0) {\n'                                                    +
+        '        float ior = sqrt(sellmeierIor(vec3(1.0396, 0.2318, 1.0105), vec3(0.0060,' +
+                                                         ' 0.0200, 103.56), lambda));\n'   +
+        '        if (wiLocal.y < 0.0) {\n'                                                 +
+        '            // The ray comes from inside the dielectric material - it will take ' +
+                                                                        'longer times\n'   +
+        '            tMult = ior;\n'                                                       +
+        '        }\n'                                                                      +
+        '        return sampleDielectric(state, wiLocal, ior);\n'                          +
+        '    } else if (isect.mat == 2.0) {\n'                                             +
+        '        return sampleMirror(wiLocal);\n'                                          +
+        '    } else if (isect.mat == 3.0) {\n'                                             +
+        '        throughput *= vec3(0.0);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else {\n'                                                                   +
+        '        throughput *= vec3(0.5);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    }\n'                                                                          +
+        '}\n',
+
     'scene2':
         '#include "trace-frag"\n\n'                                                        +
 
@@ -1337,6 +1410,22 @@ var Shaders = {
         '    gl_Position = vec4(Position, 1.0, 1.0);\n' +
         '    mPos = Position/2.0+vec2(0.5);\n'          +
         '    mPos.x = mPos.x * Aspect;\n'               +
+        '}\n',
+
+    'spad-segment-frag':
+        '#include "preamble"\n\n'                                 +
+
+        'void main() {\n'                                         +
+        '    gl_FragColor = vec4(0.8118, 0.3373, 0.2431, 1.0);\n' +
+        '}\n',
+
+    'spad-segment-vert':
+        '#include "preamble"\n\n'                  +
+
+        'attribute vec3 Position;\n\n'             +
+
+        'void main() {\n'                          +
+        '    gl_Position = vec4(Position, 1.0);\n' +
         '}\n',
 
     'trace-frag':

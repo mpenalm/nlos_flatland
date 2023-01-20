@@ -28,7 +28,7 @@ void main() {
     if (distance(posA, SpadGrid) <= spadRadius) {
         float t = t0 + distance(posA, spadPos); // Time needed to reach the sensor, assuming vacuum and no occlusions
         float x = t / tmax * 2.0 - 1.0;
-        float y = 1.0 - 2.0 * yNorm;
+        float y = 2.0 * yNorm - 1.0;
 
         vec2 dir = spadPos - posA;
         float cosine = dot(SpadNormal, dir);

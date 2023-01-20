@@ -2,7 +2,7 @@
     var LAMBDA_MIN = 360.0;
     var LAMBDA_MAX = 750.0;
 
-    var DEBUG = true;
+    var DEBUG = false;
 
     function intermediatePositions(start, end, n) {
         if (n == 1) {
@@ -97,6 +97,7 @@
         this.rayProgram = new tgl.Shader(Shaders, "ray-vert", "ray-frag");
         this.hConfProgram = new tgl.Shader(Shaders, "h-conf-vert", "h-frag");
         // this.hProgram         = new tgl.Shader(Shaders,       "h-vert",       "h-frag"); // added in setSpadPositions
+        this.spadSegmentProgram = new tgl.Shader(Shaders, "spad-segment-vert", "spad-segment-frag");
         this.tracePrograms = [];
         for (var i = 0; i < scenes.length; ++i)
             this.tracePrograms.push(new tgl.Shader(Shaders, "trace-vert", scenes[i]));
@@ -110,7 +111,7 @@
         this.numIntervals = 4096;
 
         this.maxTime = this.numIntervals * this.deltaT; // fix the maxTime to a value that corresponds with integer numIntervals
-        this.spadRadius = 0.007;
+        this.spadRadius = 0.0035;
         this.setSpadPos([0, -0.6]);
         this.bboxCorners = [-1.78, 1.0, 0.22, -1.0]; // upper left, bottom right
         this.isConf = false;
@@ -235,6 +236,7 @@
     Renderer.prototype.setSpadBoundaries = function (low, high) {
         if (this.spadBoundaries === undefined || this.spadBoundaries[0] != low || this.spadBoundaries != high) {
             this.spadBoundaries = [low, high];
+            this.sbVbo = this.createSBVbo();
             this.setSpadPositions(true);
             this.resetActiveBlock();
             this.reset();
@@ -899,6 +901,17 @@
         return vbo;
     }
 
+    Renderer.prototype.createSBVbo = function() {
+        var vbo = new tgl.VertexBuffer();
+        vbo.addAttribute("Position", 2, this.gl.FLOAT, false);
+        vbo.init(2);
+        vbo.copy(new Float32Array([
+            1.2 / this.aspect, this.spadBoundaries[0],
+            1.2 / this.aspect, this.spadBoundaries[1]
+        ]));
+        return vbo;
+    }
+
     Renderer.prototype.totalRaysTraced = function () {
         return this.raysTraced;
     }
@@ -958,6 +971,12 @@
         this.compositeProgram.uniformTexture("Frame", this.screenBuffer);
         this.compositeProgram.uniformF("Exposure", this.width / (Math.max(this.samplesTraced, this.raySize * count)));
         this.quadVbo.draw(this.compositeProgram, this.gl.TRIANGLE_FAN);
+
+        this.gl.enable(this.gl.BLEND);
+        this.spadSegmentProgram.bind();
+        this.sbVbo.bind();
+        this.sbVbo.draw(this.spadSegmentProgram, this.gl.LINES);
+        this.gl.disable(this.gl.BLEND);
     }
 
     Renderer.prototype.redraw = function () {
@@ -1131,6 +1150,7 @@
         this.fbo.bind();
         this.fbo.drawBuffers(1);
         gl.enable(gl.BLEND);
+        this.quadVbo.bind();
 
         if (this.filterType === 'pf') {
             this.filterPF();
@@ -1206,10 +1226,9 @@
     Renderer.prototype.computeSpadValues = function (current, next) {
         var gl = this.gl;
 
+        gl.viewport(0, 0, this.numIntervals, this.numSpads);
+        this.fbo.attachTexture(this.capturedBuffer, 0);
         if (!this.isConf) {
-            gl.viewport(0, 0, this.numIntervals, this.numSpads);
-            this.fbo.attachTexture(this.capturedBuffer, 0);
-
             this.hProgram.bind();
             this.rayStates[current].posTex.bind(0);
             this.rayStates[next].posTex.bind(1);
@@ -1230,9 +1249,6 @@
             this.rayVbo2.bind();
             this.rayVbo2.draw(this.hProgram, gl.POINTS, this.raySize * this.activeBlock);
         } else {
-            gl.viewport(0, 0, this.numIntervals, 1);
-            this.fbo.attachTexture(this.capturedBuffer, 0);
-
             this.hConfProgram.bind();
             this.rayStates[current].posTex.bind(0);
             this.rayStates[next].posTex.bind(1);
@@ -1251,6 +1267,7 @@
             this.hConfProgram.uniformTexture("RgbData", this.rayStates[current].rgbTex);
             this.hConfProgram.uniformTexture("TimeDataA", this.rayStates[current].timeTex);
             this.hConfProgram.bind();
+            this.rayVbo2.bind();
             this.rayVbo2.draw(this.hConfProgram, gl.POINTS, this.raySize * this.activeBlock);
         }
         // Restore previous viewport
