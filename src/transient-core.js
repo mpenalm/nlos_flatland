@@ -970,6 +970,7 @@
         this.compositeProgram.bind();
         this.compositeProgram.uniformTexture("Frame", this.screenBuffer);
         this.compositeProgram.uniformF("Exposure", this.width / (Math.max(this.samplesTraced, this.raySize * count)));
+        this.quadVbo.bind();
         this.quadVbo.draw(this.compositeProgram, this.gl.TRIANGLE_FAN);
 
         this.gl.enable(this.gl.BLEND);
@@ -1220,6 +1221,10 @@
         this.showProgram.uniformTexture("maxValue", maxValueTex);
         this.quadVbo.bind();
         this.quadVbo.draw(this.showProgram, gl.TRIANGLE_FAN);
+
+        this.spadSegmentProgram.bind();
+        this.sbVbo.bind();
+        this.sbVbo.draw(this.spadSegmentProgram, this.gl.LINES);
         gl.disable(gl.BLEND);
     }
 
@@ -1261,7 +1266,7 @@
             this.hConfProgram.uniformF("spadRadius", this.spadRadius);
             this.hConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
             this.hConfProgram.uniform2F("SpadGrid", this.laserGrid[0], this.laserGrid[1]);
-            this.hConfProgram.uniform2F("SpadNormal", this.spadNormalsData[2 * this.confCounter], this.spadNormalsData[2 * this.confCounter + 1]);
+            this.hConfProgram.uniform2F("SpadNormal", this.spadNormalsData[4 * this.confCounter], this.spadNormalsData[4 * this.confCounter + 1]);
             this.hConfProgram.uniformTexture("PosDataA", this.rayStates[current].posTex);
             this.hConfProgram.uniformTexture("PosDataB", this.rayStates[next].posTex);
             this.hConfProgram.uniformTexture("RgbData", this.rayStates[current].rgbTex);

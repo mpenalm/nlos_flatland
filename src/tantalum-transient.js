@@ -112,16 +112,14 @@ Transient.prototype.colorBufferFloatTest = function(gl) {
 }
 
 Transient.prototype.setupUI = function() {
-    function map(a, b) { return [a*0.5/1.78 + 0.5, -b*0.5 + 0.5]; }
-
     var config = {
-        "resolutions": [[820, 461], [1024, 576], [1280, 720], [1600, 900], [1920, 1080], [4096, 2160]],
         "reconstruction_resolutions": [16, 32, 64, 128],
         "scenes": [
-            {'shader': 'scene10', 'name': 'Plane',           'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene9',  'name': 'Sphere',          'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene11', 'name': 'Visibility test', 'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene12', 'name': 'Virtual mirror',  'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER}
+            {'shader': 'scene10', 'name': 'Plane',            'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene9',  'name': 'Sphere',           'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene11', 'name': 'Visibility test',  'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene12', 'name': 'Virtual mirror',   'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene13', 'name': 'Virtual mirror 2', 'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER}
         ],
         "capture_methods": ["Non-confocal", "Confocal"],
         "spad_num": [16, 32, 64, 128],
@@ -221,7 +219,8 @@ Transient.prototype.setupUI = function() {
 
     function selectScene(idx) {
         renderer.changeScene(idx);
-        renderer.setNormalizedEmitterPos(config.scenes[idx].posA, config.scenes[idx].posB);
+        if (!renderer.isConf)
+            renderer.setNormalizedEmitterPos(config.scenes[idx].posA, config.scenes[idx].posB);
     }
     new tui.ButtonGroup("scene-selector", true, sceneNames, selectScene);
     
