@@ -1135,6 +1135,41 @@ var Shaders = {
         '    }\n'                                                                          +
         '}\n',
 
+    'scene14':
+        '#include "trace-frag"\n\n'                                                        +
+
+        '#include "bsdf"\n'                                                                +
+        '#include "intersect"\n\n'                                                         +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 3.0, isect);\n'                +
+        '    lineIntersect(ray, vec2( 1.2, -1.0), vec2( 1.2,   1.0), 0.0, isect);\n'       +
+        '    lineIntersect(ray, vec2(0.5, 0.2), vec2(0.5, -0.2), 0.0, isect);\n'           +
+        '}\n\n'                                                                            +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
+                                             'out vec3 throughput, out float tMult) {\n'   +
+        '    tMult = 1.0;\n'                                                               +
+        '    if (isect.mat == 1.0) {\n'                                                    +
+        '        float ior = sqrt(sellmeierIor(vec3(1.0396, 0.2318, 1.0105), vec3(0.0060,' +
+                                                         ' 0.0200, 103.56), lambda));\n'   +
+        '        if (wiLocal.y < 0.0) {\n'                                                 +
+        '            // The ray comes from inside the dielectric material - it will take ' +
+                                                                        'longer times\n'   +
+        '            tMult = ior;\n'                                                       +
+        '        }\n'                                                                      +
+        '        return sampleDielectric(state, wiLocal, ior);\n'                          +
+        '    } else if (isect.mat == 2.0) {\n'                                             +
+        '        return sampleMirror(wiLocal);\n'                                          +
+        '    } else if (isect.mat == 3.0) {\n'                                             +
+        '        throughput *= vec3(0.0);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else {\n'                                                                   +
+        '        throughput *= vec3(0.5);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    }\n'                                                                          +
+        '}\n',
+
     'scene2':
         '#include "trace-frag"\n\n'                                                        +
 
@@ -1462,6 +1497,36 @@ var Shaders = {
 
         'void main() {\n'                          +
         '    gl_Position = vec4(Position, 1.0);\n' +
+        '}\n',
+
+    'sum-frag':
+        '#include "preamble"\n\n'                                                          +
+
+        '// Inspired from https://github.com/regl-project/regl/blob/gh-pages/example/redu' +
+                                                                            'ction.js\n\n' +
+
+        'uniform sampler2D tex;\n'                                                         +
+        'uniform int useSameChannel;\n'                                                    +
+        'uniform int isComplex;\n'                                                         +
+        'uniform vec2 numPixels;\n'                                                        +
+        'varying vec2 mPos;\n\n'                                                           +
+
+        'void main () {\n'                                                                 +
+        '	vec2 intervalSize = 1.0 / numPixels;\n'                                          +
+        '	float result;\n\n'                                                               +
+
+        '	// mPos are the coordinates of the center of the new pixel\n'                    +
+        '	// this is also the shared vertex of the old pixels we want to compare\n'        +
+        '	// => access the center of those pixels\n'                                       +
+        '	float a = texture2D(tex, mPos + intervalSize * vec2(-0.25)).x;\n'                +
+        '	float b = texture2D(tex, mPos + intervalSize * vec2(0.25)).x;\n'                 +
+        '	float c = texture2D(tex, mPos + intervalSize * vec2(-0.25, 0.25)).x;\n'          +
+        '	float d = texture2D(tex, mPos + intervalSize * vec2(0.25, -0.25)).x;\n'          +
+        '	// If numPixels.y == 1, we have already added all rows, so reduce only in dimen' +
+                                                                              'sion X\n'   +
+        '	result = (a + d) * float(numPixels.y > 1.0) + (b + c);\n\n'                      +
+
+        '	gl_FragColor = vec4(result, 0.0, 0.0, 1.0);\n'                                   +
         '}\n',
 
     'trace-frag':

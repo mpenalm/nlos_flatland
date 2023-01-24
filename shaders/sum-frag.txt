@@ -1,0 +1,24 @@
+#include "preamble"
+
+// Inspired from https://github.com/regl-project/regl/blob/gh-pages/example/reduction.js
+
+uniform sampler2D tex;
+uniform vec2 numPixels;
+varying vec2 mPos;
+
+void main () {
+	vec2 intervalSize = 1.0 / numPixels;
+	float result;
+
+	// mPos are the coordinates of the center of the new pixel
+	// this is also the shared vertex of the old pixels we want to compare
+	// => access the center of those pixels
+	float a = texture2D(tex, mPos + intervalSize * vec2(-0.25)).x;
+	float b = texture2D(tex, mPos + intervalSize * vec2(0.25)).x;
+	float c = texture2D(tex, mPos + intervalSize * vec2(-0.25, 0.25)).x;
+	float d = texture2D(tex, mPos + intervalSize * vec2(0.25, -0.25)).x;
+	// If numPixels.y == 1, we have already added all rows, so reduce only in dimension X
+	result = (a + d) * float(numPixels.y > 1.0) + (b + c);
+	
+	gl_FragColor = vec4(result, 0.0, 0.0, 1.0);
+}

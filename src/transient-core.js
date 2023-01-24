@@ -126,6 +126,7 @@
         this.pfKernelProgram = new tgl.Shader(Shaders, "bp-vert", "pf-filter-frag");
         this.pfProgram = new tgl.Shader(Shaders, "bp-vert", "pf-conv-frag");
         this.maxProgram = new tgl.Shader(Shaders, "bp-vert", "max-frag");
+        this.sumProgram = new tgl.Shader(Shaders, "bp-vert", "sum-frag");
         this.showProgram = new tgl.Shader(Shaders, "show-vert", "show-frag");
 
         this.spectrumTable = wavelengthToRgbTable();
@@ -297,7 +298,7 @@
 
             var bpSumFrag = this.replaceNumSpads("bp-sum-frag");
             Shaders["replacedSum"] = bpSumFrag;
-            this.sumProgram = new tgl.Shader(Shaders, "bp-vert", "replacedSum");
+            this.bpSumProgram = new tgl.Shader(Shaders, "bp-vert", "replacedSum");
             var hVert = this.replaceNumSpads("h-vert");
             Shaders["replacedH"] = hVert;
             this.hProgram = new tgl.Shader(Shaders, "replacedH", "h-frag");
@@ -506,11 +507,11 @@
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         // Sum all spad points' results
-        this.sumProgram.bind();
+        this.bpSumProgram.bind();
         this.intermediateBuffer.bind(0);
-        this.sumProgram.uniformF("numPixels", this.numPixels);
-        this.sumProgram.uniformTexture("fluence", this.intermediateBuffer);
-        this.quadVbo.draw(this.sumProgram, gl.TRIANGLE_FAN);
+        this.bpSumProgram.uniformF("numPixels", this.numPixels);
+        this.bpSumProgram.uniformTexture("fluence", this.intermediateBuffer);
+        this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
     }
 
     Renderer.prototype.findMax = function (inputTex, isComplex = false) {
@@ -548,6 +549,41 @@
         return maxBuffers[current];
     }
 
+    Renderer.prototype.getCaptureSum = function () {
+        // Find total sum, dividing the area by 4 in each pass or by 2 once height is 1
+        var height = this.numSpads;
+        var width = this.numIntervals;
+        var sumBuffers = [this.capturedBuffer];
+
+        var gl = this.gl;
+
+        this.fbo.bind();
+        this.quadVbo.bind();
+        var current = 0;
+        // Assuming width (temporal dimension) will always be greater than height (spatial, spad dimension)
+        while (width > 1) {
+            width =  width / 2;
+            height = (height > 1) ? height / 2 : height;
+            var next = 1 - current;
+            sumBuffers[next] = new tgl.Texture(width, height, 4, true, false, true, null);
+
+            gl.viewport(0, 0, width, height);
+            this.fbo.attachTexture(sumBuffers[next], 0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            this.sumProgram.bind();
+            sumBuffers[current].bind(0);
+            this.sumProgram.uniform2F("numPixels", width, height);
+            this.sumProgram.uniformTexture("tex", sumBuffers[current]);
+            this.quadVbo.draw(this.sumProgram, gl.TRIANGLE_FAN);
+
+            current = next;
+        }
+        this.fbo.unbind();
+
+        return sumBuffers[current];
+    }
+
     Renderer.prototype.filterLap = function () {
         var gl = this.gl;
 
@@ -561,7 +597,7 @@
         this.lapProgram.uniformF("numPixels", this.numPixels);
         this.lapProgram.uniformFV("kernel", this.lapKernel);
         this.lapProgram.uniformTexture("fluence", this.unfilteredBuffer);
-        this.quadVbo.draw(this.sumProgram, gl.TRIANGLE_FAN);
+        this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
     }
 
     Renderer.prototype.filterGauss = function () {

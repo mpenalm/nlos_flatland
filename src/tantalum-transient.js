@@ -119,7 +119,8 @@ Transient.prototype.setupUI = function() {
             {'shader': 'scene9',  'name': 'Sphere',           'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
             {'shader': 'scene11', 'name': 'Visibility test',  'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
             {'shader': 'scene12', 'name': 'Virtual mirror',   'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene13', 'name': 'Virtual mirror 2', 'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER}
+            {'shader': 'scene13', 'name': 'Virtual mirror 2', 'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene14', 'name': 'Virtual mirror 3', 'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER}
         ],
         "capture_methods": ["Non-confocal", "Confocal"],
         "spad_num": [16, 32, 64, 128],
