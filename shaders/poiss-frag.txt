@@ -1,0 +1,65 @@
+#include "preamble"
+#include "rand"
+
+uniform sampler2D uSignal;
+uniform sampler2D uRandom;
+
+varying vec2 mPos;
+
+int poisRandKnuth(float lambda, float state) {
+    float L = exp(-lambda);
+    int k = 0;
+    float p = 1.0;
+    float u = state;
+
+    for (int i = 0; i < 1000; i++) {
+        k++;
+        u = rand(u);
+        p = p * u;
+        u *= 6.28;
+        if (p > L) break;
+    }
+
+    return k;
+}
+
+// Factorial doesn't seem to be available, so this doesn't look like a good option
+int poisRandAtkinson(float lambda, float state) {
+    // https://www.johndcook.com/blog/2010/06/14/generating-poisson-random-values/
+    float c = 0.767 - 3.36/lambda;
+    float beta = PI/sqrt(3.0*lambda);
+    float alpha = beta*lambda;
+    float k = log(c) - lambda - log(beta);
+    
+    int n;
+    float u = state;
+
+    for (int i = 0; i < 1000000; i++) {
+        u = rand(u);
+        float x = (alpha - log((1.0 - u)/u))/beta;
+        n = int(floor(x + 0.5));
+        u *= 6.28;
+        if (n >= 0) {
+            float v = rand(u);
+            u = v * 6.28;
+            float y = alpha - beta*x;
+            float lhs = y + log(v/(1.0 + exp(y))^2);
+            float rhs = k + n*log(lambda) - log(factorial(n));
+            if (lhs <= rhs)
+                break;
+        }
+    }
+    return n;
+}
+
+int pois(float lambda, float state) {
+    if (lambda < 30)
+        return poisRandKnuth(lambda, state);
+}
+
+void main() {
+    float state = texture2D(uRandom, mPos).x;
+    float pixel = texture2D(uSignal, mPos).x;
+    int r = pois(pixel, state);
+    gl_FragColor = vec4(r, 0, 0, 1);
+}

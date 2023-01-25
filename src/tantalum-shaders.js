@@ -1506,14 +1506,13 @@ var Shaders = {
                                                                             'ction.js\n\n' +
 
         'uniform sampler2D tex;\n'                                                         +
-        'uniform int useSameChannel;\n'                                                    +
-        'uniform int isComplex;\n'                                                         +
         'uniform vec2 numPixels;\n'                                                        +
+        'uniform int oneRow;\n\n'                                                          +
+
         'varying vec2 mPos;\n\n'                                                           +
 
         'void main () {\n'                                                                 +
-        '	vec2 intervalSize = 1.0 / numPixels;\n'                                          +
-        '	float result;\n\n'                                                               +
+        '	vec2 intervalSize = 1.0 / numPixels;\n\n'                                        +
 
         '	// mPos are the coordinates of the center of the new pixel\n'                    +
         '	// this is also the shared vertex of the old pixels we want to compare\n'        +
@@ -1523,8 +1522,8 @@ var Shaders = {
         '	float c = texture2D(tex, mPos + intervalSize * vec2(-0.25, 0.25)).x;\n'          +
         '	float d = texture2D(tex, mPos + intervalSize * vec2(0.25, -0.25)).x;\n'          +
         '	// If numPixels.y == 1, we have already added all rows, so reduce only in dimen' +
-                                                                              'sion X\n'   +
-        '	result = (a + d) * float(numPixels.y > 1.0) + (b + c);\n\n'                      +
+                                            'sion X (assuming width >= height always)\n'   +
+        '	float result = (a + d) * float(1 - oneRow) + (b + c);\n\n'                       +
 
         '	gl_FragColor = vec4(result, 0.0, 0.0, 1.0);\n'                                   +
         '}\n',

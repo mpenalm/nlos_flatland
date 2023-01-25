@@ -560,8 +560,9 @@
         this.fbo.bind();
         this.quadVbo.bind();
         var current = 0;
-        // Assuming width (temporal dimension) will always be greater than height (spatial, spad dimension)
+        // Assuming width (temporal dimension) will always be greater (or equal) than height (spatial, spad dimension)
         while (width > 1) {
+            var oneRow = (height == 1);
             width =  width / 2;
             height = (height > 1) ? height / 2 : height;
             var next = 1 - current;
@@ -573,6 +574,7 @@
 
             this.sumProgram.bind();
             sumBuffers[current].bind(0);
+            this.sumProgram.uniformI("oneRow", oneRow);
             this.sumProgram.uniform2F("numPixels", width, height);
             this.sumProgram.uniformTexture("tex", sumBuffers[current]);
             this.quadVbo.draw(this.sumProgram, gl.TRIANGLE_FAN);
@@ -583,6 +585,8 @@
 
         return sumBuffers[current];
     }
+
+    Renderer.prototype.applyPoisson = function () {}
 
     Renderer.prototype.filterLap = function () {
         var gl = this.gl;

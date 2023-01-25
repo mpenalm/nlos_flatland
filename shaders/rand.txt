@@ -1,3 +1,8 @@
+float rand(float x) {
+    // https://thebookofshaders.com/10/
+    return fract(sin(x)*100000.0);
+}
+
 float rand(inout vec4 state) {
     const vec4 q = vec4(   1225.0,    1585.0,    2457.0,    2098.0);
     const vec4 r = vec4(   1112.0,     367.0,      92.0,     265.0);
