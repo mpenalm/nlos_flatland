@@ -125,7 +125,7 @@
         this.logProgram = new tgl.Shader(Shaders, "bp-vert", "log-frag");
         this.pfKernelProgram = new tgl.Shader(Shaders, "bp-vert", "pf-filter-frag");
         this.pfProgram = new tgl.Shader(Shaders, "bp-vert", "pf-conv-frag");
-        this.maxProgram = new tgl.Shader(Shaders, "bp-vert", "max-frag");
+        this.maxProgram = new tgl.Shader(Shaders, "max-vert", "max-frag");
         this.sumProgram = new tgl.Shader(Shaders, "bp-vert", "sum-frag");
         this.showProgram = new tgl.Shader(Shaders, "show-vert", "show-frag");
 
@@ -447,9 +447,9 @@
         this.reset();
     }
 
-    Renderer.prototype.changeReconstructionResolution = function (width) {
-        if (this.numPixels != width) {
-            this.numPixels = width;
+    Renderer.prototype.changeReconstructionResolution = function (height) {
+        if (this.numPixels[1] != height) {
+            this.numPixels = [parseInt(height*this.aspect), height];
             this.createNLOSBuffers(ModifiedAttributes.NumPixels);
             if (this.finished())
                 this.redraw();
@@ -467,7 +467,7 @@
         this.quadVbo.bind();
 
         // Clear previous result
-        gl.viewport(0, 0, this.numPixels * this.numPixels, this.numSpads);
+        gl.viewport(0, 0, this.numPixels[0] * this.numPixels[1], this.numSpads);
         this.fbo.attachTexture(this.intermediateBuffer, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -502,45 +502,47 @@
         }
 
         // Clear previous result
-        gl.viewport(0, 0, this.numPixels, this.numPixels);
+        gl.viewport(0, 0, this.numPixels[0], this.numPixels[1]);
         this.fbo.attachTexture(outputBuffer, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         // Sum all spad points' results
         this.bpSumProgram.bind();
         this.intermediateBuffer.bind(0);
-        this.bpSumProgram.uniformF("numPixels", this.numPixels);
+        this.bpSumProgram.uniform2F("numPixels", this.numPixels[0], this.numPixels[1]);
         this.bpSumProgram.uniformTexture("fluence", this.intermediateBuffer);
         this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
     }
 
+    // TODO: Adapt to non-power-of-2 values
     Renderer.prototype.findMax = function (inputTex, isComplex = false) {
         // Find maximum value, dividing the area by 4 in each pass
-        var numPixels = this.numPixels;
-        // var numPixels = this.numIntervals;
+        var width = this.numPixels[0];
+        var height = this.numPixels[1];
         var maxBuffers = [inputTex];
 
         var gl = this.gl;
 
         var current = 0;
         var useSameChannel = true;
-        while (numPixels > 1) {
-            numPixels = numPixels / 2;
+        while (width > 1) {
+            var numPixels = [width, height];
+            width = width / 2;
+            height = (height > 1) ? height / 2 : height;
             var next = 1 - current;
-            maxBuffers[next] = new tgl.Texture(numPixels, numPixels, 4, true, false, true, null);
+            maxBuffers[next] = new tgl.Texture(width, height, 4, true, false, true, null);
 
-            gl.viewport(0, 0, numPixels, numPixels);
+            gl.viewport(0, 0, width, height);
             this.fbo.attachTexture(maxBuffers[next], 0);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             this.maxProgram.bind();
             maxBuffers[current].bind(0);
-            this.maxProgram.uniformI("numPixels", numPixels);
+            this.maxProgram.uniform2F("numPixels", numPixels[0], numPixels[1]);
             this.maxProgram.uniformI("useSameChannel", useSameChannel);
             this.maxProgram.uniformI("isComplex", useSameChannel && isComplex); // Only complex in the first pass, after that it's just modules
             this.maxProgram.uniformTexture("tex", maxBuffers[current]);
             this.quadVbo.draw(this.maxProgram, gl.TRIANGLE_FAN);
-            // this.fbo.attachTexture(maxBuffers[next], 0);
 
             current = next;
             useSameChannel = false;
@@ -598,7 +600,7 @@
         this.lapProgram.bind();
         this.unfilteredBuffer.bind(0);
         this.lapProgram.uniformF("Aspect", this.aspect);
-        this.lapProgram.uniformF("numPixels", this.numPixels);
+        this.lapProgram.uniform2F("numPixels", this.numPixels[0], this.numPixels[1]);
         this.lapProgram.uniformFV("kernel", this.lapKernel);
         this.lapProgram.uniformTexture("fluence", this.unfilteredBuffer);
         this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
@@ -615,7 +617,7 @@
         this.gaussProgram.bind();
         this.unfilteredBuffer.bind(0);
         this.gaussProgram.uniformI("u_direction", 1);
-        this.gaussProgram.uniform2F("u_textureSize", this.numPixels, this.numPixels);
+        this.gaussProgram.uniform2F("u_textureSize", this.numPixels[0], this.numPixels[1]);
         this.gaussProgram.uniformFV("u_kernel", this.gaussKernel);
         this.gaussProgram.uniformTexture("u_image", this.unfilteredBuffer);
         this.quadVbo.draw(this.gaussProgram, gl.TRIANGLE_FAN);
@@ -638,7 +640,7 @@
         this.logProgram.bind();
         this.unfilteredBuffer.bind(0);
         this.logKernelTex.bind(1);
-        this.logProgram.uniform2F("u_textureSize", this.numPixels, this.numPixels);
+        this.logProgram.uniform2F("u_textureSize", this.numPixels[0], this.numPixels[1]);
         this.logProgram.uniformTexture("u_kernel", this.logKernelTex);
         this.logProgram.uniformTexture("u_image", this.unfilteredBuffer);
         this.quadVbo.draw(this.logProgram, gl.TRIANGLE_FAN);
@@ -698,17 +700,16 @@
         // Common buffers for NLOS reconstruction
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.NumSpads)
             if (this.numPixels != undefined && this.numSpads != undefined)
-                this.intermediateBuffer = new tgl.Texture(this.numPixels * this.numPixels, this.numSpads, 4, true, false, true, null);
+                this.intermediateBuffer = new tgl.Texture(this.numPixels[0] * this.numPixels[1], this.numSpads, 4, true, false, true, null);
             else
                 this.intermediateBuffer = null;
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.FilterType) {
             if (this.numPixels != undefined) {
-                this.unfilteredBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
+                this.unfilteredBuffer = new tgl.Texture(this.numPixels[0], this.numPixels[1], 4, true, false, true, null);
                 if (this.filterType === 'none')
                     this.filteredBuffer = this.unfilteredBuffer;
                 else
-                    this.filteredBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
-                this.accumBuffer = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
+                    this.filteredBuffer = new tgl.Texture(this.numPixels[0], this.numPixels[1], 4, true, false, true, null);
             }
         }
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
@@ -722,7 +723,7 @@
         // Gauss buffer
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels)
             if (this.numPixels != undefined)
-                this.halfFiltered = new tgl.Texture(this.numPixels, this.numPixels, 4, true, false, true, null);
+                this.halfFiltered = new tgl.Texture(this.numPixels[0], this.numPixels[1], 4, true, false, true, null);
         // PF buffers
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
             if (this.numIntervals != undefined && this.numSpads != undefined) {
@@ -734,14 +735,14 @@
 
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.BboxCorners) {
             if (this.numPixels != undefined && this.bboxCorners != undefined) {
-                var xValues = linspace(this.bboxCorners[0], this.bboxCorners[2], this.numPixels);
-                var yValues = linspace(this.bboxCorners[1], this.bboxCorners[3], this.numPixels);
+                var xValues = linspace(this.bboxCorners[0], this.bboxCorners[2], this.numPixels[0]);
+                var yValues = linspace(this.bboxCorners[1], this.bboxCorners[3], this.numPixels[1]);
                 xv = xValues;
                 yv = yValues;
-                var planeGridData = new Float32Array(this.numPixels * this.numPixels * 4);
+                var planeGridData = new Float32Array(this.numPixels[0] * this.numPixels[1] * 4);
                 var k = 0;
-                for (var i = 0; i < this.numPixels; i++) {
-                    for (var j = 0; j < this.numPixels; j++) {
+                for (var i = 0; i < this.numPixels[1]; i++) {
+                    for (var j = 0; j < this.numPixels[0]; j++) {
                         planeGridData[k] = xValues[j];
                         planeGridData[k + 1] = yValues[i];
                         planeGridData[k + 2] = 0.0;
@@ -749,7 +750,7 @@
                         k += 4;
                     }
                 }
-                this.planeGridTex = new tgl.Texture(this.numPixels * this.numPixels, 1, 4, true, false, true, planeGridData);
+                this.planeGridTex = new tgl.Texture(this.numPixels[0] * this.numPixels[1], 1, 4, true, false, true, planeGridData);
             }
         }
     }
@@ -806,10 +807,6 @@
             }
             if (this.filteredBuffer != undefined) {
                 this.fbo.attachTexture(this.filteredBuffer, 0);
-                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-            }
-            if (this.accumBuffer != undefined) {
-                this.fbo.attachTexture(this.accumBuffer, 0);
                 this.gl.clear(this.gl.COLOR_BUFFER_BIT);
             }
             this.fbo.unbind();

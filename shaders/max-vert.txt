@@ -1,0 +1,21 @@
+#include "preamble"
+
+attribute vec2 Position;
+
+uniform vec2 numPixels;
+
+varying vec2 mPos;
+
+void main() {
+    gl_Position = vec4(Position, 1.0, 1.0);
+    mPos = (Position/2.0+vec2(0.5));
+
+    if (floor(numPixels.x / 2.0) < (numPixels.x / 2.0)) {
+        // Odd number of pixels in X dimension
+        mPos.x *= (numPixels.x - 1.0) / numPixels.x;
+    }
+    if (floor(numPixels.y / 2.0) < (numPixels.y / 2.0)) {
+        // Odd number of pixels in Y dimension
+        mPos.y *= (numPixels.y - 1.0) / numPixels.y;
+    }
+}

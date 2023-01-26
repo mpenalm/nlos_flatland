@@ -115,12 +115,13 @@ Transient.prototype.setupUI = function() {
     var config = {
         "reconstruction_resolutions": [16, 32, 64, 128],
         "scenes": [
-            {'shader': 'scene10', 'name': 'Plane',            'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene9',  'name': 'Sphere',           'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene11', 'name': 'Visibility test',  'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene12', 'name': 'Virtual mirror',   'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene13', 'name': 'Virtual mirror 2', 'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene14', 'name': 'Virtual mirror 3', 'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER}
+            {'shader': 'scene10', 'name': 'Plane',           'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene9',  'name': 'Sphere',          'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene11', 'name': 'Visibility test', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
+            // {'shader': 'scene12', 'name': 'Virtual mirror',   'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
+            // {'shader': 'scene13', 'name': 'Virtual mirror 2', 'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene14', 'name': 'Virtual mirror',  'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene15', 'name': 'Virtual mirror rotated', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER}
         ],
         "capture_methods": ["Non-confocal", "Confocal"],
         "spad_num": [16, 32, 64, 128],
@@ -181,17 +182,16 @@ Transient.prototype.setupUI = function() {
 
     resolutionLabels = [];
     for (var i = 0; i < config.reconstruction_resolutions.length; ++i)
-        resolutionLabels.push(config.reconstruction_resolutions[i] + "x" + config.reconstruction_resolutions[i]);
+        resolutionLabels.push(parseInt(config.reconstruction_resolutions[i] * renderer.aspect) + "x" + config.reconstruction_resolutions[i]);
 
     var recResolutionSelector = new tui.ButtonGroup("reconstruction-resolution-selector", false, resolutionLabels, function(idx) {
-        var width = config.reconstruction_resolutions[idx];
-        renderer.changeReconstructionResolution(width);
+        var height = config.reconstruction_resolutions[idx];
+        renderer.changeReconstructionResolution(height);
     });
     recResolutionSelector.select(3);
-    var captureMethodSelector = new tui.ButtonGroup("capture-selector", true, config.capture_methods, function(idx) {
+    new tui.ButtonGroup("capture-selector", true, config.capture_methods, function(idx) {
         renderer.setConfocal(Boolean(idx));
     });
-    //captureMethodSelector.select(0);
     var spadNumberSelector = new tui.ButtonGroup("spad-selector", false, config.spad_num, function(idx) {
         renderer.changeSpadResolution(config.spad_num[idx]);
     });

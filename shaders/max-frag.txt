@@ -5,40 +5,46 @@
 uniform sampler2D tex;
 uniform int useSameChannel;
 uniform int isComplex;
-uniform int numPixels;
+uniform vec2 numPixels; // Original width and height
 varying vec2 mPos;
 
 void main () {
-	float intervalSize = 1.0 / float(numPixels);
+	vec2 intervalSize = 1.0 / numPixels; // Width and height of each pixel in tex
 	float result;
 	float result2;
+	float x = floor(mPos.x * numPixels.x);
+    float y = floor(mPos.y * numPixels.y);
 
 	if (isComplex == 0) {
 			// Not a complex number
 		// mPos are the coordinates of the center of the new pixel
 		// this is also the shared vertex of the old pixels we want to compare
 		// => access the center of those pixels
-		float a = texture2D(tex, mPos + intervalSize * vec2(-0.25)).x;
-		float b = texture2D(tex, mPos + intervalSize * vec2(0.25)).x;
-		float c = texture2D(tex, mPos + intervalSize * vec2(-0.25, 0.25)).x;
-		float d = texture2D(tex, mPos + intervalSize * vec2(0.25, -0.25)).x;
+		float a = texture2D(tex, mPos + intervalSize * vec2(-0.5)).x;
+		float b = texture2D(tex, mPos + intervalSize * vec2(0.5)).x;
+		float c = texture2D(tex, mPos + intervalSize * vec2(-0.5, 0.5)).x;
+		float d = texture2D(tex, mPos + intervalSize * vec2(0.5, -0.5)).x;
 		result = max(max(a, b), max(c, d));
 		result2 = min(min(a, b), min(c, d)) * float(useSameChannel);
 
-		a = texture2D(tex, mPos + intervalSize * vec2(-0.25)).y;
-		b = texture2D(tex, mPos + intervalSize * vec2(0.25)).y;
-		c = texture2D(tex, mPos + intervalSize * vec2(-0.25, 0.25)).y;
-		d = texture2D(tex, mPos + intervalSize * vec2(0.25, -0.25)).y;
+		a = texture2D(tex, mPos + intervalSize * vec2(-0.5)).y;
+		b = texture2D(tex, mPos + intervalSize * vec2(0.5)).y;
+		c = texture2D(tex, mPos + intervalSize * vec2(-0.5, 0.5)).y;
+		d = texture2D(tex, mPos + intervalSize * vec2(0.5, -0.5)).y;
 		result2 += min(min(a, b), min(c, d)) * abs(float(1-useSameChannel));
+
+		if (floor(numPixels.x / 2.0) < (numPixels.x / 2.0)) {
+			// Odd number of pixels in X dimension, add the last one to the last result
+		}
 	} else {
-			// Complex number, we are looking for the max module (abs)
+			// Complex number, we are looking for the max module (length)
 		// mPos are the coordinates of the center of the new pixel
 		// this is also the shared vertex of the old pixels we want to compare
 		// => access the center of those pixels
-		float a = length(texture2D(tex, mPos + intervalSize * vec2(-0.25)).xy);
-		float b = length(texture2D(tex, mPos + intervalSize * vec2(0.25)).xy);
-		float c = length(texture2D(tex, mPos + intervalSize * vec2(-0.25, 0.25)).xy);
-		float d = length(texture2D(tex, mPos + intervalSize * vec2(0.25, -0.25)).xy);
+		float a = length(texture2D(tex, mPos + intervalSize * vec2(-0.5)).xy);
+		float b = length(texture2D(tex, mPos + intervalSize * vec2(0.5)).xy);
+		float c = length(texture2D(tex, mPos + intervalSize * vec2(-0.5, 0.5)).xy);
+		float d = length(texture2D(tex, mPos + intervalSize * vec2(0.5, -0.5)).xy);
 		result = max(max(a, b), max(c, d));
 		result2 = min(min(a, b), min(c, d));
 	}

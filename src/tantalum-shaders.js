@@ -128,17 +128,17 @@ var Shaders = {
 
         'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
 
-        'uniform float numPixels;\n\n'                                                     +
+        'uniform vec2 numPixels;\n\n'                                                      +
 
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
 
         'const int numSpads = {numSpads};\n\n'                                             +
 
         'void main() {\n'                                                                  +
-        '    float x = floor(mPos.x * numPixels);\n'                                       +
-        '    float y = floor(mPos.y * numPixels);\n'                                       +
-        '    float pos = x + numPixels * (numPixels - 1.0 - y);\n'                         +
-        '    pos = (pos + 0.5) / (numPixels * numPixels);\n\n'                             +
+        '    float x = floor(mPos.x * numPixels.x);\n'                                     +
+        '    float y = floor(mPos.y * numPixels.y);\n'                                     +
+        '    float pos = x + numPixels.y * (numPixels.y - 1.0 - y);\n'                     +
+        '    pos = (pos + 0.5) / (numPixels.x * numPixels.y);\n\n'                         +
 
         '    float spadDist = 1.0 / float(numSpads);\n\n'                                  +
 
@@ -685,7 +685,7 @@ var Shaders = {
         'uniform sampler2D fluence;\n'                                                     +
         'uniform float Aspect;\n\n'                                                        +
 
-        'uniform float numPixels;\n\n'                                                     +
+        'uniform vec2 numPixels;\n\n'                                                      +
 
         'const int kernelWidth = 3;\n'                                                     +
         'uniform float kernel[kernelWidth*kernelWidth];\n\n'                               +
@@ -698,7 +698,7 @@ var Shaders = {
         '    } else {\n\n'                                                                 +
 
         '        float acc = 0.0;\n'                                                       +
-        '        vec2 ps = vec2(1.0 / numPixels);\n'                                       +
+        '        vec2 ps = 1.0 / numPixels;\n'                                             +
         '        vec2 kps = vec2(Aspect / float(kernelWidth), 1.0 / float(kernelWidth)); ' +
                                                                 '// kernel pixel size\n\n' +
 
@@ -753,53 +753,82 @@ var Shaders = {
         '}\n',
 
     'max-frag':
-        '#include "preamble"\n\n'                                                           +
+        '#include "preamble"\n\n'                                                          +
 
-        '// Inspired from https://github.com/regl-project/regl/blob/gh-pages/example/redu'  +
-                                                                            'ction.js\n\n'  +
+        '// Inspired from https://github.com/regl-project/regl/blob/gh-pages/example/redu' +
+                                                                            'ction.js\n\n' +
 
-        'uniform sampler2D tex;\n'                                                          +
-        'uniform int useSameChannel;\n'                                                     +
-        'uniform int isComplex;\n'                                                          +
-        'uniform int numPixels;\n'                                                          +
-        'varying vec2 mPos;\n\n'                                                            +
+        'uniform sampler2D tex;\n'                                                         +
+        'uniform int useSameChannel;\n'                                                    +
+        'uniform int isComplex;\n'                                                         +
+        'uniform vec2 numPixels; // Original width and height\n'                           +
+        'varying vec2 mPos;\n\n'                                                           +
 
-        'void main () {\n'                                                                  +
-        '	float intervalSize = 1.0 / float(numPixels);\n'                                   +
-        '	float result;\n'                                                                  +
-        '	float result2;\n\n'                                                               +
+        'void main () {\n'                                                                 +
+        '	vec2 intervalSize = 1.0 / numPixels; // Width and height of each pixel in tex\n' +
+        '	float result;\n'                                                                 +
+        '	float result2;\n'                                                                +
+        '	float x = floor(mPos.x * numPixels.x);\n'                                        +
+        '    float y = floor(mPos.y * numPixels.y);\n\n'                                   +
 
-        '	if (isComplex == 0) {\n'                                                          +
-        '			// Not a complex number\n'                                                      +
-        '		// mPos are the coordinates of the center of the new pixel\n'                    +
-        '		// this is also the shared vertex of the old pixels we want to compare\n'        +
-        '		// => access the center of those pixels\n'                                       +
-        '		float a = texture2D(tex, mPos + intervalSize * vec2(-0.25)).x;\n'                +
-        '		float b = texture2D(tex, mPos + intervalSize * vec2(0.25)).x;\n'                 +
-        '		float c = texture2D(tex, mPos + intervalSize * vec2(-0.25, 0.25)).x;\n'          +
-        '		float d = texture2D(tex, mPos + intervalSize * vec2(0.25, -0.25)).x;\n'          +
-        '		result = max(max(a, b), max(c, d));\n'                                           +
-        '		result2 = min(min(a, b), min(c, d)) * float(useSameChannel);\n\n'                +
+        '	if (isComplex == 0) {\n'                                                         +
+        '			// Not a complex number\n'                                                     +
+        '		// mPos are the coordinates of the center of the new pixel\n'                   +
+        '		// this is also the shared vertex of the old pixels we want to compare\n'       +
+        '		// => access the center of those pixels\n'                                      +
+        '		float a = texture2D(tex, mPos + intervalSize * vec2(-0.5)).x;\n'                +
+        '		float b = texture2D(tex, mPos + intervalSize * vec2(0.5)).x;\n'                 +
+        '		float c = texture2D(tex, mPos + intervalSize * vec2(-0.5, 0.5)).x;\n'           +
+        '		float d = texture2D(tex, mPos + intervalSize * vec2(0.5, -0.5)).x;\n'           +
+        '		result = max(max(a, b), max(c, d));\n'                                          +
+        '		result2 = min(min(a, b), min(c, d)) * float(useSameChannel);\n\n'               +
 
-        '		a = texture2D(tex, mPos + intervalSize * vec2(-0.25)).y;\n'                      +
-        '		b = texture2D(tex, mPos + intervalSize * vec2(0.25)).y;\n'                       +
-        '		c = texture2D(tex, mPos + intervalSize * vec2(-0.25, 0.25)).y;\n'                +
-        '		d = texture2D(tex, mPos + intervalSize * vec2(0.25, -0.25)).y;\n'                +
-        '		result2 += min(min(a, b), min(c, d)) * abs(float(1-useSameChannel));\n'          +
-        '	} else {\n'                                                                       +
-        '			// Complex number, we are looking for the max module (abs)\n'                   +
-        '		// mPos are the coordinates of the center of the new pixel\n'                    +
-        '		// this is also the shared vertex of the old pixels we want to compare\n'        +
-        '		// => access the center of those pixels\n'                                       +
-        '		float a = length(texture2D(tex, mPos + intervalSize * vec2(-0.25)).xy);\n'       +
-        '		float b = length(texture2D(tex, mPos + intervalSize * vec2(0.25)).xy);\n'        +
-        '		float c = length(texture2D(tex, mPos + intervalSize * vec2(-0.25, 0.25)).xy);\n' +
-        '		float d = length(texture2D(tex, mPos + intervalSize * vec2(0.25, -0.25)).xy);\n' +
-        '		result = max(max(a, b), max(c, d));\n'                                           +
-        '		result2 = min(min(a, b), min(c, d));\n'                                          +
-        '	}\n\n'                                                                            +
+        '		a = texture2D(tex, mPos + intervalSize * vec2(-0.5)).y;\n'                      +
+        '		b = texture2D(tex, mPos + intervalSize * vec2(0.5)).y;\n'                       +
+        '		c = texture2D(tex, mPos + intervalSize * vec2(-0.5, 0.5)).y;\n'                 +
+        '		d = texture2D(tex, mPos + intervalSize * vec2(0.5, -0.5)).y;\n'                 +
+        '		result2 += min(min(a, b), min(c, d)) * abs(float(1-useSameChannel));\n\n'       +
 
-        '	gl_FragColor = vec4(result, result2, 0.0, 1.0);\n'                                +
+        '		if (floor(numPixels.x / 2.0) < (numPixels.x / 2.0)) {\n'                        +
+        '			// Odd number of pixels in X dimension, add the last one to the last result\n' +
+        '		}\n'                                                                            +
+        '	} else {\n'                                                                      +
+        '			// Complex number, we are looking for the max module (length)\n'               +
+        '		// mPos are the coordinates of the center of the new pixel\n'                   +
+        '		// this is also the shared vertex of the old pixels we want to compare\n'       +
+        '		// => access the center of those pixels\n'                                      +
+        '		float a = length(texture2D(tex, mPos + intervalSize * vec2(-0.5)).xy);\n'       +
+        '		float b = length(texture2D(tex, mPos + intervalSize * vec2(0.5)).xy);\n'        +
+        '		float c = length(texture2D(tex, mPos + intervalSize * vec2(-0.5, 0.5)).xy);\n'  +
+        '		float d = length(texture2D(tex, mPos + intervalSize * vec2(0.5, -0.5)).xy);\n'  +
+        '		result = max(max(a, b), max(c, d));\n'                                          +
+        '		result2 = min(min(a, b), min(c, d));\n'                                         +
+        '	}\n\n'                                                                           +
+
+        '	gl_FragColor = vec4(result, result2, 0.0, 1.0);\n'                               +
+        '}\n',
+
+    'max-vert':
+        '#include "preamble"\n\n'                                     +
+
+        'attribute vec2 Position;\n\n'                                +
+
+        'uniform vec2 numPixels;\n\n'                                 +
+
+        'varying vec2 mPos;\n\n'                                      +
+
+        'void main() {\n'                                             +
+        '    gl_Position = vec4(Position, 1.0, 1.0);\n'               +
+        '    mPos = (Position/2.0+vec2(0.5));\n\n'                    +
+
+        '    if (floor(numPixels.x / 2.0) < (numPixels.x / 2.0)) {\n' +
+        '        // Odd number of pixels in X dimension\n'            +
+        '        mPos.x *= (numPixels.x - 1.0) / numPixels.x;\n'      +
+        '    }\n'                                                     +
+        '    if (floor(numPixels.y / 2.0) < (numPixels.y / 2.0)) {\n' +
+        '        // Odd number of pixels in Y dimension\n'            +
+        '        mPos.y *= (numPixels.y - 1.0) / numPixels.y;\n'      +
+        '    }\n'                                                     +
         '}\n',
 
     'pass-frag':
@@ -890,6 +919,11 @@ var Shaders = {
         'precision highp float;\n',
 
     'rand':
+        'float rand(float x) {\n'                                                  +
+        '    // https://thebookofshaders.com/10/\n'                                +
+        '    return fract(sin(x)*100000.0);\n'                                     +
+        '}\n\n'                                                                    +
+
         'float rand(inout vec4 state) {\n'                                         +
         '    const vec4 q = vec4(   1225.0,    1585.0,    2457.0,    2098.0);\n'   +
         '    const vec4 r = vec4(   1112.0,     367.0,      92.0,     265.0);\n'   +
@@ -1145,6 +1179,41 @@ var Shaders = {
         '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 3.0, isect);\n'                +
         '    lineIntersect(ray, vec2( 1.2, -1.0), vec2( 1.2,   1.0), 0.0, isect);\n'       +
         '    lineIntersect(ray, vec2(0.5, 0.2), vec2(0.5, -0.2), 0.0, isect);\n'           +
+        '}\n\n'                                                                            +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
+                                             'out vec3 throughput, out float tMult) {\n'   +
+        '    tMult = 1.0;\n'                                                               +
+        '    if (isect.mat == 1.0) {\n'                                                    +
+        '        float ior = sqrt(sellmeierIor(vec3(1.0396, 0.2318, 1.0105), vec3(0.0060,' +
+                                                         ' 0.0200, 103.56), lambda));\n'   +
+        '        if (wiLocal.y < 0.0) {\n'                                                 +
+        '            // The ray comes from inside the dielectric material - it will take ' +
+                                                                        'longer times\n'   +
+        '            tMult = ior;\n'                                                       +
+        '        }\n'                                                                      +
+        '        return sampleDielectric(state, wiLocal, ior);\n'                          +
+        '    } else if (isect.mat == 2.0) {\n'                                             +
+        '        return sampleMirror(wiLocal);\n'                                          +
+        '    } else if (isect.mat == 3.0) {\n'                                             +
+        '        throughput *= vec3(0.0);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else {\n'                                                                   +
+        '        throughput *= vec3(0.5);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    }\n'                                                                          +
+        '}\n',
+
+    'scene15':
+        '#include "trace-frag"\n\n'                                                        +
+
+        '#include "bsdf"\n'                                                                +
+        '#include "intersect"\n\n'                                                         +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 3.0, isect);\n'                +
+        '    lineIntersect(ray, vec2( 1.2, -1.0), vec2( 1.2,   1.0), 0.0, isect);\n'       +
+        '    lineIntersect(ray, vec2(0.5, 0.2), vec2(0.4, -0.2), 0.0, isect);\n'           +
         '}\n\n'                                                                            +
 
         'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
@@ -1521,8 +1590,8 @@ var Shaders = {
         '	float b = texture2D(tex, mPos + intervalSize * vec2(0.25)).x;\n'                 +
         '	float c = texture2D(tex, mPos + intervalSize * vec2(-0.25, 0.25)).x;\n'          +
         '	float d = texture2D(tex, mPos + intervalSize * vec2(0.25, -0.25)).x;\n'          +
-        '	// If numPixels.y == 1, we have already added all rows, so reduce only in dimen' +
-                                            'sion X (assuming width >= height always)\n'   +
+        '	// If tex.height == 1, we have already added all rows, so reduce only in dimens' +
+                                             'ion X (assuming width >= height always)\n'   +
         '	float result = (a + d) * float(1 - oneRow) + (b + c);\n\n'                       +
 
         '	gl_FragColor = vec4(result, 0.0, 0.0, 1.0);\n'                                   +

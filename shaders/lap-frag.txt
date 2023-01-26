@@ -3,7 +3,7 @@
 uniform sampler2D fluence;
 uniform float Aspect;
 
-uniform float numPixels;
+uniform vec2 numPixels;
 
 const int kernelWidth = 3;
 uniform float kernel[kernelWidth*kernelWidth];
@@ -16,7 +16,7 @@ void main() {
     } else {
 
         float acc = 0.0;
-        vec2 ps = vec2(1.0 / numPixels);
+        vec2 ps = 1.0 / numPixels;
         vec2 kps = vec2(Aspect / float(kernelWidth), 1.0 / float(kernelWidth)); // kernel pixel size
 
         for (int i = 0; i < kernelWidth*kernelWidth; i++){

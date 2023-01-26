@@ -2,17 +2,17 @@
 
 uniform sampler2D fluence; // x time, y spad
 
-uniform float numPixels;
+uniform vec2 numPixels;
 
 varying vec2 mPos; // Pixel coordinates [0,1]
 
 const int numSpads = {numSpads};
 
 void main() {
-    float x = floor(mPos.x * numPixels);
-    float y = floor(mPos.y * numPixels);
-    float pos = x + numPixels * (numPixels - 1.0 - y);
-    pos = (pos + 0.5) / (numPixels * numPixels);
+    float x = floor(mPos.x * numPixels.x);
+    float y = floor(mPos.y * numPixels.y);
+    float pos = x + numPixels.y * (numPixels.y - 1.0 - y);
+    pos = (pos + 0.5) / (numPixels.x * numPixels.y);
 
     float spadDist = 1.0 / float(numSpads);
 
