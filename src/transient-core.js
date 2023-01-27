@@ -40,6 +40,17 @@
         }
     }
 
+    function nextPowerOfTwo(n) {
+        // http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
+        v = n - 1;
+        v |= v >> 1;
+        v |= v >> 2;
+        v |= v >> 4;
+        v |= v >> 8;
+        v |= v >> 16;
+        return v + 1;
+    }
+
     function makeGaussKernel(sigma) {
         const GAUSSKERN = 6.0;
         var dim = parseInt(Math.max(3.0, GAUSSKERN * sigma));
@@ -78,6 +89,7 @@
 
     var Renderer = function (gl, width, height, scenes) {
         this.gl = gl;
+        this.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
         this.quadVbo = this.createQuadVbo();
         this.quadVbo2 = this.createQuadVbo2();
 
@@ -113,7 +125,7 @@
         this.maxTime = this.numIntervals * this.deltaT; // fix the maxTime to a value that corresponds with integer numIntervals
         this.spadRadius = 0.0035;
         this.setSpadPos([0, -0.6]);
-        this.bboxCorners = [-1.78, 1.0, 0.22, -1.0]; // upper left, bottom right
+        this.bboxCorners = [-1.78, 1.0, -1.78, -1.0]; // upper left, bottom right
         this.isConf = false;
 
         // Shader programs to reconstruct the hidden scene
@@ -448,7 +460,7 @@
     }
 
     Renderer.prototype.changeReconstructionResolution = function (height) {
-        if (this.numPixels[1] != height) {
+        if (this.numPixels === undefined || this.numPixels[1] != height) {
             this.numPixels = [parseInt(height*this.aspect), height];
             this.createNLOSBuffers(ModifiedAttributes.NumPixels);
             if (this.finished())
@@ -588,8 +600,6 @@
         return sumBuffers[current];
     }
 
-    Renderer.prototype.applyPoisson = function () {}
-
     Renderer.prototype.filterLap = function () {
         var gl = this.gl;
 
@@ -699,17 +709,23 @@
     Renderer.prototype.createNLOSBuffers = function (modifiedAttr) {
         // Common buffers for NLOS reconstruction
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.NumSpads)
-            if (this.numPixels != undefined && this.numSpads != undefined)
-                this.intermediateBuffer = new tgl.Texture(this.numPixels[0] * this.numPixels[1], this.numSpads, 4, true, false, true, null);
-            else
+            if (this.numPixels != undefined && this.numSpads != undefined) {
+                var w = this.numPixels[0] * this.numPixels[1];
+                var h = 1;
+                if (w > this.maxTextureSize) {
+                    w /= 2;
+                    h = 2;
+                }
+                this.intermediateBuffer = new tgl.Texture(w, h * this.numSpads, 4, true, false, true, null);
+            } else
                 this.intermediateBuffer = null;
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.FilterType) {
             if (this.numPixels != undefined) {
-                this.unfilteredBuffer = new tgl.Texture(this.numPixels[0], this.numPixels[1], 4, true, false, true, null);
+                this.unfilteredBuffer = new tgl.Texture(nextPowerOfTwo(this.numPixels[0]), this.numPixels[1], 4, true, false, true, null);
                 if (this.filterType === 'none')
                     this.filteredBuffer = this.unfilteredBuffer;
                 else
-                    this.filteredBuffer = new tgl.Texture(this.numPixels[0], this.numPixels[1], 4, true, false, true, null);
+                    this.filteredBuffer = new tgl.Texture(nextPowerOfTwo(this.numPixels[0]), this.numPixels[1], 4, true, false, true, null);
             }
         }
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
@@ -723,7 +739,7 @@
         // Gauss buffer
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels)
             if (this.numPixels != undefined)
-                this.halfFiltered = new tgl.Texture(this.numPixels[0], this.numPixels[1], 4, true, false, true, null);
+                this.halfFiltered = new tgl.Texture(nextPowerOfTwo(this.numPixels[0]), this.numPixels[1], 4, true, false, true, null);
         // PF buffers
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
             if (this.numIntervals != undefined && this.numSpads != undefined) {
@@ -750,7 +766,13 @@
                         k += 4;
                     }
                 }
-                this.planeGridTex = new tgl.Texture(this.numPixels[0] * this.numPixels[1], 1, 4, true, false, true, planeGridData);
+                var w = this.numPixels[0] * this.numPixels[1];
+                var h = 1;
+                if (w > this.maxTextureSize) {
+                    w /= 2;
+                    h = 2;
+                }
+                this.planeGridTex = new tgl.Texture(w, h, 4, true, false, true, planeGridData);
             }
         }
     }
