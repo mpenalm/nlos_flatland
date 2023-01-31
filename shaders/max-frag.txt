@@ -37,7 +37,7 @@ void main () {
 
 		if (oddX) {
 			// Odd number of pixels in X dimension, add the last one to the last result
-			if (x == numPixels - 1.0) {
+			if (x == numPixels.x - 1.0) {
 				a = texture2D(tex, mPos + intervalSize * vec2(1.5, 0.5)).x;
 				b = texture2D(tex, mPos + intervalSize * vec2(1.5, -0.5)).x;
 				c = texture2D(tex, mPos + intervalSize * vec2(1.5, 0.5)).y;
@@ -49,7 +49,7 @@ void main () {
 
 		if (oddY) {
 			// Odd number of pixels in Y dimension, add the last one to the last result
-			if (y == numPixels - 1.0) {
+			if (y == numPixels.y - 1.0) {
 				a = texture2D(tex, mPos + intervalSize * vec2(0.5, 1.5)).x;
 				b = texture2D(tex, mPos + intervalSize * vec2(-0.5, 1.5)).x;
 				c = texture2D(tex, mPos + intervalSize * vec2(0.5, 1.5)).y;
@@ -61,7 +61,7 @@ void main () {
 
 		if (oddX && oddY) {
 			// Odd number of pixels in both dimensions, add the original corner to the new corner 
-				if ((x == numPixels - 1.0) && (y == numPixels - 1.0)) {
+				if ((x == numPixels.x - 1.0) && (y == numPixels.y - 1.0)) {
 				a = texture2D(tex, mPos + intervalSize * vec2(1.5)).x;
 				b = texture2D(tex, mPos + intervalSize * vec2(1.5)).y;
 				result = max(result, a);
@@ -82,7 +82,7 @@ void main () {
 
 		if (oddX) {
 			// Odd number of pixels in X dimension, add the last one to the last result
-			if (x == numPixels - 1.0) {
+			if (x == numPixels.x - 1.0) {
 				a = length(texture2D(tex, mPos + intervalSize * vec2(1.5, 0.5)).xy);
 				b = length(texture2D(tex, mPos + intervalSize * vec2(1.5, -0.5)).xy);
 				result = max(result, max(a, b));
@@ -92,7 +92,7 @@ void main () {
 
 		if (oddY) {
 			// Odd number of pixels in Y dimension, add the last one to the last result
-			if (y == numPixels - 1.0) {
+			if (y == numPixels.y - 1.0) {
 				a = length(texture2D(tex, mPos + intervalSize * vec2(0.5, 1.5)).xy);
 				b = length(texture2D(tex, mPos + intervalSize * vec2(-0.5, 1.5)).xy);
 				result = max(result, max(a, b));
@@ -102,7 +102,7 @@ void main () {
 
 		if (oddX && oddY) {
 			// Odd number of pixels in both dimensions, add the original corner to the new corner 
-				if ((x == numPixels - 1.0) && (y == numPixels - 1.0)) {
+				if ((x == numPixels.x - 1.0) && (y == numPixels.y - 1.0)) {
 				a = length(texture2D(tex, mPos + intervalSize * vec2(1.5)).xy);
 				result = max(result, a);
 				result2 = min(result2, a);

@@ -67,6 +67,7 @@ var Shaders = {
 
         'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
 
+        'uniform float numSpads;\n'                                                        +
         'uniform vec2 laserPos;\n'                                                         +
         'uniform vec2 spadPos;\n'                                                          +
         'uniform sampler2D wallGrid; // laser and spad grid\n\n'                           +
@@ -77,7 +78,8 @@ var Shaders = {
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
 
         'void main() {\n'                                                                  +
-        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 0.5)).xy;\n'                +
+        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, fract(mPos.y * numSpads)))' +
+                                                                                '.xy;\n'   +
         '    vec2 wallPos = texture2D(wallGrid, vec2(mPos.y, 0.5)).xy;\n\n'                +
 
         '    float dlp = distance(wallPos, laserPos); // distance laser device to capture' +
@@ -99,6 +101,7 @@ var Shaders = {
 
         'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
 
+        'uniform float numSpads;\n'                                                        +
         'uniform vec2 laserPos;\n'                                                         +
         'uniform vec2 laserGrid; // could be more than one, actually\n'                    +
         'uniform vec2 spadPos;\n'                                                          +
@@ -110,7 +113,8 @@ var Shaders = {
         'varying vec2 mPos; // Pixel coordinates [0,1]; x = time, y = spad\n\n'            +
 
         'void main() {\n'                                                                  +
-        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 0.5)).xy;\n'                +
+        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, fract(mPos.y * numSpads)))' +
+                                                                                '.xy;\n'   +
         '    vec2 wallSpad = texture2D(spadGrid, vec2(mPos.y, 0.5)).xy;\n'                 +
         '    float dlp = distance(laserGrid, laserPos);\n'                                 +
         '    float dl  = distance(laserGrid, pixelPos);\n'                                 +
@@ -128,6 +132,7 @@ var Shaders = {
 
         'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
 
+        'uniform int twoRows;\n'                                                           +
         'uniform vec2 numPixels;\n\n'                                                      +
 
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
@@ -137,15 +142,22 @@ var Shaders = {
         'void main() {\n'                                                                  +
         '    float x = floor(mPos.x * numPixels.x);\n'                                     +
         '    float y = floor(mPos.y * numPixels.y);\n'                                     +
-        '    float pos = x + numPixels.y * (numPixels.y - 1.0 - y);\n'                     +
-        '    pos = (pos + 0.5) / (numPixels.x * numPixels.y);\n\n'                         +
+        '    bool isSecond = (y >= numPixels.y / 2.0) && (twoRows == 1);\n'                +
+        '    if (isSecond) {\n'                                                            +
+        '        y -= numPixels.y / 2.0;\n'                                                +
+        '    }\n'                                                                          +
+        '    float npy = numPixels.y / float(twoRows + 1);\n'                              +
+        '    float pos = x + npy * (npy - 1.0 - y);\n'                                     +
+        '    pos = (pos + 0.5) / (numPixels.x * npy);\n\n'                                 +
 
         '    float spadDist = 1.0 / float(numSpads);\n\n'                                  +
 
         '    vec2 fluenceAccum = vec2(0.0);\n'                                             +
+        '    float yStart = 0.5 + float(twoRows) * (float(isSecond) - 0.5) / 2.0; // 0.5 ' +
+                       'for single row, for two rows: 0.25 for first, 0.75 for second\n'   +
         '    for (int i = 0; i < numSpads; i++) {\n'                                       +
-        '        fluenceAccum += texture2D(fluence, vec2(pos, spadDist * (float(i) + 0.5)' +
-                                                                              ')).xy;\n'   +
+        '        fluenceAccum += texture2D(fluence, vec2(pos, spadDist * (float(i) + ySta' +
+                                                                           'rt))).xy;\n'   +
         '    }\n\n'                                                                        +
 
         '    gl_FragColor = vec4(fluenceAccum, 0.0, 1.0);\n'                               +
@@ -769,7 +781,9 @@ var Shaders = {
         '	float result;\n'                                                                 +
         '	float result2;\n'                                                                +
         '	float x = floor(mPos.x * numPixels.x);\n'                                        +
-        '    float y = floor(mPos.y * numPixels.y);\n\n'                                   +
+        '    float y = floor(mPos.y * numPixels.y);\n'                                     +
+        '	bool oddX = (floor(numPixels.x / 2.0) < (numPixels.x / 2.0));\n'                 +
+        '	bool oddY = (floor(numPixels.y / 2.0) < (numPixels.y / 2.0));\n\n'               +
 
         '	if (isComplex == 0) {\n'                                                         +
         '			// Not a complex number\n'                                                     +
@@ -789,8 +803,42 @@ var Shaders = {
         '		d = texture2D(tex, mPos + intervalSize * vec2(0.5, -0.5)).y;\n'                 +
         '		result2 += min(min(a, b), min(c, d)) * abs(float(1-useSameChannel));\n\n'       +
 
-        '		if (floor(numPixels.x / 2.0) < (numPixels.x / 2.0)) {\n'                        +
+        '		if (oddX) {\n'                                                                  +
         '			// Odd number of pixels in X dimension, add the last one to the last result\n' +
+        '			if (x == numPixels.x - 1.0) {\n'                                               +
+        '				a = texture2D(tex, mPos + intervalSize * vec2(1.5, 0.5)).x;\n'                +
+        '				b = texture2D(tex, mPos + intervalSize * vec2(1.5, -0.5)).x;\n'               +
+        '				c = texture2D(tex, mPos + intervalSize * vec2(1.5, 0.5)).y;\n'                +
+        '				d = texture2D(tex, mPos + intervalSize * vec2(1.5, -0.5)).y;\n'               +
+        '				result = max(result, max(a, b));\n'                                           +
+        '				result2 = min(result2, min(a, b)) * float(useSameChannel) + min(result2, min' +
+                                             '(c, d)) * abs(float(1-useSameChannel));\n'   +
+        '			}\n'                                                                           +
+        '		}\n\n'                                                                          +
+
+        '		if (oddY) {\n'                                                                  +
+        '			// Odd number of pixels in Y dimension, add the last one to the last result\n' +
+        '			if (y == numPixels.y - 1.0) {\n'                                               +
+        '				a = texture2D(tex, mPos + intervalSize * vec2(0.5, 1.5)).x;\n'                +
+        '				b = texture2D(tex, mPos + intervalSize * vec2(-0.5, 1.5)).x;\n'               +
+        '				c = texture2D(tex, mPos + intervalSize * vec2(0.5, 1.5)).y;\n'                +
+        '				d = texture2D(tex, mPos + intervalSize * vec2(-0.5, 1.5)).y;\n'               +
+        '				result = max(result, max(a, b));\n'                                           +
+        '				result2 = min(result2, min(a, b)) * float(useSameChannel) + min(result2, min' +
+                                             '(c, d)) * abs(float(1-useSameChannel));\n'   +
+        '			}\n'                                                                           +
+        '		}\n\n'                                                                          +
+
+        '		if (oddX && oddY) {\n'                                                          +
+        '			// Odd number of pixels in both dimensions, add the original corner to the ne' +
+                                                                           'w corner \n'   +
+        '				if ((x == numPixels.x - 1.0) && (y == numPixels.y - 1.0)) {\n'                +
+        '				a = texture2D(tex, mPos + intervalSize * vec2(1.5)).x;\n'                     +
+        '				b = texture2D(tex, mPos + intervalSize * vec2(1.5)).y;\n'                     +
+        '				result = max(result, a);\n'                                                   +
+        '				result2 = min(result2, a) * float(useSameChannel) + min(result2, b) * abs(fl' +
+                                                             'oat(1-useSameChannel));\n'   +
+        '			}\n'                                                                           +
         '		}\n'                                                                            +
         '	} else {\n'                                                                      +
         '			// Complex number, we are looking for the max module (length)\n'               +
@@ -802,7 +850,37 @@ var Shaders = {
         '		float c = length(texture2D(tex, mPos + intervalSize * vec2(-0.5, 0.5)).xy);\n'  +
         '		float d = length(texture2D(tex, mPos + intervalSize * vec2(0.5, -0.5)).xy);\n'  +
         '		result = max(max(a, b), max(c, d));\n'                                          +
-        '		result2 = min(min(a, b), min(c, d));\n'                                         +
+        '		result2 = min(min(a, b), min(c, d));\n\n'                                       +
+
+        '		if (oddX) {\n'                                                                  +
+        '			// Odd number of pixels in X dimension, add the last one to the last result\n' +
+        '			if (x == numPixels.x - 1.0) {\n'                                               +
+        '				a = length(texture2D(tex, mPos + intervalSize * vec2(1.5, 0.5)).xy);\n'       +
+        '				b = length(texture2D(tex, mPos + intervalSize * vec2(1.5, -0.5)).xy);\n'      +
+        '				result = max(result, max(a, b));\n'                                           +
+        '				result2 = min(result2, min(a, b));\n'                                         +
+        '			}\n'                                                                           +
+        '		}\n\n'                                                                          +
+
+        '		if (oddY) {\n'                                                                  +
+        '			// Odd number of pixels in Y dimension, add the last one to the last result\n' +
+        '			if (y == numPixels.y - 1.0) {\n'                                               +
+        '				a = length(texture2D(tex, mPos + intervalSize * vec2(0.5, 1.5)).xy);\n'       +
+        '				b = length(texture2D(tex, mPos + intervalSize * vec2(-0.5, 1.5)).xy);\n'      +
+        '				result = max(result, max(a, b));\n'                                           +
+        '				result2 = min(result2, min(a, b));\n'                                         +
+        '			}\n'                                                                           +
+        '		}\n\n'                                                                          +
+
+        '		if (oddX && oddY) {\n'                                                          +
+        '			// Odd number of pixels in both dimensions, add the original corner to the ne' +
+                                                                           'w corner \n'   +
+        '				if ((x == numPixels.x - 1.0) && (y == numPixels.y - 1.0)) {\n'                +
+        '				a = length(texture2D(tex, mPos + intervalSize * vec2(1.5)).xy);\n'            +
+        '				result = max(result, a);\n'                                                   +
+        '				result2 = min(result2, a);\n'                                                 +
+        '			}\n'                                                                           +
+        '		}\n'                                                                            +
         '	}\n\n'                                                                           +
 
         '	gl_FragColor = vec4(result, result2, 0.0, 1.0);\n'                               +

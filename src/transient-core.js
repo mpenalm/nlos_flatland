@@ -2,7 +2,7 @@
     var LAMBDA_MIN = 360.0;
     var LAMBDA_MAX = 750.0;
 
-    var DEBUG = false;
+    var DEBUG = true;
 
     function intermediatePositions(start, end, n) {
         if (n == 1) {
@@ -73,7 +73,7 @@
 
     function scene2canvas(pos, aspect, width, height) {
         var result = [0, 0];
-        result[0] = pos[0] / (2*aspect) + 0.5;
+        result[0] = pos[0] / (2 * aspect) + 0.5;
         result[1] = 0.5 - pos[1] / 2;
         result[0] *= width;
         result[1] *= height;
@@ -125,7 +125,7 @@
         this.maxTime = this.numIntervals * this.deltaT; // fix the maxTime to a value that corresponds with integer numIntervals
         this.spadRadius = 0.0035;
         this.setSpadPos([0, -0.6]);
-        this.bboxCorners = [-1.78, 1.0, -1.78, -1.0]; // upper left, bottom right
+        this.bboxCorners = [-1.78, 1.0, 1.78, -1.0]; // upper left, bottom right
         this.isConf = false;
 
         // Shader programs to reconstruct the hidden scene
@@ -317,7 +317,7 @@
         }
     }
 
-    Renderer.prototype.setWavelength = function(wl) {
+    Renderer.prototype.setWavelength = function (wl) {
         this.wl = wl;
         this.computePFFilter();
         if (this.finished())
@@ -461,7 +461,7 @@
 
     Renderer.prototype.changeReconstructionResolution = function (height) {
         if (this.numPixels === undefined || this.numPixels[1] != height) {
-            this.numPixels = [parseInt(height*this.aspect), height];
+            this.numPixels = [parseInt(height * this.aspect), height];
             this.createNLOSBuffers(ModifiedAttributes.NumPixels);
             if (this.finished())
                 this.redraw();
@@ -476,10 +476,17 @@
 
     Renderer.prototype.computeBackprojection = function (inputTex, outputBuffer) {
         var gl = this.gl;
+        var w = this.numPixels[0] * this.numPixels[1];
+        var h = this.numSpads;
+        var twoRows = (w > this.maxTextureSize);
+        if (twoRows) {
+            w /= 2;
+            h *= 2;
+        }
         this.quadVbo.bind();
-
+        gl.disable(gl.BLEND);
         // Clear previous result
-        gl.viewport(0, 0, this.numPixels[0] * this.numPixels[1], this.numSpads);
+        gl.viewport(0, 0, w, h);
         this.fbo.attachTexture(this.intermediateBuffer, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -491,6 +498,7 @@
             this.spadGridTex.bind(1);
             this.planeGridTex.bind(2);
             this.bpConfProgram.uniformF("tmax", this.maxTime);
+            this.bpConfProgram.uniformF("numSpads", this.numSpads);
             this.bpConfProgram.uniformTexture("fluence", inputTex);
             this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
             this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
@@ -504,6 +512,7 @@
             this.spadGridTex.bind(1);
             this.planeGridTex.bind(2);
             this.bpProgram.uniformF("tmax", this.maxTime);
+            this.bpProgram.uniformF("numSpads", this.numSpads);
             this.bpProgram.uniformTexture("fluence", inputTex);
             this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
             this.bpProgram.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
@@ -511,6 +520,15 @@
             this.bpProgram.uniformTexture("spadGrid", this.spadGridTex);
             this.bpProgram.uniformTexture("planeGrid", this.planeGridTex);
             this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
+        }
+
+        if (DEBUG) {
+            var ibuff = this.intermediateBuffer.getArray(this.numPixels[0] * this.numPixels[1] * this.numSpads);
+            this.ibuff = [];
+            for (let i = 0; i < ibuff.length; i += 4) {
+                this.ibuff.push(ibuff[i]);
+            }
+            this.fbo.bind();
         }
 
         // Clear previous result
@@ -521,6 +539,7 @@
         // Sum all spad points' results
         this.bpSumProgram.bind();
         this.intermediateBuffer.bind(0);
+        this.bpSumProgram.uniformI("twoRows", twoRows);
         this.bpSumProgram.uniform2F("numPixels", this.numPixels[0], this.numPixels[1]);
         this.bpSumProgram.uniformTexture("fluence", this.intermediateBuffer);
         this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
@@ -539,8 +558,8 @@
         var useSameChannel = true;
         while (width > 1) {
             var numPixels = [width, height];
-            width = width / 2;
-            height = (height > 1) ? height / 2 : height;
+            width = parseInt(width / 2);
+            height = (height > 1) ? parseInt(height / 2) : height;
             var next = 1 - current;
             maxBuffers[next] = new tgl.Texture(width, height, 4, true, false, true, null);
 
@@ -577,7 +596,7 @@
         // Assuming width (temporal dimension) will always be greater (or equal) than height (spatial, spad dimension)
         while (width > 1) {
             var oneRow = (height == 1);
-            width =  width / 2;
+            width = width / 2;
             height = (height > 1) ? height / 2 : height;
             var next = 1 - current;
             sumBuffers[next] = new tgl.Texture(width, height, 4, true, false, true, null);
@@ -613,7 +632,7 @@
         this.lapProgram.uniform2F("numPixels", this.numPixels[0], this.numPixels[1]);
         this.lapProgram.uniformFV("kernel", this.lapKernel);
         this.lapProgram.uniformTexture("fluence", this.unfilteredBuffer);
-        this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
+        this.quadVbo.draw(this.lapProgram, gl.TRIANGLE_FAN);
     }
 
     Renderer.prototype.filterGauss = function () {
@@ -721,11 +740,11 @@
                 this.intermediateBuffer = null;
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.FilterType) {
             if (this.numPixels != undefined) {
-                this.unfilteredBuffer = new tgl.Texture(nextPowerOfTwo(this.numPixels[0]), this.numPixels[1], 4, true, false, true, null);
+                this.unfilteredBuffer = new tgl.Texture(this.numPixels[0], this.numPixels[1], 4, true, false, true, null);
                 if (this.filterType === 'none')
                     this.filteredBuffer = this.unfilteredBuffer;
                 else
-                    this.filteredBuffer = new tgl.Texture(nextPowerOfTwo(this.numPixels[0]), this.numPixels[1], 4, true, false, true, null);
+                    this.filteredBuffer = new tgl.Texture(this.numPixels[0], this.numPixels[1], 4, true, false, true, null);
             }
         }
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
@@ -733,13 +752,13 @@
                 this.capturedBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
                 if (DEBUG) {
                     this.h = new Float32Array(this.numIntervals * this.numSpads);
-                    this.hFilt = new Float32Array(2*this.h.length);
+                    this.hFilt = new Float32Array(2 * this.h.length);
                 }
             }
         // Gauss buffer
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels)
             if (this.numPixels != undefined)
-                this.halfFiltered = new tgl.Texture(nextPowerOfTwo(this.numPixels[0]), this.numPixels[1], 4, true, false, true, null);
+                this.halfFiltered = new tgl.Texture(this.numPixels[0], this.numPixels[1], 4, true, false, true, null);
         // PF buffers
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
             if (this.numIntervals != undefined && this.numSpads != undefined) {
@@ -797,8 +816,8 @@
         if (this.h != undefined) {
             for (var i = 0; i < this.h.length; i++) {
                 this.h[i] = 0;
-                this.hFilt[2*i] = 0;
-                this.hFilt[2*i+1] = 0;
+                this.hFilt[2 * i] = 0;
+                this.hFilt[2 * i + 1] = 0;
             }
         }
 
@@ -891,7 +910,7 @@
             this.reset();
     }
 
-    Renderer.prototype.setFilterType = function(type) {
+    Renderer.prototype.setFilterType = function (type) {
         var prev = this.filterType;
         this.filterType = type;
         if (prev === 'none' || type === 'none') {
@@ -960,7 +979,7 @@
         return vbo;
     }
 
-    Renderer.prototype.createSBVbo = function() {
+    Renderer.prototype.createSBVbo = function () {
         var vbo = new tgl.VertexBuffer();
         vbo.addAttribute("Position", 2, this.gl.FLOAT, false);
         vbo.init(2);
@@ -1230,31 +1249,17 @@
 
         if (DEBUG) {
             var h = this.capturedBuffer.getArray(this.h.length);
-            // var hFilt = this.interFiltBuffer.getArray(this.h.length);
             for (let i = 0; i < this.h.length; i++) {
-                if (h[4*i+3] > 1)
-                    this.h[i] = h[4*i] / (h[4*i+3]-1);
+                if (h[4 * i + 3] > 1)
+                    this.h[i] = h[4 * i] / (h[4 * i + 3] - 1);
                 else
-                    this.h[i] = h[4*i];
-                // this.hFilt[2*i] = hFilt[4*i];
-                // this.hFilt[2*i+1] = hFilt[4*i+1];
+                    this.h[i] = h[4 * i];
             }
-            // if (this.isConf && this.v === undefined)
-            //     this.v = [];
-            // if (this.isConf && this.v.length <= this.confCounter) {
-            //     var max = 0;
-            //     var min = 0;
-            //     this.h.forEach(el => {
-            //         if (el > max)
-            //             max = el;
-            //         if (el < min)
-            //             min = el;
-            //     });
-            //     if (max > 0)
-            //         this.v.push(max);
-            //     else
-            //         this.v.push(min);
-            // }
+            var f = this.filteredBuffer.getArray(this.numPixels[0] * this.numPixels[1]);
+            this.f = [];
+            for (let i = 0; i < f.length; i += 4) {
+                this.f.push(f[i]);
+            }
             // getArray unbinds current framebuffer
             this.fbo.bind();
         }
@@ -1270,13 +1275,15 @@
 
         this.showProgram.bind();
         this.colormapTex.bind(0);
-        this.filteredBuffer.bind(1);
+        // this.filteredBuffer.bind(1);
+        this.intermediateBuffer.bind(1);
         maxValueTex.bind(2);
         this.showProgram.uniformF("Aspect", this.aspect);
         this.showProgram.uniformI("numSpads", this.numSpads);
         this.showProgram.uniformI("isComplex", this.filterType === 'pf');
         this.showProgram.uniformTexture("colormap", this.colormapTex);
-        this.showProgram.uniformTexture("fluence", this.filteredBuffer);
+        // this.showProgram.uniformTexture("fluence", this.filteredBuffer);
+        this.showProgram.uniformTexture("fluence", this.intermediateBuffer);
         this.showProgram.uniformTexture("maxValue", maxValueTex);
         this.quadVbo.bind();
         this.quadVbo.draw(this.showProgram, gl.TRIANGLE_FAN);
