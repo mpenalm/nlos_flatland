@@ -120,7 +120,7 @@
         this.maxTime = 10; // approximate max instant we want to store
         this.numIntervals = parseInt(this.maxTime / this.deltaT + 0.05); // make sure it is an int
         // With deltaT = 0.003, numIntervals = 3333, GL_INVALID_FRAMEBUFFER_OPERATION
-        this.numIntervals = 4096;
+        //this.numIntervals = 4096;
 
         this.maxTime = this.numIntervals * this.deltaT; // fix the maxTime to a value that corresponds with integer numIntervals
         this.spadRadius = 0.0035;
@@ -130,6 +130,7 @@
 
         // Shader programs to reconstruct the hidden scene
         this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-frag");
+        // this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-transient-camera-frag");
         this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-frag");
         // this.sumProgram      = new tgl.Shader(Shaders, "bp-vert", "replacedSum"); // added in setSpadPositions
         this.lapProgram = new tgl.Shader(Shaders, "bp-vert", "lap-frag");
@@ -230,6 +231,20 @@
         gl.blendFunc(gl.ONE, gl.ONE);
     }
 
+    Renderer.prototype.setCameraModel = function (id) {
+        if (id == 0) {
+            // Confocal camera
+            this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-frag");
+            this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-frag");
+        } else {
+            // Transient camera
+            this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-transient-camera-frag");
+            this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-transient-camera-frag");
+        }
+        if (this.finished())
+            this.redraw();
+    }
+
     Renderer.prototype.replaceNumSpads = function (shaderName) {
         var pattern = new RegExp('{numSpads}');
         var shaderSource = Shaders[shaderName];
@@ -258,6 +273,31 @@
 
     Renderer.prototype.setSpadPos = function (spadPos) {
         this.spadPos = spadPos;
+        this.resetActiveBlock();
+        this.reset();
+    }
+
+    Renderer.prototype.setDeltaT = function (deltaT) {
+        this.deltaT = deltaT;
+        this.numIntervals = parseInt(this.maxTime / this.deltaT + 0.05);
+        if (this.numIntervals > this.maxTextureSize) {
+            this.numIntervals = this.maxTextureSize;
+        }
+        this.maxTime = this.deltaT * this.numIntervals;
+        this.createNLOSBuffers(ModifiedAttributes.NumIntervals);
+        this.computePFFilter();
+        this.resetActiveBlock();
+        this.reset();
+    }
+
+    Renderer.prototype.setMaxTime = function (maxTime) {
+        this.numIntervals = parseInt(maxTime / this.deltaT + 0.05);
+        if (this.numIntervals > this.maxTextureSize) {
+            this.numIntervals = this.maxTextureSize;
+        }
+        this.maxTime = this.deltaT * this.numIntervals;
+        this.createNLOSBuffers(ModifiedAttributes.NumIntervals);
+        this.computePFFilter();
         this.resetActiveBlock();
         this.reset();
     }
@@ -548,8 +588,8 @@
     // TODO: Adapt to non-power-of-2 values
     Renderer.prototype.findMax = function (inputTex, isComplex = false) {
         // Find maximum value, dividing the area by 4 in each pass
-        var width = this.numPixels[0];
-        var height = this.numPixels[1];
+        var width = inputTex.width;
+        var height = inputTex.height;
         var maxBuffers = [inputTex];
 
         var gl = this.gl;
@@ -557,6 +597,8 @@
         var current = 0;
         var useSameChannel = true;
         while (width > 1) {
+            console.log(maxBuffers[current].getArray(width*height));
+            this.fbo.bind();
             var numPixels = [width, height];
             width = parseInt(width / 2);
             height = (height > 1) ? parseInt(height / 2) : height;
@@ -578,6 +620,7 @@
             current = next;
             useSameChannel = false;
         }
+        console.log(maxBuffers[current].getArray(width*height));
 
         return maxBuffers[current];
     }

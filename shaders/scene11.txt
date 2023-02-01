@@ -26,7 +26,7 @@ vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in
         throughput *= vec3(0.0);
         return sampleDiffuse(state, wiLocal);
     } else {
-        throughput *= vec3(0.5);
+        throughput *= vec3(0.8);
         return sampleDiffuse(state, wiLocal);
     }
 }

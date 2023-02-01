@@ -31,31 +31,43 @@
         <div id="render-progress"></div>
         <p class="progress-label" id="render-progress-label"></p>
         <div class="control-row clearfix">
-            <div class="col-3-12 col-left col-padding">
+            <div class="col-2-12 col-left col-padding">
                 <h3 class="control-title">Download</h3>
                 <div class="button stretch-button active" id="save-button">Download as PNG</div>
             </div>
-            <div class="col-5-12 col-left col-padding">
+            <div class="col-3-12 col-left col-padding">
                 <h3 class="control-title">Reconstruction resolution</h3>
                 <div id="reconstruction-resolution-selector"></div>
             </div>
             <div class="col-2-12 col-left">
-                <h3 class="control-title">Data capture</h3>
-                <div id="capture-selector"></div>
-            </div>
-        </div>
-        <div class="control-row clearfix">
-            <div class="col-3-12 col-left col-padding">
                 <h3 class="control-title">Number of SPADs</h3>
                 <div id="spad-selector"></div>
             </div>
-            <div class="col-8-12 col-left col-padding">
-                <h3 class="control-title">Segment of the relay wall seen by the SPAD</h3>
-                <div class="slider-styled" id="spad-positions-selector"></div>
+            <div class="col-15-12 col-left col-padding">
+                <h3 class="control-title">Data capture</h3>
+                <div id="capture-selector"></div>
+            </div>
+            <div class="col-2-12 col-left col-padding">
+                <h3 class="control-title">Camera model</h3>
+                <div id="camera-selector"></div>
             </div>
         </div>
         <div class="control-row clearfix">
-            <div class="col-3-12 col-left col-padding">
+            <div class="col-45-12 col-left col-padding">
+                <h3 class="control-title">Segment of the relay wall seen by the SPAD</h3>
+                <div class="slider-styled" id="spad-positions-selector"></div>
+            </div>
+            <div class="col-25-12 col-left col-padding">
+                <h3 class="control-title">Temporal resolution (Δt)</h3>
+                <div id="delta-t"></div>
+            </div>
+            <div class="col-4-12 col-left col-padding">
+                <h3 class="control-title">Max time captured</h3>
+                <div id="tmax"></div>
+            </div>
+        </div>
+        <div class="control-row clearfix">
+            <div class="col-2-12 col-left col-padding">
                 <h3 class="control-title">Scene</h3>
                 <div id="scene-selector"></div>
             </div>
@@ -66,10 +78,13 @@
                     <div id="sigma-slider"></div>
                 </div>
             </div>
-            <div class="col-3-12 col-left col-padding">
+            <div class="col-2-12 col-left col-padding">
                 <h3 class="control-title">Filtering strategy</h3>
                 <div id="filter-selector"></div>
             </div>
+        </div>
+        <div class="control-row clearfix">
+            
         </div>
         <div class="control-row clearfix">
             <div class="col-3-12 col-left col-padding">

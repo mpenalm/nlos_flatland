@@ -115,15 +115,16 @@ Transient.prototype.setupUI = function() {
     var config = {
         "reconstruction_resolutions": [16, 32, 64, 128],
         "scenes": [
-            {'shader': 'scene10', 'name': 'Plane',           'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene9',  'name': 'Sphere',          'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene11', 'name': 'Visibility test', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene10', 'name': 'Plane',            'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene9',  'name': 'Sphere',           'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene11', 'name': 'Visibility test',  'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
             // {'shader': 'scene12', 'name': 'Virtual mirror',   'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            // {'shader': 'scene13', 'name': 'Virtual mirror 2', 'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            {'shader': 'scene14', 'name': 'Virtual mirror',  'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene13', 'name': 'Virtual mirror 2', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
+            {'shader': 'scene14', 'name': 'Virtual mirror',   'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
             {'shader': 'scene15', 'name': 'Virtual mirror rotated', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER}
         ],
         "capture_methods": ["Non-confocal", "Confocal"],
+        "camera_models": ["Confocal", "Transient"],
         "spad_num": [16, 32, 64, 128],
         "filters": ["None", "Laplacian", "Gaussian", "Laplacian of Gaussian", "Phasor Fields"]
     };
@@ -162,7 +163,7 @@ Transient.prototype.setupUI = function() {
 
     var wlSlider = new tui.Slider("wl-slider", 1, 15, true, function(wl) {
         this.setLabel("wl = " + wl + "cm");
-        wl = wl/100;
+        wl = wl / 100;
         renderer.setWavelength(wl);
     });
     wlSlider.setValue(2);
@@ -191,6 +192,9 @@ Transient.prototype.setupUI = function() {
     recResolutionSelector.select(3);
     new tui.ButtonGroup("capture-selector", true, config.capture_methods, function(idx) {
         renderer.setConfocal(Boolean(idx));
+    });
+    new tui.ButtonGroup("camera-selector", true, config.camera_models, function(idx) {
+        renderer.setCameraModel(idx);
     });
     var spadNumberSelector = new tui.ButtonGroup("spad-selector", false, config.spad_num, function(idx) {
         renderer.changeSpadResolution(config.spad_num[idx]);
@@ -239,6 +243,20 @@ Transient.prototype.setupUI = function() {
         renderer.setMaxSampleCount(sampleCount);
     });
     sampleSlider.setValue(600);
+
+    var tmaxSlider = new tui.Slider("tmax", 1, renderer.maxTextureSize, true, function(numIntervals) {
+        var tmax = renderer.deltaT * numIntervals;
+        this.setLabel(tmax + " m");
+        renderer.setMaxTime(tmax);
+    });
+    tmaxSlider.setValue(3333);
+    
+    var deltaTSlider = new tui.Slider("delta-t", 1, 25, true, function(mm) {
+        this.setLabel(mm + " mm");
+        renderer.setDeltaT(mm / 1000);
+        tmaxSlider.setValue(renderer.numIntervals);
+    });
+    deltaTSlider.setValue(3);
         
     this.saveImageData = false;
     document.getElementById('save-button').addEventListener('click', (function() {

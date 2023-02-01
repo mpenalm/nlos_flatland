@@ -78,8 +78,8 @@ var Shaders = {
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
 
         'void main() {\n'                                                                  +
-        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, fract(mPos.y * numSpads)))' +
-                                                                                '.xy;\n'   +
+        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 1.0 - fract(mPos.y * numSp' +
+                                                                          'ads))).xy;\n'   +
         '    vec2 wallPos = texture2D(wallGrid, vec2(mPos.y, 0.5)).xy;\n\n'                +
 
         '    float dlp = distance(wallPos, laserPos); // distance laser device to capture' +
@@ -89,6 +89,37 @@ var Shaders = {
         '    float ds  = distance(wallPos, pixelPos); // distance captured (illuminated) ' +
                                                         'point to reconstructed point\n'   +
         '    float dt = 2.0 * ds + dsp + dlp;\n\n'                                         +
+
+        '    float t = dt / tmax;\n'                                                       +
+        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
+        '}\n',
+
+    'bp-conf-transient-camera-frag':
+        '#include "preamble"\n\n'                                                          +
+
+        'uniform float tmax;\n\n'                                                          +
+
+        'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
+
+        'uniform float numSpads;\n'                                                        +
+        'uniform vec2 spadPos;\n'                                                          +
+        'uniform sampler2D wallGrid; // laser and spad grid\n\n'                           +
+
+        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
+        '        // positions of the considered pixels, on a row\n\n'                      +
+
+        'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
+
+        'void main() {\n'                                                                  +
+        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 1.0 - fract(mPos.y * numSp' +
+                                                                          'ads))).xy;\n'   +
+        '    vec2 wallPos = texture2D(wallGrid, vec2(mPos.y, 0.5)).xy;\n\n'                +
+
+        '    float dsp = distance(wallPos, spadPos); // distance spad device to captured ' +
+                                                                               'point\n'   +
+        '    float ds  = distance(wallPos, pixelPos); // distance captured (illuminated) ' +
+                                                        'point to reconstructed point\n'   +
+        '    float dt = ds + dsp;\n\n'                                                     +
 
         '    float t = dt / tmax;\n'                                                       +
         '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
@@ -161,6 +192,38 @@ var Shaders = {
         '    }\n\n'                                                                        +
 
         '    gl_FragColor = vec4(fluenceAccum, 0.0, 1.0);\n'                               +
+        '}\n',
+
+    'bp-transient-camera-frag':
+        '#include "preamble"\n\n'                                                          +
+
+        'uniform float tmax;\n\n'                                                          +
+
+        'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
+
+        'uniform float numSpads;\n'                                                        +
+        'uniform vec2 laserPos;\n'                                                         +
+        'uniform vec2 laserGrid; // could be more than one, actually\n'                    +
+        'uniform vec2 spadPos;\n'                                                          +
+        'uniform sampler2D spadGrid;\n\n'                                                  +
+
+        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
+        '        // positions of the considered pixels, on a row\n\n'                      +
+
+        'varying vec2 mPos; // Pixel coordinates [0,1]; x = time, y = spad\n\n'            +
+
+        'void main() {\n'                                                                  +
+        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 1.0 - fract(mPos.y * numSp' +
+                                                                          'ads))).xy;\n'   +
+        '    vec2 wallSpad = texture2D(spadGrid, vec2(mPos.y, 0.5)).xy;\n'                 +
+        '    float dlp = distance(laserGrid, laserPos);\n'                                 +
+        '    float dsp = distance(wallSpad, spadPos); // distance spad device to captured' +
+                                                                             ' points\n'   +
+        '    float ds  = distance(wallSpad, pixelPos);\n'                                  +
+        '    float dt = ds + dsp + dlp;\n\n'                                               +
+
+        '    float t = dt / tmax;\n'                                                       +
+        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
         '}\n',
 
     'bp-vert':
@@ -1170,7 +1233,7 @@ var Shaders = {
         '        throughput *= vec3(0.0);\n'                                               +
         '        return sampleDiffuse(state, wiLocal);\n'                                  +
         '    } else {\n'                                                                   +
-        '        throughput *= vec3(0.5);\n'                                               +
+        '        throughput *= vec3(0.8);\n'                                               +
         '        return sampleDiffuse(state, wiLocal);\n'                                  +
         '    }\n'                                                                          +
         '}\n',
@@ -1219,7 +1282,7 @@ var Shaders = {
 
         'void intersect(Ray ray, inout Intersection isect) {\n'                            +
         '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 3.0, isect);\n'                +
-        '    lineIntersect(ray, vec2(1.2, -0.5), vec2(1.2, 0.5), 0.0, isect);\n'           +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, 1.0), 0.0, isect);\n'           +
         '    lineIntersect(ray, vec2(0.4,  0.1), vec2(0.4, 0.8), 0.0, isect);\n'           +
         '    lineIntersect(ray, vec2(1.0,  1.1), vec2(1.2, 0.7), 0.0, isect);\n'           +
         '}\n\n'                                                                            +
@@ -1256,7 +1319,7 @@ var Shaders = {
         'void intersect(Ray ray, inout Intersection isect) {\n'                            +
         '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 3.0, isect);\n'                +
         '    lineIntersect(ray, vec2( 1.2, -1.0), vec2( 1.2,   1.0), 0.0, isect);\n'       +
-        '    lineIntersect(ray, vec2(0.5, 0.2), vec2(0.5, -0.2), 0.0, isect);\n'           +
+        '    lineIntersect(ray, vec2(0.7, 0.2), vec2(0.7, -0.2), 0.0, isect);\n'           +
         '}\n\n'                                                                            +
 
         'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +

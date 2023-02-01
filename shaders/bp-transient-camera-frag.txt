@@ -1,0 +1,28 @@
+#include "preamble"
+
+uniform float tmax;
+
+uniform sampler2D fluence; // x time, y spad
+
+uniform float numSpads;
+uniform vec2 laserPos;
+uniform vec2 laserGrid; // could be more than one, actually
+uniform vec2 spadPos;
+uniform sampler2D spadGrid;
+
+uniform sampler2D planeGrid; // Plane to reconstruct
+        // positions of the considered pixels, on a row
+
+varying vec2 mPos; // Pixel coordinates [0,1]; x = time, y = spad
+
+void main() {
+    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 1.0 - fract(mPos.y * numSpads))).xy;
+    vec2 wallSpad = texture2D(spadGrid, vec2(mPos.y, 0.5)).xy;
+    float dlp = distance(laserGrid, laserPos);
+    float dsp = distance(wallSpad, spadPos); // distance spad device to captured points
+    float ds  = distance(wallSpad, pixelPos);
+    float dt = ds + dsp + dlp;
+
+    float t = dt / tmax;
+    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));
+}
