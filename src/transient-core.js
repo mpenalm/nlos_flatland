@@ -2,7 +2,7 @@
     var LAMBDA_MIN = 360.0;
     var LAMBDA_MAX = 750.0;
 
-    var DEBUG = true;
+    var DEBUG = false;
 
     function intermediatePositions(start, end, n) {
         if (n == 1) {
@@ -1275,15 +1275,13 @@
 
         this.showProgram.bind();
         this.colormapTex.bind(0);
-        // this.filteredBuffer.bind(1);
-        this.intermediateBuffer.bind(1);
+        this.filteredBuffer.bind(1);
         maxValueTex.bind(2);
         this.showProgram.uniformF("Aspect", this.aspect);
         this.showProgram.uniformI("numSpads", this.numSpads);
         this.showProgram.uniformI("isComplex", this.filterType === 'pf');
         this.showProgram.uniformTexture("colormap", this.colormapTex);
-        // this.showProgram.uniformTexture("fluence", this.filteredBuffer);
-        this.showProgram.uniformTexture("fluence", this.intermediateBuffer);
+        this.showProgram.uniformTexture("fluence", this.filteredBuffer);
         this.showProgram.uniformTexture("maxValue", maxValueTex);
         this.quadVbo.bind();
         this.quadVbo.draw(this.showProgram, gl.TRIANGLE_FAN);

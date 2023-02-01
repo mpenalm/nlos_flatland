@@ -113,8 +113,8 @@ var Shaders = {
         'varying vec2 mPos; // Pixel coordinates [0,1]; x = time, y = spad\n\n'            +
 
         'void main() {\n'                                                                  +
-        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, fract(mPos.y * numSpads)))' +
-                                                                                '.xy;\n'   +
+        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 1.0 - fract(mPos.y * numSp' +
+                                                                          'ads))).xy;\n'   +
         '    vec2 wallSpad = texture2D(spadGrid, vec2(mPos.y, 0.5)).xy;\n'                 +
         '    float dlp = distance(laserGrid, laserPos);\n'                                 +
         '    float dl  = distance(laserGrid, pixelPos);\n'                                 +
@@ -147,7 +147,7 @@ var Shaders = {
         '        y -= numPixels.y / 2.0;\n'                                                +
         '    }\n'                                                                          +
         '    float npy = numPixels.y / float(twoRows + 1);\n'                              +
-        '    float pos = x + npy * (npy - 1.0 - y);\n'                                     +
+        '    float pos = x + numPixels.x * (npy - 1.0 - y);\n'                             +
         '    pos = (pos + 0.5) / (numPixels.x * npy);\n\n'                                 +
 
         '    float spadDist = 1.0 / float(numSpads);\n\n'                                  +
@@ -1603,17 +1603,13 @@ var Shaders = {
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
 
         'void main() {\n'                                                                  +
-        '    if (mPos.x > 1.0) {\n'                                                        +
-        '        gl_FragColor = vec4(vec3(0.0), 1.0);\n'                                   +
-        '    } else {\n'                                                                   +
-        '        vec2 fluenceVec = texture2D(fluence, mPos).xy;\n'                         +
-        '        // If complex number, compute module (length), otherwise, use only the f' +
-                                                                      'irst component\n'   +
-        '        float fluenceTex = abs(fluenceVec.x) * float(1 - isComplex) + length(flu' +
-                                                        'enceVec) * float(isComplex);\n'   +
-        '        gl_FragColor = texture2D(colormap, vec2(fluenceTex / texture2D(maxValue,' +
-                                                               ' vec2(0.5)).x, 0.5));\n'   +
-        '    }\n'                                                                          +
+        '    vec2 fluenceVec = texture2D(fluence, mPos).xy;\n'                             +
+        '    // If complex number, compute module (length), otherwise, use only the first' +
+                                                                          ' component\n'   +
+        '    float fluenceTex = abs(fluenceVec.x) * float(1 - isComplex) + length(fluence' +
+                                                            'Vec) * float(isComplex);\n'   +
+        '    gl_FragColor = texture2D(colormap, vec2(fluenceTex / texture2D(maxValue, vec' +
+                                                                   '2(0.5)).x, 0.5));\n'   +
         '}\n',
 
     'show-vert':
@@ -1627,7 +1623,6 @@ var Shaders = {
         'void main() {\n'                               +
         '    gl_Position = vec4(Position, 1.0, 1.0);\n' +
         '    mPos = Position/2.0+vec2(0.5);\n'          +
-        '    mPos.x = mPos.x * Aspect;\n'               +
         '}\n',
 
     'spad-segment-frag':

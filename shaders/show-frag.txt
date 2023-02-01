@@ -9,12 +9,8 @@ uniform int isComplex;
 varying vec2 mPos; // Pixel coordinates [0,1]
 
 void main() {
-    if (mPos.x > 1.0) {
-        gl_FragColor = vec4(vec3(0.0), 1.0);
-    } else {
-        vec2 fluenceVec = texture2D(fluence, mPos).xy;
-        // If complex number, compute module (length), otherwise, use only the first component
-        float fluenceTex = abs(fluenceVec.x) * float(1 - isComplex) + length(fluenceVec) * float(isComplex);
-        gl_FragColor = texture2D(colormap, vec2(fluenceTex / texture2D(maxValue, vec2(0.5)).x, 0.5));
-    }
+    vec2 fluenceVec = texture2D(fluence, mPos).xy;
+    // If complex number, compute module (length), otherwise, use only the first component
+    float fluenceTex = abs(fluenceVec.x) * float(1 - isComplex) + length(fluenceVec) * float(isComplex);
+    gl_FragColor = texture2D(colormap, vec2(fluenceTex / texture2D(maxValue, vec2(0.5)).x, 0.5));
 }

@@ -17,7 +17,7 @@ void main() {
         y -= numPixels.y / 2.0;
     }
     float npy = numPixels.y / float(twoRows + 1);
-    float pos = x + npy * (npy - 1.0 - y);
+    float pos = x + numPixels.x * (npy - 1.0 - y);
     pos = (pos + 0.5) / (numPixels.x * npy);
 
     float spadDist = 1.0 / float(numSpads);
