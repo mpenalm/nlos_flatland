@@ -10,11 +10,11 @@ void main() {
     gl_Position = vec4(Position, 1.0, 1.0);
     mPos = (Position/2.0+vec2(0.5));
 
-    if (floor(numPixels.x / 2.0) < (numPixels.x / 2.0)) {
+    if (numPixels.x > 1.0 && floor(numPixels.x / 2.0) < (numPixels.x / 2.0)) {
         // Odd number of pixels in X dimension
         mPos.x *= (numPixels.x - 1.0) / numPixels.x;
     }
-    if (floor(numPixels.y / 2.0) < (numPixels.y / 2.0)) {
+    if (numPixels.y > 1.0 && floor(numPixels.y / 2.0) < (numPixels.y / 2.0)) {
         // Odd number of pixels in Y dimension
         mPos.y *= (numPixels.y - 1.0) / numPixels.y;
     }

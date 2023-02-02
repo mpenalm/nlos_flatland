@@ -843,10 +843,13 @@ var Shaders = {
         '	vec2 intervalSize = 1.0 / numPixels; // Width and height of each pixel in tex\n' +
         '	float result;\n'                                                                 +
         '	float result2;\n'                                                                +
-        '	float x = floor(mPos.x * numPixels.x);\n'                                        +
-        '    float y = floor(mPos.y * numPixels.y);\n'                                     +
-        '	bool oddX = (floor(numPixels.x / 2.0) < (numPixels.x / 2.0));\n'                 +
-        '	bool oddY = (floor(numPixels.y / 2.0) < (numPixels.y / 2.0));\n\n'               +
+        '	vec2 np = floor(numPixels / 2.0);\n'                                             +
+        '	float x = floor(mPos.x * np.x);\n'                                               +
+        '    float y = floor(mPos.y * np.y);\n'                                            +
+        '	bool oddX = (numPixels.x > 1.0) && (floor(numPixels.x / 2.0) < (numPixels.x / 2' +
+                                                                               '.0));\n'   +
+        '	bool oddY = (numPixels.y > 1.0) && (floor(numPixels.y / 2.0) < (numPixels.y / 2' +
+                                                                               '.0));\n\n' +
 
         '	if (isComplex == 0) {\n'                                                         +
         '			// Not a complex number\n'                                                     +
@@ -868,7 +871,7 @@ var Shaders = {
 
         '		if (oddX) {\n'                                                                  +
         '			// Odd number of pixels in X dimension, add the last one to the last result\n' +
-        '			if (x == numPixels.x - 1.0) {\n'                                               +
+        '			if (x == np.x - 1.0) {\n'                                                      +
         '				a = texture2D(tex, mPos + intervalSize * vec2(1.5, 0.5)).x;\n'                +
         '				b = texture2D(tex, mPos + intervalSize * vec2(1.5, -0.5)).x;\n'               +
         '				c = texture2D(tex, mPos + intervalSize * vec2(1.5, 0.5)).y;\n'                +
@@ -881,7 +884,7 @@ var Shaders = {
 
         '		if (oddY) {\n'                                                                  +
         '			// Odd number of pixels in Y dimension, add the last one to the last result\n' +
-        '			if (y == numPixels.y - 1.0) {\n'                                               +
+        '			if (y == np.y - 1.0) {\n'                                                      +
         '				a = texture2D(tex, mPos + intervalSize * vec2(0.5, 1.5)).x;\n'                +
         '				b = texture2D(tex, mPos + intervalSize * vec2(-0.5, 1.5)).x;\n'               +
         '				c = texture2D(tex, mPos + intervalSize * vec2(0.5, 1.5)).y;\n'                +
@@ -895,7 +898,7 @@ var Shaders = {
         '		if (oddX && oddY) {\n'                                                          +
         '			// Odd number of pixels in both dimensions, add the original corner to the ne' +
                                                                            'w corner \n'   +
-        '				if ((x == numPixels.x - 1.0) && (y == numPixels.y - 1.0)) {\n'                +
+        '				if ((x == np.x - 1.0) && (y == np.y - 1.0)) {\n'                              +
         '				a = texture2D(tex, mPos + intervalSize * vec2(1.5)).x;\n'                     +
         '				b = texture2D(tex, mPos + intervalSize * vec2(1.5)).y;\n'                     +
         '				result = max(result, a);\n'                                                   +
@@ -917,7 +920,7 @@ var Shaders = {
 
         '		if (oddX) {\n'                                                                  +
         '			// Odd number of pixels in X dimension, add the last one to the last result\n' +
-        '			if (x == numPixels.x - 1.0) {\n'                                               +
+        '			if (x == np.x - 1.0) {\n'                                                      +
         '				a = length(texture2D(tex, mPos + intervalSize * vec2(1.5, 0.5)).xy);\n'       +
         '				b = length(texture2D(tex, mPos + intervalSize * vec2(1.5, -0.5)).xy);\n'      +
         '				result = max(result, max(a, b));\n'                                           +
@@ -927,7 +930,7 @@ var Shaders = {
 
         '		if (oddY) {\n'                                                                  +
         '			// Odd number of pixels in Y dimension, add the last one to the last result\n' +
-        '			if (y == numPixels.y - 1.0) {\n'                                               +
+        '			if (y == np.y - 1.0) {\n'                                                      +
         '				a = length(texture2D(tex, mPos + intervalSize * vec2(0.5, 1.5)).xy);\n'       +
         '				b = length(texture2D(tex, mPos + intervalSize * vec2(-0.5, 1.5)).xy);\n'      +
         '				result = max(result, max(a, b));\n'                                           +
@@ -938,7 +941,7 @@ var Shaders = {
         '		if (oddX && oddY) {\n'                                                          +
         '			// Odd number of pixels in both dimensions, add the original corner to the ne' +
                                                                            'w corner \n'   +
-        '				if ((x == numPixels.x - 1.0) && (y == numPixels.y - 1.0)) {\n'                +
+        '				if ((x == np.x - 1.0) && (y == np.y - 1.0)) {\n'                              +
         '				a = length(texture2D(tex, mPos + intervalSize * vec2(1.5)).xy);\n'            +
         '				result = max(result, a);\n'                                                   +
         '				result2 = min(result2, a);\n'                                                 +
@@ -946,30 +949,31 @@ var Shaders = {
         '		}\n'                                                                            +
         '	}\n\n'                                                                           +
 
-        '	gl_FragColor = vec4(result, result2, 0.0, 1.0);\n'                               +
+        '	gl_FragColor = vec4(result, result2, oddY && (y == np.y - 1.0), 1.0);\n'         +
+        '	// gl_FragColor = vec4(mPos, oddX && (x == np.x - 1.0), 1.0);\n'                 +
         '}\n',
 
     'max-vert':
-        '#include "preamble"\n\n'                                     +
+        '#include "preamble"\n\n'                                                          +
 
-        'attribute vec2 Position;\n\n'                                +
+        'attribute vec2 Position;\n\n'                                                     +
 
-        'uniform vec2 numPixels;\n\n'                                 +
+        'uniform vec2 numPixels;\n\n'                                                      +
 
-        'varying vec2 mPos;\n\n'                                      +
+        'varying vec2 mPos;\n\n'                                                           +
 
-        'void main() {\n'                                             +
-        '    gl_Position = vec4(Position, 1.0, 1.0);\n'               +
-        '    mPos = (Position/2.0+vec2(0.5));\n\n'                    +
+        'void main() {\n'                                                                  +
+        '    gl_Position = vec4(Position, 1.0, 1.0);\n'                                    +
+        '    mPos = (Position/2.0+vec2(0.5));\n\n'                                         +
 
-        '    if (floor(numPixels.x / 2.0) < (numPixels.x / 2.0)) {\n' +
-        '        // Odd number of pixels in X dimension\n'            +
-        '        mPos.x *= (numPixels.x - 1.0) / numPixels.x;\n'      +
-        '    }\n'                                                     +
-        '    if (floor(numPixels.y / 2.0) < (numPixels.y / 2.0)) {\n' +
-        '        // Odd number of pixels in Y dimension\n'            +
-        '        mPos.y *= (numPixels.y - 1.0) / numPixels.y;\n'      +
-        '    }\n'                                                     +
+        '    if (numPixels.x > 1.0 && floor(numPixels.x / 2.0) < (numPixels.x / 2.0)) {\n' +
+        '        // Odd number of pixels in X dimension\n'                                 +
+        '        mPos.x *= (numPixels.x - 1.0) / numPixels.x;\n'                           +
+        '    }\n'                                                                          +
+        '    if (numPixels.y > 1.0 && floor(numPixels.y / 2.0) < (numPixels.y / 2.0)) {\n' +
+        '        // Odd number of pixels in Y dimension\n'                                 +
+        '        mPos.y *= (numPixels.y - 1.0) / numPixels.y;\n'                           +
+        '    }\n'                                                                          +
         '}\n',
 
     'pass-frag':
@@ -990,8 +994,8 @@ var Shaders = {
         'uniform sampler2D u_impulse;\n'                                                   +
         'uniform sampler2D u_kernel;\n\n'                                                  +
 
-        '#define KERNEL_SIZE 4096\n'                                                       +
-        '#define KERNEL_INTERVAL 1.0 / 4096.0\n'                                           +
+        '#define KERNEL_SIZE {numIntervals}\n'                                             +
+        '#define KERNEL_INTERVAL 1.0 / {numIntervals}.0\n'                                 +
         '#define KERNEL_START_IDX 0.5 + KERNEL_INTERVAL / 2.0\n\n'                         +
 
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +

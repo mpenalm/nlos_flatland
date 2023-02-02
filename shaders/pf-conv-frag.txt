@@ -4,8 +4,8 @@
 uniform sampler2D u_impulse;
 uniform sampler2D u_kernel;
 
-#define KERNEL_SIZE 4096
-#define KERNEL_INTERVAL 1.0 / 4096.0
+#define KERNEL_SIZE {numIntervals}
+#define KERNEL_INTERVAL 1.0 / {numIntervals}.0
 #define KERNEL_START_IDX 0.5 + KERNEL_INTERVAL / 2.0
 
 varying vec2 mPos; // Pixel coordinates [0,1]

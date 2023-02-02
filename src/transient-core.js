@@ -130,14 +130,14 @@
 
         // Shader programs to reconstruct the hidden scene
         this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-frag");
-        // this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-transient-camera-frag");
         this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-frag");
-        // this.sumProgram      = new tgl.Shader(Shaders, "bp-vert", "replacedSum"); // added in setSpadPositions
         this.lapProgram = new tgl.Shader(Shaders, "bp-vert", "lap-frag");
         this.gaussProgram = new tgl.Shader(Shaders, "bp-vert", "gauss-frag");
         this.logProgram = new tgl.Shader(Shaders, "bp-vert", "log-frag");
         this.pfKernelProgram = new tgl.Shader(Shaders, "bp-vert", "pf-filter-frag");
-        this.pfProgram = new tgl.Shader(Shaders, "bp-vert", "pf-conv-frag");
+        // var pfConvFrag = this.replaceNumSpads("pf-conv-frag");
+        // Shaders["replacedPf"] = pfConvFrag;
+        // this.pfProgram = new tgl.Shader(Shaders, "bp-vert", "replacedPf");
         this.maxProgram = new tgl.Shader(Shaders, "max-vert", "max-frag");
         this.sumProgram = new tgl.Shader(Shaders, "bp-vert", "sum-frag");
         this.showProgram = new tgl.Shader(Shaders, "show-vert", "show-frag");
@@ -251,6 +251,13 @@
         return shaderSource.replace(pattern, this.numSpads);
     }
 
+    Renderer.prototype.replaceNumIntervals = function (shaderName) {
+        console.log(this.numIntervals);
+        var pattern = new RegExp('{numIntervals}', 'g');
+        var shaderSource = Shaders[shaderName];
+        return shaderSource.replace(pattern, this.numIntervals);
+    }
+
     Renderer.prototype.changeSpadResolution = function (numSpads) {
         if (this.spadHeights === undefined || this.spadHeights.length != numSpads) {
             this.numSpads = numSpads;
@@ -284,6 +291,9 @@
             this.numIntervals = this.maxTextureSize;
         }
         this.maxTime = this.deltaT * this.numIntervals;
+        var pfConvFrag = this.replaceNumIntervals("pf-conv-frag");
+        Shaders["replacedPf"] = pfConvFrag;
+        this.pfProgram = new tgl.Shader(Shaders, "bp-vert", "replacedPf");
         this.createNLOSBuffers(ModifiedAttributes.NumIntervals);
         this.computePFFilter();
         this.resetActiveBlock();
@@ -296,6 +306,9 @@
             this.numIntervals = this.maxTextureSize;
         }
         this.maxTime = this.deltaT * this.numIntervals;
+        var pfConvFrag = this.replaceNumIntervals("pf-conv-frag");
+        Shaders["replacedPf"] = pfConvFrag;
+        this.pfProgram = new tgl.Shader(Shaders, "bp-vert", "replacedPf");
         this.createNLOSBuffers(ModifiedAttributes.NumIntervals);
         this.computePFFilter();
         this.resetActiveBlock();
@@ -591,14 +604,15 @@
         var width = inputTex.width;
         var height = inputTex.height;
         var maxBuffers = [inputTex];
+        this.quadVbo.bind();
 
         var gl = this.gl;
-
+        this.fbo.bind();
         var current = 0;
         var useSameChannel = true;
         while (width > 1) {
-            console.log(maxBuffers[current].getArray(width*height));
-            this.fbo.bind();
+            // console.log(maxBuffers[current].getArray(width*height));
+            // this.fbo.bind();
             var numPixels = [width, height];
             width = parseInt(width / 2);
             height = (height > 1) ? parseInt(height / 2) : height;
@@ -620,7 +634,7 @@
             current = next;
             useSameChannel = false;
         }
-        console.log(maxBuffers[current].getArray(width*height));
+        // console.log(maxBuffers[current].getArray(width*height));
 
         return maxBuffers[current];
     }
@@ -738,8 +752,8 @@
         this.quadVbo.bind();
         this.quadVbo.draw(this.pfKernelProgram, gl.TRIANGLE_FAN);
 
-        //this.pfFilterValues = this.filterBuffer.getArray(this.numIntervals);
-        this.fbo.unbind();
+        this.pfFilterValues = this.filterBuffer.getArray(this.numIntervals);
+        // this.fbo.unbind();
     }
 
     Renderer.prototype.filterPF = function () {

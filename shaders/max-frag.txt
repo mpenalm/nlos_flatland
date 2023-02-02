@@ -12,10 +12,11 @@ void main () {
 	vec2 intervalSize = 1.0 / numPixels; // Width and height of each pixel in tex
 	float result;
 	float result2;
-	float x = floor(mPos.x * numPixels.x);
-    float y = floor(mPos.y * numPixels.y);
-	bool oddX = (floor(numPixels.x / 2.0) < (numPixels.x / 2.0));
-	bool oddY = (floor(numPixels.y / 2.0) < (numPixels.y / 2.0));
+	vec2 np = floor(numPixels / 2.0);
+	float x = floor(mPos.x * np.x);
+    float y = floor(mPos.y * np.y);
+	bool oddX = (numPixels.x > 1.0) && (floor(numPixels.x / 2.0) < (numPixels.x / 2.0));
+	bool oddY = (numPixels.y > 1.0) && (floor(numPixels.y / 2.0) < (numPixels.y / 2.0));
 
 	if (isComplex == 0) {
 			// Not a complex number
@@ -37,7 +38,7 @@ void main () {
 
 		if (oddX) {
 			// Odd number of pixels in X dimension, add the last one to the last result
-			if (x == numPixels.x - 1.0) {
+			if (x == np.x - 1.0) {
 				a = texture2D(tex, mPos + intervalSize * vec2(1.5, 0.5)).x;
 				b = texture2D(tex, mPos + intervalSize * vec2(1.5, -0.5)).x;
 				c = texture2D(tex, mPos + intervalSize * vec2(1.5, 0.5)).y;
@@ -49,7 +50,7 @@ void main () {
 
 		if (oddY) {
 			// Odd number of pixels in Y dimension, add the last one to the last result
-			if (y == numPixels.y - 1.0) {
+			if (y == np.y - 1.0) {
 				a = texture2D(tex, mPos + intervalSize * vec2(0.5, 1.5)).x;
 				b = texture2D(tex, mPos + intervalSize * vec2(-0.5, 1.5)).x;
 				c = texture2D(tex, mPos + intervalSize * vec2(0.5, 1.5)).y;
@@ -61,7 +62,7 @@ void main () {
 
 		if (oddX && oddY) {
 			// Odd number of pixels in both dimensions, add the original corner to the new corner 
-				if ((x == numPixels.x - 1.0) && (y == numPixels.y - 1.0)) {
+				if ((x == np.x - 1.0) && (y == np.y - 1.0)) {
 				a = texture2D(tex, mPos + intervalSize * vec2(1.5)).x;
 				b = texture2D(tex, mPos + intervalSize * vec2(1.5)).y;
 				result = max(result, a);
@@ -82,7 +83,7 @@ void main () {
 
 		if (oddX) {
 			// Odd number of pixels in X dimension, add the last one to the last result
-			if (x == numPixels.x - 1.0) {
+			if (x == np.x - 1.0) {
 				a = length(texture2D(tex, mPos + intervalSize * vec2(1.5, 0.5)).xy);
 				b = length(texture2D(tex, mPos + intervalSize * vec2(1.5, -0.5)).xy);
 				result = max(result, max(a, b));
@@ -92,7 +93,7 @@ void main () {
 
 		if (oddY) {
 			// Odd number of pixels in Y dimension, add the last one to the last result
-			if (y == numPixels.y - 1.0) {
+			if (y == np.y - 1.0) {
 				a = length(texture2D(tex, mPos + intervalSize * vec2(0.5, 1.5)).xy);
 				b = length(texture2D(tex, mPos + intervalSize * vec2(-0.5, 1.5)).xy);
 				result = max(result, max(a, b));
@@ -102,7 +103,7 @@ void main () {
 
 		if (oddX && oddY) {
 			// Odd number of pixels in both dimensions, add the original corner to the new corner 
-				if ((x == numPixels.x - 1.0) && (y == numPixels.y - 1.0)) {
+				if ((x == np.x - 1.0) && (y == np.y - 1.0)) {
 				a = length(texture2D(tex, mPos + intervalSize * vec2(1.5)).xy);
 				result = max(result, a);
 				result2 = min(result2, a);
@@ -110,5 +111,6 @@ void main () {
 		}
 	}
 	
-	gl_FragColor = vec4(result, result2, 0.0, 1.0);
+	gl_FragColor = vec4(result, result2, oddY && (y == np.y - 1.0), 1.0);
+	// gl_FragColor = vec4(mPos, oddX && (x == np.x - 1.0), 1.0);
 }
