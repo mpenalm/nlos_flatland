@@ -5,6 +5,7 @@ uniform float tmax;
 uniform sampler2D fluence; // x time, y spad
 
 uniform float numSpads;
+uniform float instant;
 uniform vec2 laserPos;
 uniform vec2 laserGrid; // could be more than one, actually
 uniform vec2 spadPos;
@@ -22,7 +23,7 @@ void main() {
     float dl  = distance(laserGrid, pixelPos);
     float dsp = distance(wallSpad, spadPos); // distance spad device to captured points
     float ds  = distance(wallSpad, pixelPos);
-    float dt = ds + dsp + dl + dlp;
+    float dt = ds + dsp + dl + dlp + instant;
 
     float t = dt / tmax;
     gl_FragColor = texture2D(fluence, vec2(t, mPos.y));

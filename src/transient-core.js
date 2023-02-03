@@ -192,6 +192,9 @@
 
         this.filterType = 'none';
         this.computePFFilter();
+
+        this.instant = 0;
+        this.playing = false;
     }
 
     Renderer.prototype.createVBOs = function () {
@@ -252,7 +255,8 @@
     }
 
     Renderer.prototype.replaceNumIntervals = function (shaderName) {
-        console.log(this.numIntervals);
+        this.timeVector = new Float32Array(linspace(0.0, this.numIntervals * this.deltaT, this.numIntervals));
+        this.timeVectorTex = new tgl.Texture(this.numIntervals, 1, 1, true, false, true, this.timeVector);
         var pattern = new RegExp('{numIntervals}', 'g');
         var shaderSource = Shaders[shaderName];
         return shaderSource.replace(pattern, this.numIntervals);
@@ -551,6 +555,7 @@
             this.spadGridTex.bind(1);
             this.planeGridTex.bind(2);
             this.bpConfProgram.uniformF("tmax", this.maxTime);
+            this.bpConfProgram.uniformF("instant", this.instant / this.numIntervals);
             this.bpConfProgram.uniformF("numSpads", this.numSpads);
             this.bpConfProgram.uniformTexture("fluence", inputTex);
             this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
@@ -565,6 +570,7 @@
             this.spadGridTex.bind(1);
             this.planeGridTex.bind(2);
             this.bpProgram.uniformF("tmax", this.maxTime);
+            this.bpProgram.uniformF("instant", this.instant / this.numIntervals);
             this.bpProgram.uniformF("numSpads", this.numSpads);
             this.bpProgram.uniformTexture("fluence", inputTex);
             this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
@@ -598,21 +604,18 @@
         this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
     }
 
-    // TODO: Adapt to non-power-of-2 values
     Renderer.prototype.findMax = function (inputTex, isComplex = false) {
         // Find maximum value, dividing the area by 4 in each pass
         var width = inputTex.width;
         var height = inputTex.height;
         var maxBuffers = [inputTex];
-        this.quadVbo.bind();
+        // this.quadVbo.bind();
 
         var gl = this.gl;
         this.fbo.bind();
         var current = 0;
         var useSameChannel = true;
         while (width > 1) {
-            // console.log(maxBuffers[current].getArray(width*height));
-            // this.fbo.bind();
             var numPixels = [width, height];
             width = parseInt(width / 2);
             height = (height > 1) ? parseInt(height / 2) : height;
@@ -634,12 +637,11 @@
             current = next;
             useSameChannel = false;
         }
-        // console.log(maxBuffers[current].getArray(width*height));
 
         return maxBuffers[current];
     }
 
-    Renderer.prototype.getCaptureSum = function () {
+    /*Renderer.prototype.getCaptureSum = function () {
         // Find total sum, dividing the area by 4 in each pass or by 2 once height is 1
         var height = this.numSpads;
         var width = this.numIntervals;
@@ -675,6 +677,7 @@
 
         return sumBuffers[current];
     }
+    */
 
     Renderer.prototype.filterLap = function () {
         var gl = this.gl;
@@ -753,7 +756,7 @@
         this.quadVbo.draw(this.pfKernelProgram, gl.TRIANGLE_FAN);
 
         this.pfFilterValues = this.filterBuffer.getArray(this.numIntervals);
-        // this.fbo.unbind();
+        this.fbo.unbind();
     }
 
     Renderer.prototype.filterPF = function () {
@@ -862,6 +865,9 @@
         this.samplesTraced = 0;
         this.pathLength = 0;
         this.elapsedTimes = [];
+        this.videoElapsedTimes = [];
+        this.instant = 0;
+        this.msPerFrame = 1000 / 200;
         this.currentCall = 0;
         this.nlosElapsedTimes = [];
         this.setSpadPos([0, -0.6]);
@@ -1081,12 +1087,23 @@
         }
     }
 
+    Renderer.prototype.videoFinished = function () {
+        if (this.playing) {
+            return this.instant >= this.numIntervals - 1;
+        } else {
+            return false;
+        }
+    }
+
     Renderer.prototype.partialReset = function () {
         this.wavesTraced = 0;
         this.raysTraced = 0;
         this.samplesTraced = 0;
         this.pathLength = 0;
         this.elapsedTimes = [];
+        this.videoElapsedTimes = [];
+        this.playing = false;
+        this.instant = 0;
 
         if (this.fbo != undefined) {
             this.fbo.bind();
@@ -1347,6 +1364,34 @@
         this.sbVbo.bind();
         this.sbVbo.draw(this.spadSegmentProgram, this.gl.LINES);
         gl.disable(gl.BLEND);
+    }
+
+    Renderer.prototype.play = function (timestamp) {
+        console.log('play');
+        if (!this.playing) {
+            this.playing = true;
+            this.videoElapsedTimes = [];
+            if (this.instant >= this.numIntervals) {
+                this.instant = -1;
+                console.log('hi ' + this.instant);
+            }
+        }
+
+        console.log(this.instant);
+
+        if (this.videoElapsedTimes.length == 0 || (timestamp - this.videoElapsedTimes[this.videoElapsedTimes.length-1]) > this.msPerFrame) {
+            this.videoElapsedTimes.push(timestamp);
+            this.instant++;
+            this.redraw();
+            if (this.instant >= this.numIntervals - 1)
+                this.playing = false;
+        }
+    }
+
+    Renderer.prototype.pause = function () {
+        console.log('pause');
+        this.playing = false;
+        this.videoElapsedTimes = [];
     }
 
     Renderer.prototype.computeSpadValues = function (current, next) {

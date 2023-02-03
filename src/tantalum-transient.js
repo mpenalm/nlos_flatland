@@ -173,7 +173,7 @@ Transient.prototype.setupUI = function() {
 
     new tui.ButtonGroup("filter-selector", true, config.filters, function(idx) {
         renderer.setFilterType(filterTypes[idx]);
-        if (idx < 2) {
+        if (idx < 4) {
             document.getElementById("filter-parameter").style.visibility = "hidden";
         } else {
             document.getElementById("filter-parameter").style.visibility = "visible";
@@ -262,6 +262,12 @@ Transient.prototype.setupUI = function() {
     document.getElementById('save-button').addEventListener('click', (function() {
         this.saveImageData = true;
     }).bind(this));
+
+    this.playVideo = false;
+    this.changePlayState = false;
+    document.getElementById('play-button').addEventListener('click', (function() {
+        this.changePlayState = true;
+    }).bind(this));
         
     selectScene(0);
         
@@ -303,6 +309,19 @@ Transient.prototype.renderLoop = function(timestamp) {
     
     if (!this.renderer.finished())
         this.renderer.render(timestamp);
+    else if (this.changePlayState) {
+        this.playVideo = !this.playVideo;
+        this.changePlayState = false;
+        if (!this.playVideo)
+            this.renderer.pause();
+        else if (this.renderer.videoFinished())
+            this.renderer.play(timestamp);
+    } else if (this.playVideo) {
+        if (this.renderer.videoFinished())
+            this.playVideo = false;
+        else
+            this.renderer.play(timestamp);
+    }
 
     if (this.saveImageData) {
         /* Ensure we redraw the image before we grab it. This is a strange one:

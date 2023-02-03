@@ -14,7 +14,7 @@ void main() {
     float tmax = deltaT * float(numIntervals);
     float sigma = wl;
 
-    //float pf = exp(-(t-tmax/2.0) * (t-tmax/2.0) / (4*sigma*sigma)) *
+    //float pf = exp(-(t-tmax/2.0) * (t-tmax/2.0) / (2*sigma*sigma)) *
     //    exp(2i * pi / wl * t);
 
     float realPart = exp(-(t-tmax/2.0) * (t-tmax/2.0) / (2.0*sigma*sigma));

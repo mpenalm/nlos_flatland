@@ -68,6 +68,7 @@ var Shaders = {
         'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
 
         'uniform float numSpads;\n'                                                        +
+        'uniform float instant;\n'                                                         +
         'uniform vec2 laserPos;\n'                                                         +
         'uniform vec2 spadPos;\n'                                                          +
         'uniform sampler2D wallGrid; // laser and spad grid\n\n'                           +
@@ -88,7 +89,7 @@ var Shaders = {
                                                                                'point\n'   +
         '    float ds  = distance(wallPos, pixelPos); // distance captured (illuminated) ' +
                                                         'point to reconstructed point\n'   +
-        '    float dt = 2.0 * ds + dsp + dlp;\n\n'                                         +
+        '    float dt = 2.0 * ds + dsp + dlp + instant;\n\n'                               +
 
         '    float t = dt / tmax;\n'                                                       +
         '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
@@ -102,6 +103,7 @@ var Shaders = {
         'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
 
         'uniform float numSpads;\n'                                                        +
+        'uniform float instant;\n'                                                         +
         'uniform vec2 spadPos;\n'                                                          +
         'uniform sampler2D wallGrid; // laser and spad grid\n\n'                           +
 
@@ -119,7 +121,7 @@ var Shaders = {
                                                                                'point\n'   +
         '    float ds  = distance(wallPos, pixelPos); // distance captured (illuminated) ' +
                                                         'point to reconstructed point\n'   +
-        '    float dt = ds + dsp;\n\n'                                                     +
+        '    float dt = ds + dsp + instant;\n\n'                                           +
 
         '    float t = dt / tmax;\n'                                                       +
         '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
@@ -133,6 +135,7 @@ var Shaders = {
         'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
 
         'uniform float numSpads;\n'                                                        +
+        'uniform float instant;\n'                                                         +
         'uniform vec2 laserPos;\n'                                                         +
         'uniform vec2 laserGrid; // could be more than one, actually\n'                    +
         'uniform vec2 spadPos;\n'                                                          +
@@ -152,7 +155,7 @@ var Shaders = {
         '    float dsp = distance(wallSpad, spadPos); // distance spad device to captured' +
                                                                              ' points\n'   +
         '    float ds  = distance(wallSpad, pixelPos);\n'                                  +
-        '    float dt = ds + dsp + dl + dlp;\n\n'                                          +
+        '    float dt = ds + dsp + dl + dlp + instant;\n\n'                                +
 
         '    float t = dt / tmax;\n'                                                       +
         '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
@@ -202,6 +205,7 @@ var Shaders = {
         'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
 
         'uniform float numSpads;\n'                                                        +
+        'uniform float instant;\n'                                                         +
         'uniform vec2 laserPos;\n'                                                         +
         'uniform vec2 laserGrid; // could be more than one, actually\n'                    +
         'uniform vec2 spadPos;\n'                                                          +
@@ -220,7 +224,7 @@ var Shaders = {
         '    float dsp = distance(wallSpad, spadPos); // distance spad device to captured' +
                                                                              ' points\n'   +
         '    float ds  = distance(wallSpad, pixelPos);\n'                                  +
-        '    float dt = ds + dsp + dlp;\n\n'                                               +
+        '    float dt = ds + dsp + dlp + instant;\n\n'                                     +
 
         '    float t = dt / tmax;\n'                                                       +
         '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
@@ -1044,7 +1048,7 @@ var Shaders = {
         '    float tmax = deltaT * float(numIntervals);\n'                              +
         '    float sigma = wl;\n\n'                                                     +
 
-        '    //float pf = exp(-(t-tmax/2.0) * (t-tmax/2.0) / (4*sigma*sigma)) *\n'      +
+        '    //float pf = exp(-(t-tmax/2.0) * (t-tmax/2.0) / (2*sigma*sigma)) *\n'      +
         '    //    exp(2i * pi / wl * t);\n\n'                                          +
 
         '    float realPart = exp(-(t-tmax/2.0) * (t-tmax/2.0) / (2.0*sigma*sigma));\n' +
