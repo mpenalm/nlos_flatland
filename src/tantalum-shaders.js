@@ -1152,16 +1152,17 @@ var Shaders = {
         '}\n',
 
     'ruler-vert':
-        '#include "preamble"\n\n'                                               +
+        '#include "preamble"\n\n'                                              +
 
-        'attribute vec2 Position;\n'                                            +
-        'uniform float Aspect;\n\n'                                             +
+        'attribute vec2 Position;\n'                                           +
+        'attribute vec2 TexCoord;\n'                                           +
+        'uniform float Aspect;\n\n'                                            +
 
-        'varying vec2 mPos;\n\n'                                                +
+        'varying vec2 mPos;\n\n'                                               +
 
-        'void main() {\n'                                                       +
-        '    gl_Position = vec4(Position.x / Aspect, Position.y, 1.0, 1.0);\n'  +
-        '    mPos = Position * vec2(Position.x <= -1.0, Position.y <= -1.0);\n' +
+        'void main() {\n'                                                      +
+        '    gl_Position = vec4(Position.x / Aspect, Position.y, 1.0, 1.0);\n' +
+        '    mPos = TexCoord;\n'                                               +
         '}\n',
 
     'scene1':
