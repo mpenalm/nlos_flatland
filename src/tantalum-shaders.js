@@ -104,6 +104,7 @@ var Shaders = {
 
         'uniform float numSpads;\n'                                                        +
         'uniform float instant;\n'                                                         +
+        'uniform vec2 laserPos;\n'                                                         +
         'uniform vec2 spadPos;\n'                                                          +
         'uniform sampler2D wallGrid; // laser and spad grid\n\n'                           +
 
@@ -117,11 +118,13 @@ var Shaders = {
                                                                           'ads))).xy;\n'   +
         '    vec2 wallPos = texture2D(wallGrid, vec2(mPos.y, 0.5)).xy;\n\n'                +
 
+        '    float dlp = distance(wallPos, laserPos); // distance laser device to capture' +
+                                                               'd (illuminated) point\n'   +
         '    float dsp = distance(wallPos, spadPos); // distance spad device to captured ' +
                                                                                'point\n'   +
         '    float ds  = distance(wallPos, pixelPos); // distance captured (illuminated) ' +
                                                         'point to reconstructed point\n'   +
-        '    float dt = ds + dsp + instant;\n\n'                                           +
+        '    float dt = ds + dsp + dlp + instant;\n\n'                                     +
 
         '    float t = dt / tmax;\n'                                                       +
         '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
@@ -1137,6 +1140,30 @@ var Shaders = {
         '    vTexCoord = TexCoord;\n'                                                      +
         '}\n',
 
+    'ruler-frag':
+        '#include "preamble"\n\n'                        +
+
+        'uniform sampler2D u_ruler;\n\n'                 +
+
+        'varying vec2 mPos;\n\n'                         +
+
+        'void main() {\n'                                +
+        '    gl_FragColor = texture2D(u_ruler, mPos);\n' +
+        '}\n',
+
+    'ruler-vert':
+        '#include "preamble"\n\n'                                               +
+
+        'attribute vec2 Position;\n'                                            +
+        'uniform float Aspect;\n\n'                                             +
+
+        'varying vec2 mPos;\n\n'                                                +
+
+        'void main() {\n'                                                       +
+        '    gl_Position = vec4(Position.x / Aspect, Position.y, 1.0, 1.0);\n'  +
+        '    mPos = Position * vec2(Position.x <= -1.0, Position.y <= -1.0);\n' +
+        '}\n',
+
     'scene1':
         '#include "trace-frag"\n\n'                                                        +
 
@@ -1683,11 +1710,31 @@ var Shaders = {
                                                                    '2(0.5)).x, 0.5));\n'   +
         '}\n',
 
+    'show-func-frag':
+        '#include "preamble"\n\n'                                                          +
+
+        'uniform sampler2D fluence;\n'                                                     +
+        'uniform sampler2D colormap;\n\n'                                                  +
+
+        'uniform sampler2D maxValue; // it would be nice to check what is faster\n'        +
+        'uniform int isComplex;\n\n'                                                       +
+
+        'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
+
+        'void main() {\n'                                                                  +
+        '    vec2 fluenceVec = texture2D(fluence, mPos).xy;\n'                             +
+        '    // If complex number, compute module (length), otherwise, use only the first' +
+                                                                          ' component\n'   +
+        '    float fluenceTex = abs(fluenceVec.x) * float(1 - isComplex) + length(fluence' +
+                                                            'Vec) * float(isComplex);\n'   +
+        '    gl_FragColor = texture2D(colormap, vec2({func}(1.0+fluenceTex) / {func}(1.0+' +
+                                           'texture2D(maxValue, vec2(0.5)).x), 0.5));\n'   +
+        '}\n',
+
     'show-vert':
         '#include "preamble"\n\n'                       +
 
-        'attribute vec2 Position;\n'                    +
-        'uniform float Aspect;\n\n'                     +
+        'attribute vec2 Position;\n\n'                  +
 
         'varying vec2 mPos;\n\n'                        +
 

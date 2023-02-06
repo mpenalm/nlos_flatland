@@ -1,0 +1,11 @@
+#include "preamble"
+
+attribute vec2 Position;
+uniform float Aspect;
+
+varying vec2 mPos;
+
+void main() {
+    gl_Position = vec4(Position.x / Aspect, Position.y, 1.0, 1.0);
+    mPos = Position * vec2(Position.x <= -1.0, Position.y <= -1.0);
+}

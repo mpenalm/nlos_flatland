@@ -126,7 +126,9 @@ Transient.prototype.setupUI = function() {
         "capture_methods": ["Non-confocal", "Confocal"],
         "camera_models": ["Confocal", "Transient"],
         "spad_num": [16, 32, 64, 128],
-        "filters": ["None", "Laplacian", "Gaussian", "Laplacian of Gaussian", "Phasor Fields"]
+        "filters": ["None", "Laplacian", "Gaussian", "Laplacian of Gaussian", "Phasor Fields"],
+        "tone_mapper_labels": ["None", "Logarithmic", "Square root"],
+        "tone_mapper_ids": ["none", "log", "sqrt"]
     };
     
     var sceneShaders = [], sceneNames = [];
@@ -195,6 +197,9 @@ Transient.prototype.setupUI = function() {
     });
     new tui.ButtonGroup("camera-selector", true, config.camera_models, function(idx) {
         renderer.setCameraModel(idx);
+    });
+    new tui.ButtonGroup("tonemap-selector", true, config.tone_mapper_labels, function(idx) {
+        renderer.setToneMapper(config.tone_mapper_ids[idx]);
     });
     var spadNumberSelector = new tui.ButtonGroup("spad-selector", false, config.spad_num, function(idx) {
         renderer.changeSpadResolution(config.spad_num[idx]);
@@ -317,9 +322,10 @@ Transient.prototype.renderLoop = function(timestamp) {
         else if (this.renderer.videoFinished())
             this.renderer.play(timestamp);
     } else if (this.playVideo) {
-        if (this.renderer.videoFinished())
+        if (this.renderer.videoFinished()) {
             this.playVideo = false;
-        else
+            this.renderer.pause();
+        } else
             this.renderer.play(timestamp);
     }
 

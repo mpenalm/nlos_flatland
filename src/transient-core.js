@@ -78,6 +78,9 @@
         result[0] *= width;
         result[1] *= height;
         return result;
+    } 
+    function isPowerOf2(value) {
+        return (value & (value - 1)) === 0;
     }
 
     var SpadData = function (pos, radius, deltaT, maxTime) {
@@ -92,6 +95,7 @@
         this.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
         this.quadVbo = this.createQuadVbo();
         this.quadVbo2 = this.createQuadVbo2();
+        this.quadVbo3 = this.createQuadVbo3();
 
         this.maxSampleCount = 100000;
         this.spreadType = tcore.Renderer.SPREAD_LASER;
@@ -110,6 +114,7 @@
         this.hConfProgram = new tgl.Shader(Shaders, "h-conf-vert", "h-frag");
         // this.hProgram         = new tgl.Shader(Shaders,       "h-vert",       "h-frag"); // added in setSpadPositions
         this.spadSegmentProgram = new tgl.Shader(Shaders, "spad-segment-vert", "spad-segment-frag");
+        this.rulerProgram = new tgl.Shader(Shaders, "ruler-vert", "ruler-frag");
         this.tracePrograms = [];
         for (var i = 0; i < scenes.length; ++i)
             this.tracePrograms.push(new tgl.Shader(Shaders, "trace-vert", scenes[i]));
@@ -119,8 +124,6 @@
         this.deltaT = 0.003;
         this.maxTime = 10; // approximate max instant we want to store
         this.numIntervals = parseInt(this.maxTime / this.deltaT + 0.05); // make sure it is an int
-        // With deltaT = 0.003, numIntervals = 3333, GL_INVALID_FRAMEBUFFER_OPERATION
-        //this.numIntervals = 4096;
 
         this.maxTime = this.numIntervals * this.deltaT; // fix the maxTime to a value that corresponds with integer numIntervals
         this.spadRadius = 0.0035;
@@ -195,7 +198,36 @@
 
         this.instant = 0;
         this.playing = false;
+
+        // this.rulerTex = this.loadTexture(gl, "ruler.png", this.rulerLoaded);
+        // Flip image pixels into the bottom-to-top order that WebGL expects.
+        // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        this.rulerLoaded = false;
     }
+
+    Renderer.prototype.loadTexture = function (url) {
+        var texture = new tgl.Texture(1, 1, 4, false, false, true, new Uint8Array([0, 0, 255, 255]));
+        console.log(texture);
+      
+        const image = new Image();
+        image.onload = () => {
+            // Get pixel values
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            canvas.width = image.width;
+            canvas.height = image.height;
+            context.drawImage(image, 0, 0 );
+            var data = context.getImageData(0, 0, image.width, image.height).data;
+            console.log(data);
+            texture = new tgl.Texture(image.width, image.height, 4, false, false, true, data);
+            this.rulerLoaded = true;
+            console.log('a');
+        };
+        image.src = url;
+        console.log(image.src);
+      
+        return texture;
+      }
 
     Renderer.prototype.createVBOs = function () {
         var gl = this.gl;
@@ -344,11 +376,12 @@
             this.spadPoints = [];
 
             this.spads = [];
-            this.spadHeights.forEach(h => {
+            for (var i = 0; i < this.spadHeights.length; i++) {
+                var h = this.spadHeights[i];
                 this.spads.push(new SpadData([1.2, h], this.spadRadius, this.deltaT, this.maxTime));
                 this.spadPoints.push(1.2);
                 this.spadPoints.push(h);
-            });
+            }
 
             var spadGridData = new Float32Array(this.numSpads * 4);
             for (var i = 0; i < this.numSpads; i++) {
@@ -983,6 +1016,19 @@
             this.redraw();
     }
 
+    Renderer.prototype.setToneMapper = function (type) {
+        if (type === 'none') {
+            this.showProgram = new tgl.Shader(Shaders, "show-vert", "show-frag");
+        } else {
+            var pattern = new RegExp('{func}', 'g');
+            var shaderSource = Shaders["show-func-frag"];
+            Shaders["show-replaced-frag"] = shaderSource.replace(pattern, type);
+            this.showProgram = new tgl.Shader(Shaders, "show-vert", "show-replaced-frag");
+        }
+        if (this.finished())
+            this.redraw();
+    }
+
     Renderer.prototype.computeSpread = function () {
         switch (this.spreadType) {
             case tcore.Renderer.SPREAD_POINT:
@@ -1042,6 +1088,20 @@
         return vbo;
     }
 
+    Renderer.prototype.createQuadVbo3 = function () {
+        var vbo = new tgl.VertexBuffer();
+        vbo.addAttribute("Position", 2, this.gl.FLOAT, false);
+        vbo.init(4);
+        vbo.copy(new Float32Array([
+            -1.0, -0.389,
+            -0.306, -0.389,
+            -0.306, -1.0,
+            -1.0, -1.0,
+        ]));
+
+        return vbo;
+    }
+
     Renderer.prototype.createSBVbo = function () {
         var vbo = new tgl.VertexBuffer();
         vbo.addAttribute("Position", 2, this.gl.FLOAT, false);
@@ -1091,7 +1151,7 @@
         if (this.playing) {
             return this.instant >= this.numIntervals - 1;
         } else {
-            return false;
+            return true;
         }
     }
 
@@ -1129,6 +1189,15 @@
         this.spadSegmentProgram.bind();
         this.sbVbo.bind();
         this.sbVbo.draw(this.spadSegmentProgram, this.gl.LINES);
+        
+        if (this.rulerLoaded) {
+            this.rulerImg.bind(0);
+            this.rulerProgram.bind();
+            this.rulerProgram.uniformF("Aspect", this.aspect);
+            this.rulerProgram.uniformTexture("u_ruler", this.rulerImg);
+            this.quadVbo3.bind();
+            this.quadVbo3.draw(this.rulerProgram, this.sl.TRIANGLE_FAN);
+        }
         this.gl.disable(this.gl.BLEND);
     }
 
@@ -1367,17 +1436,13 @@
     }
 
     Renderer.prototype.play = function (timestamp) {
-        console.log('play');
         if (!this.playing) {
             this.playing = true;
             this.videoElapsedTimes = [];
-            if (this.instant >= this.numIntervals) {
+            if (this.instant >= this.numIntervals - 1) {
                 this.instant = -1;
-                console.log('hi ' + this.instant);
             }
         }
-
-        console.log(this.instant);
 
         if (this.videoElapsedTimes.length == 0 || (timestamp - this.videoElapsedTimes[this.videoElapsedTimes.length-1]) > this.msPerFrame) {
             this.videoElapsedTimes.push(timestamp);
@@ -1389,7 +1454,6 @@
     }
 
     Renderer.prototype.pause = function () {
-        console.log('pause');
         this.playing = false;
         this.videoElapsedTimes = [];
     }

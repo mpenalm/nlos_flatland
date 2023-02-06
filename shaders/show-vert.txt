@@ -1,7 +1,6 @@
 #include "preamble"
 
 attribute vec2 Position;
-uniform float Aspect;
 
 varying vec2 mPos;
 
