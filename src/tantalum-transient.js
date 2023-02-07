@@ -128,7 +128,8 @@ Transient.prototype.setupUI = function() {
         "spad_num": [16, 32, 64, 128],
         "filters": ["None", "Laplacian", "Gaussian", "Laplacian of Gaussian", "Phasor Fields"],
         "tone_mapper_labels": ["None", "Logarithmic", "Square root"],
-        "tone_mapper_ids": ["none", "log", "sqrt"]
+        "tone_mapper_ids": ["none", "log(1.0+", "sqrt("],
+        "magnitudes": ["Amplitude", "Phase"]
     };
     
     var sceneShaders = [], sceneNames = [];
@@ -170,7 +171,19 @@ Transient.prototype.setupUI = function() {
     });
     wlSlider.setValue(2);
 
-    // var sigmaSlider = new tui.Slider("sigma-slider", );
+    var magSelector = new tui.ButtonGroup("magnitude-selector", false, config.magnitudes, function(idx) {
+        console.log(document.getElementById("tonemap-div"));
+        var usePhase = Boolean(idx);
+        renderer.setUsePhase(usePhase);
+        if (usePhase) {
+            renderer.setToneMapper('none');
+            // tonemapSelector.show(false);
+        } else {
+            renderer.setToneMapper(config.tone_mapper_ids[tonemapSelector.selectedButton]);
+            // tonemapSelector.show(true);
+        }
+    });
+
     document.getElementById("filter-parameter").style.visibility = "hidden";
 
     new tui.ButtonGroup("filter-selector", true, config.filters, function(idx) {
@@ -180,6 +193,7 @@ Transient.prototype.setupUI = function() {
         } else {
             document.getElementById("filter-parameter").style.visibility = "visible";
             wlSlider.show(filterTypes[idx] === 'pf');
+            // magSelector.show(filterTypes[idx] === 'pf');
         }
     });
 

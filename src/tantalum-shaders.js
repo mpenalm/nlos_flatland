@@ -1152,17 +1152,17 @@ var Shaders = {
         '}\n',
 
     'ruler-vert':
-        '#include "preamble"\n\n'                                              +
+        '#include "preamble"\n\n'                       +
 
-        'attribute vec2 Position;\n'                                           +
-        'attribute vec2 TexCoord;\n'                                           +
-        'uniform float Aspect;\n\n'                                            +
+        'attribute vec2 Position;\n'                    +
+        'attribute vec2 TexCoord;\n'                    +
+        'uniform float Aspect;\n\n'                     +
 
-        'varying vec2 mPos;\n\n'                                               +
+        'varying vec2 mPos;\n\n'                        +
 
-        'void main() {\n'                                                      +
-        '    gl_Position = vec4(Position.x / Aspect, Position.y, 1.0, 1.0);\n' +
-        '    mPos = TexCoord;\n'                                               +
+        'void main() {\n'                               +
+        '    gl_Position = vec4(Position, 1.0, 1.0);\n' +
+        '    mPos = TexCoord;\n'                        +
         '}\n',
 
     'scene1':
@@ -1697,7 +1697,8 @@ var Shaders = {
         'uniform sampler2D colormap;\n\n'                                                  +
 
         'uniform sampler2D maxValue; // it would be nice to check what is faster\n'        +
-        'uniform int isComplex;\n\n'                                                       +
+        'uniform int isComplex;\n'                                                         +
+        'uniform int usePhase;\n\n'                                                        +
 
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
 
@@ -1707,8 +1708,15 @@ var Shaders = {
                                                                           ' component\n'   +
         '    float fluenceTex = abs(fluenceVec.x) * float(1 - isComplex) + length(fluence' +
                                                             'Vec) * float(isComplex);\n'   +
-        '    gl_FragColor = texture2D(colormap, vec2(fluenceTex / texture2D(maxValue, vec' +
-                                                                   '2(0.5)).x, 0.5));\n'   +
+        '    fluenceTex *= float(1 - usePhase);\n'                                         +
+        '    fluenceTex += float(usePhase) * atan(fluenceVec.y, fluenceVec.x);\n'          +
+        '    float xCoord = fluenceTex / texture2D(maxValue, vec2(0.5)).x * float(1 - use' +
+                                                                             'Phase);\n'   +
+        '    xCoord += float(usePhase == 1 && fluenceVec.x != 0.0) * (fluenceTex + PI) / ' +
+                                                                         '(2.0 * PI);\n'   +
+        '    xCoord += float(usePhase == 1 && fluenceVec.x == 0.0) * (PI / 2.0 * sign(flu' +
+                                                      'enceVec.y) + PI) / (2.0 * PI);\n'   +
+        '    gl_FragColor = texture2D(colormap, vec2(xCoord, 0.5));\n'                     +
         '}\n',
 
     'show-func-frag':
@@ -1718,7 +1726,8 @@ var Shaders = {
         'uniform sampler2D colormap;\n\n'                                                  +
 
         'uniform sampler2D maxValue; // it would be nice to check what is faster\n'        +
-        'uniform int isComplex;\n\n'                                                       +
+        'uniform int isComplex;\n'                                                         +
+        'uniform int usePhase;\n\n'                                                        +
 
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
 
@@ -1728,8 +1737,16 @@ var Shaders = {
                                                                           ' component\n'   +
         '    float fluenceTex = abs(fluenceVec.x) * float(1 - isComplex) + length(fluence' +
                                                             'Vec) * float(isComplex);\n'   +
-        '    gl_FragColor = texture2D(colormap, vec2({func}(1.0+fluenceTex) / {func}(1.0+' +
-                                           'texture2D(maxValue, vec2(0.5)).x), 0.5));\n'   +
+        '    fluenceTex *= float(1 - usePhase);\n'                                         +
+        '    fluenceTex += float(usePhase) * atan(fluenceVec.y, fluenceVec.x);\n'          +
+        '    float xCoord = float(1 - usePhase) * {func}fluenceTex) / {func}texture2D(max' +
+                                                               'Value, vec2(0.5)).x);\n'   +
+        '    xCoord += {func}fluenceTex + PI) / {func}2.0 * PI) * float(usePhase == 1 && ' +
+                                                               'fluenceVec.x != 0.0);\n'   +
+        '    xCoord += {func}PI / 2.0 * sign(fluenceVec.y) + PI) / {func}2.0 * PI) * floa' +
+                                            't(usePhase == 1 && fluenceVec.x == 0.0);\n\n' +
+
+        '    gl_FragColor = texture2D(colormap, vec2(xCoord, 0.5));\n'                     +
         '}\n',
 
     'show-vert':

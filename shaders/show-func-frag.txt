@@ -5,6 +5,7 @@ uniform sampler2D colormap;
 
 uniform sampler2D maxValue; // it would be nice to check what is faster
 uniform int isComplex;
+uniform int usePhase;
 
 varying vec2 mPos; // Pixel coordinates [0,1]
 
@@ -12,5 +13,11 @@ void main() {
     vec2 fluenceVec = texture2D(fluence, mPos).xy;
     // If complex number, compute module (length), otherwise, use only the first component
     float fluenceTex = abs(fluenceVec.x) * float(1 - isComplex) + length(fluenceVec) * float(isComplex);
-    gl_FragColor = texture2D(colormap, vec2({func}(1.0+fluenceTex) / {func}(1.0+texture2D(maxValue, vec2(0.5)).x), 0.5));
+    fluenceTex *= float(1 - usePhase);
+    fluenceTex += float(usePhase) * atan(fluenceVec.y, fluenceVec.x);
+    float xCoord = float(1 - usePhase) * {func}fluenceTex) / {func}texture2D(maxValue, vec2(0.5)).x);
+    xCoord += {func}fluenceTex + PI) / {func}2.0 * PI) * float(usePhase == 1 && fluenceVec.x != 0.0);
+    xCoord += {func}PI / 2.0 * sign(fluenceVec.y) + PI) / {func}2.0 * PI) * float(usePhase == 1 && fluenceVec.x == 0.0);
+
+    gl_FragColor = texture2D(colormap, vec2(xCoord, 0.5));
 }

@@ -198,6 +198,7 @@
 
         this.instant = 0;
         this.playing = false;
+        this.usePhase = false;
 
         this.loadTexture("ruler.png");
         // Flip image pixels into the bottom-to-top order that WebGL expects.
@@ -360,6 +361,12 @@
         }
         this.resetActiveBlock();
         this.reset();
+    }
+
+    Renderer.prototype.setUsePhase = function (usePhase) {
+        this.usePhase = usePhase;
+        if (this.finished())
+            this.redraw();
     }
 
     Renderer.prototype.setSpadPositions = function (changedBounds = false) {
@@ -1087,20 +1094,24 @@
         vbo.addAttribute("Position", 2, this.gl.FLOAT, false);
         vbo.addAttribute("TexCoord", 2, this.gl.FLOAT, false);
         vbo.init(4);
-        console.log([
-            -this.aspect, -0.389,
-            -this.aspect + 500 / 720, -0.389,
-            -this.aspect + 500 / 720, -1.0,
-            -this.aspect, -1.0]);
+        // console.log([
+        //     -this.aspect, -0.389,
+        //     -this.aspect + 500 / 720, -0.389,
+        //     -this.aspect + 500 / 720, -1.0,
+        //     -this.aspect, -1.0]);
         vbo.copy(new Float32Array([
-            -this.aspect, -0.389,
-            -this.aspect + 500 / 720, -0.389,
-            -this.aspect + 500 / 720, -1.0,
-            -this.aspect, -1.0,
+            0.0, -1.0,
+            1.0, 0.0, 
+            1.0, -1.0, 
+            0.0, 0.0, 
+            // -this.aspect, -0.389,
+            // -this.aspect + 500 / 720, -0.389,
+            // -this.aspect + 500 / 720, -1.0,
+            // -this.aspect, -1.0,
+            1.0, 0.0,
+            1.0, 1.0,
             0.0, 0.0,
             0.0, 1.0,
-            1.0, 1.0,
-            1.0, 0.0,
         ]));
 
         return vbo;
@@ -1194,14 +1205,14 @@
         this.sbVbo.bind();
         this.sbVbo.draw(this.spadSegmentProgram, this.gl.LINES);
         
-        if (this.rulerLoaded) {
+        /*if (this.rulerLoaded) {
             this.rulerTex.bind(0);
             this.rulerProgram.bind();
             this.rulerProgram.uniformF("Aspect", this.aspect);
             this.rulerProgram.uniformTexture("u_ruler", this.rulerTex);
             this.quadVbo3.bind();
             this.quadVbo3.draw(this.rulerProgram, this.gl.TRIANGLE_FAN);
-        }
+        }*/
         this.gl.disable(this.gl.BLEND);
     }
 
@@ -1427,6 +1438,7 @@
         this.showProgram.uniformF("Aspect", this.aspect);
         this.showProgram.uniformI("numSpads", this.numSpads);
         this.showProgram.uniformI("isComplex", this.filterType === 'pf');
+        this.showProgram.uniformI("usePhase", this.usePhase && this.filterType === 'pf');
         this.showProgram.uniformTexture("colormap", this.colormapTex);
         this.showProgram.uniformTexture("fluence", this.filteredBuffer);
         this.showProgram.uniformTexture("maxValue", maxValueTex);
