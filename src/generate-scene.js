@@ -1,0 +1,107 @@
+(function (exports) {
+    var SceneGenerator = function () {
+        this.pattern = new RegExp('// fill');
+        this.sceneNumber = 16;
+        this.baseShader = Shaders['scene-base'];
+    }
+
+    const MaterialType = {
+        Diffuse: 2,
+        Mirror: 3,
+        Dielectric: 4,
+        RoughMirror: 5,
+        RoughDielectric: 6,
+    }
+
+    SceneGenerator.prototype.generateSample = function(matType, matParams, shader) {
+        var functionCall;
+        switch (matType) {
+            case MaterialType.Diffuse:
+                functionCall = 'sampleDiffuse(';
+                break;
+            case MaterialType.Mirror:
+                functionCall = 'sampleMirror(';
+                break;
+            case MaterialType.Dielectric:
+                functionCall = 'sampleDielectric(';
+                break;
+            case MaterialType.RoughMirror:
+                functionCall = 'sampleRoughMirror(';
+                break;
+            case MaterialType.RoughDielectric:
+                functionCall = 'sampleRoughDielectric(';
+                break;
+            default:
+                functionCall = 'sampleDiffuse(';
+                break;
+        }
+        var params = (matType == MaterialType.Mirror) ? 'wiLocal' : 'state, wiLocal';
+        if (matType == MaterialType.RoughMirror) {
+            params += ', throughput';
+        }
+        if (matType == MaterialType.RoughDielectric || matType == MaterialType.RoughMirror) {
+            // for RoughDielectric and RoughMirror, matParams[0] is sigma (defines normal distribution)
+            params += ', ' + matParams[0];
+        }
+        if (matType == MaterialType.Dielectric || matType == MaterialType.RoughDielectric) {
+            params += ', ior';
+        }
+        if (matType == MaterialType.RoughDielectric) {
+            params += ', wiDotN';
+        }
+
+        var text;
+        if (matType == MaterialType.RoughDielectric) {
+            text = 'float wiDotN;\n' + 
+                'vec2 res = ' + functionCall + params + ');\n' +
+                'if (wiDotN < 0.0)\n' +
+                '\ttMult = ior;\n' +
+                'return res;';
+        } else {
+            text = 'return ' + functionCall + params + ');';
+        }
+        if (matType == MaterialType.Dielectric || matType == MaterialType.RoughDielectric) {
+            text = 'float ior = 1.3;\n' + text;
+        } else if (matType == MaterialType.Diffuse) {
+            // for Diffuse, matParams[0] is albedo (always gray for now)
+            text = 'throughput += vec3(' + matParams[0] + ');\n' + text;
+        }
+
+        return shader.replace(this.pattern, text);
+    }
+
+    SceneGenerator.prototype.generateIntersect = function(vertices, matType) {
+        if (vertices.length < 4) {
+            alert('Insufficient number of vertices');
+            return '';
+        }
+
+        var text = '';
+        var i = 0;
+        while (i + 3 < vertices.length) {
+            v = [];
+            for (var j = 0; j < 4; j++) {
+                if (vertices[i+j] % 1 === 0) {
+                    // is integer, write as float
+                    v.push(vertices[i+j].toFixed(1));
+                } else {
+                    // is float, write as is
+                    v.push(vertices[i+j].toString());
+                }
+            }
+            text += 'lineIntersect(ray, vec2(' + v[0] + ', ' + v[1] + '), ' +
+                'vec2(' + v[2] + ', ' + v[3] + '), ' + matType.toFixed(1) + ', isect);\n';
+            i += 2;
+        }
+        text = text.slice(0, -1);
+        return this.baseShader.replace(this.pattern, text);
+    }
+
+    SceneGenerator.prototype.generate = function (vertices, matType, matParams) {
+        var shader = this.generateIntersect(vertices, matType);
+        console.log(this.generateSample(matType, matParams, shader));
+    }
+
+    exports.SceneGenerator = SceneGenerator;
+    exports.MaterialType = MaterialType;
+})(window.genScene = window.genScene || {});

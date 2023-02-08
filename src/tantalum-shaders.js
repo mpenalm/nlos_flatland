@@ -1152,17 +1152,43 @@ var Shaders = {
         '}\n',
 
     'ruler-vert':
-        '#include "preamble"\n\n'                       +
+        '#include "preamble"\n\n'                                              +
 
-        'attribute vec2 Position;\n'                    +
-        'attribute vec2 TexCoord;\n'                    +
-        'uniform float Aspect;\n\n'                     +
+        'attribute vec2 Position;\n'                                           +
+        'attribute vec2 TexCoord;\n'                                           +
+        'uniform float Aspect;\n\n'                                            +
 
-        'varying vec2 mPos;\n\n'                        +
+        'varying vec2 mPos;\n\n'                                               +
 
-        'void main() {\n'                               +
-        '    gl_Position = vec4(Position, 1.0, 1.0);\n' +
-        '    mPos = TexCoord;\n'                        +
+        'void main() {\n'                                                      +
+        '    gl_Position = vec4(Position.x / Aspect, Position.y, 1.0, 1.0);\n' +
+        '    mPos = TexCoord;\n'                                               +
+        '}\n',
+
+    'scene-base':
+        '#include "trace-frag"\n\n'                                                        +
+
+        '#include "bsdf"\n'                                                                +
+        '#include "intersect"\n\n'                                                         +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 0.0, isect);\n'                +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, 1.0), 1.0, isect);\n'           +
+        '    // fill\n'                                                                    +
+        '}\n\n'                                                                            +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
+                                             'out vec3 throughput, out float tMult) {\n'   +
+        '    tMult = 1.0;\n'                                                               +
+        '    if (isect.mat == 0.0) {\n'                                                    +
+        '        throughput = vec3(0.0);\n'                                                +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else if (isect.mat == 1.0) {\n'                                             +
+        '        throughput *= vec3(0.5);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else {\n'                                                                   +
+        '        // fill\n'                                                                +
+        '    }\n'                                                                          +
         '}\n',
 
     'scene1':
