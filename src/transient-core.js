@@ -369,6 +369,23 @@
             this.redraw();
     }
 
+    Renderer.prototype.setInstant = function (instant) {
+        this.instant = instant;
+        if (this.finished())
+            this.redraw();
+    }
+
+    Renderer.prototype.addInstantSlider = function (slider) {
+        this.instantSlider = slider;
+    }
+
+    Renderer.prototype.updateSlider = function () {
+        if (this.instantSlider != undefined && this.instantSlider != null) {
+            this.instantSlider.setValue(this.instant, false);
+            this.instantSlider.updateLabel();
+        }
+    }
+
     Renderer.prototype.setSpadPositions = function (changedBounds = false) {
         var changePos = (this.spadHeights === undefined || this.spadHeights.length != this.numSpads || changedBounds);
 
@@ -949,6 +966,7 @@
             }
             this.fbo.unbind();
         }
+        this.updateSlider();
     }
 
     Renderer.prototype.setSpreadType = function (type) {
@@ -1190,6 +1208,7 @@
             }
             this.fbo.unbind();
         }
+        this.updateSlider();
     }
 
     Renderer.prototype.composite = function (count = this.activeBlock) {
@@ -1464,6 +1483,7 @@
             this.videoElapsedTimes.push(timestamp);
             this.instant++;
             this.redraw();
+            this.updateSlider();
             if (this.instant >= this.numIntervals - 1)
                 this.playing = false;
         }

@@ -164,8 +164,18 @@ Transient.prototype.setupUI = function() {
         filterTypes.push(filt);
     });
 
+    var instantSlider = new tui.Slider("instant-selector", 0, renderer.numIntervals - 1, true, function(instant) {
+        this.setLabel("L = " + (renderer.deltaT * instant).toFixed(3) + " m");
+        renderer.setInstant(instant);
+    });
+    instantSlider.setValue(0);
+    instantSlider.updateLabel = function() {
+        this.setLabel("L = " + (renderer.deltaT * this.value).toFixed(3) + " m")
+    }
+    renderer.addInstantSlider(instantSlider);
+
     var wlSlider = new tui.Slider("wl-slider", 1, 15, true, function(wl) {
-        this.setLabel("wl = " + wl + "cm");
+        this.setLabel("wl = " + wl + " cm");
         wl = wl / 100;
         renderer.setWavelength(wl);
     });

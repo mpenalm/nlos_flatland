@@ -152,14 +152,14 @@
             this.label.textContent = text;
     }
     
-    exports.Slider.prototype.setValue = function(value) {
+    exports.Slider.prototype.setValue = function(value, call = true) {
         value = Math.min(this.maxValue, Math.max(this.minValue, value));
         if (value != this.value) {
             this.value = value;
             var percentage = Math.max(Math.min(Math.floor(100.0*(value - this.minValue)/(this.maxValue - this.minValue)), 100.0), 0.0);
             this.sliderHandle.style.left = this.sliderBar.style.width = percentage.toString() + "%";
             
-            if (this.callback)
+            if (this.callback && call)
                 this.callback(value);
         }
     }
