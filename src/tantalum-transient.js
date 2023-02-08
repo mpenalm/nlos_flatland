@@ -171,17 +171,16 @@ Transient.prototype.setupUI = function() {
     });
     wlSlider.setValue(2);
 
-    var magSelector = new tui.ButtonGroup("magnitude-selector", false, config.magnitudes, function(idx) {
-        console.log(document.getElementById("tonemap-div"));
+    new tui.ButtonGroup("magnitude-selector", false, config.magnitudes, function(idx) {
         var usePhase = Boolean(idx);
         renderer.setUsePhase(usePhase);
+        var visibility = (usePhase) ? 'hidden' : 'visible';
         if (usePhase) {
             renderer.setToneMapper('none');
-            // tonemapSelector.show(false);
         } else {
             renderer.setToneMapper(config.tone_mapper_ids[tonemapSelector.selectedButton]);
-            // tonemapSelector.show(true);
         }
+        document.getElementById("tonemap-div").style.visibility = visibility;
     });
 
     document.getElementById("filter-parameter").style.visibility = "hidden";
@@ -212,7 +211,7 @@ Transient.prototype.setupUI = function() {
     new tui.ButtonGroup("camera-selector", true, config.camera_models, function(idx) {
         renderer.setCameraModel(idx);
     });
-    new tui.ButtonGroup("tonemap-selector", true, config.tone_mapper_labels, function(idx) {
+    var tonemapSelector = new tui.ButtonGroup("tonemap-selector", true, config.tone_mapper_labels, function(idx) {
         renderer.setToneMapper(config.tone_mapper_ids[idx]);
     });
     var spadNumberSelector = new tui.ButtonGroup("spad-selector", false, config.spad_num, function(idx) {
