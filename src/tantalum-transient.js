@@ -140,11 +140,11 @@ Transient.prototype.setupUI = function() {
     
     this.renderer = new transientcore.Renderer(this.gl, (this.canvas.width-10)/2, this.canvas.height, sceneShaders);
     this.generator = new genScene.SceneGenerator();
-    this.generator.generate([-1.5, 0.0, 1.0, 0.0], genScene.MaterialType.Diffuse, []);
-    this.generator.generate([-1.5, 0.0, 1.0, 0.0], genScene.MaterialType.Mirror, []);
-    this.generator.generate([-1.5, 0.0, 1.0, 0.0], genScene.MaterialType.Dielectric, []);
-    this.generator.generate([-1.5, 0.0, 1.0, 0.0], genScene.MaterialType.RoughMirror, [0.1]);
-    this.generator.generate([-1.5, 0.0, 1.0, 0.0], genScene.MaterialType.RoughDielectric, [0.2]);
+    this.generator.generate([-1.5, 0.0, -0.75, 0.4, 0.5, -0.6, 1.0, 0.2], genScene.MaterialType.Diffuse, []);
+    this.generator.generate([-1.5, 0.0, -0.75, 0.4, 0.5, -0.6, 1.0, 0.2], genScene.MaterialType.Mirror, []);
+    this.generator.generate([-1.5, 0.0, -0.75, 0.4, 0.5, -0.6, 1.0, 0.2], genScene.MaterialType.Dielectric, []);
+    this.generator.generate([-1.5, 0.0, -0.75, 0.4, 0.5, -0.6, 1.0, 0.2], genScene.MaterialType.RoughMirror, [0.1]);
+    this.generator.generate([-1.5, 0.0, -0.75, 0.4, 0.5, -0.6, 1.0, 0.2], genScene.MaterialType.RoughDielectric, [0.2]);
 
     /* Let's try and make member variables in JS a little less verbose... */
     var renderer = this.renderer;

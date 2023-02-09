@@ -48,6 +48,20 @@
         this.selectedButton = idx;
     }
 
+    exports.ButtonGroup.prototype.addButton = function(label) {
+        var vertical = (this.group.className === "button-group-vert");
+        var button = document.createElement(vertical ? "li": "div");
+            button.className = vertical ? "button-vert" : "button-horz";
+            button.appendChild(document.createTextNode(label));
+            
+            this.buttons.push(button);
+            this.group.appendChild(button);
+            
+            button.addEventListener("click", function(idx, event) {
+                this.select(idx);
+            }.bind(this, i));
+    }
+
     exports.ProgressBar = function(targetId, hasLabel) {
         var target = document.getElementById(targetId);
         if (!target)

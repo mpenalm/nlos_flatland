@@ -3,6 +3,7 @@
         this.pattern = new RegExp('// fill');
         this.sceneNumber = 16;
         this.baseShader = Shaders['scene-base'];
+        this.created = 0;
     }
 
     const MaterialType = {
@@ -99,7 +100,12 @@
 
     SceneGenerator.prototype.generate = function (vertices, matType, matParams) {
         var shader = this.generateIntersect(vertices, matType);
-        console.log(this.generateSample(matType, matParams, shader));
+        shader = this.generateSample(matType, matParams, shader);
+        var sceneId = 'scene' + this.sceneNumber;
+        this.sceneNumber++;
+        this.created++;
+        Shaders[sceneId] = shader;
+        return sceneId;
     }
 
     exports.SceneGenerator = SceneGenerator;
