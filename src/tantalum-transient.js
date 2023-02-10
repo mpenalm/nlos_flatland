@@ -300,7 +300,7 @@ Transient.prototype.setupUI = function() {
     }).bind(this));
 
     document.getElementById('add-button').addEventListener('click', (function() {
-        var ids = this.generator.generate([-1.5, 0.2, -0.75, 0.4], genScene.MaterialType.Diffuse, [0.5]);
+        var ids = this.generator.generate([-1.5, 0.6, -0.75, 0.8, 0.5, 0.75, 1.0, 0.9], genScene.MaterialType.Diffuse, [0.5]);
         config.scenes.push({'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER});
         sceneSelector.addButton(config.scenes[config.scenes.length-1].name);
         renderer.addScene(ids[0]);

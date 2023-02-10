@@ -65,7 +65,7 @@
             text = 'float ior = 1.3;\n' + text;
         } else if (matType == MaterialType.Diffuse) {
             // for Diffuse, matParams[0] is albedo (always gray for now)
-            text = 'throughput += vec3(' + matParams[0] + ');\n' + text;
+            text = 'throughput *= vec3(' + matParams[0] + ');\n' + text;
         }
 
         return shader.replace(this.pattern, text);
