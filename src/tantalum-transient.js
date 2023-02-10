@@ -131,6 +131,7 @@ Transient.prototype.setupUI = function() {
         "tone_mapper_ids": ["none", "log(1.0+", "sqrt("],
         "magnitudes": ["Amplitude", "Phase"]
     };
+    console.log(config);
     
     var sceneShaders = [], sceneNames = [];
     for (var i = 0; i < config.scenes.length; ++i) {
@@ -140,11 +141,6 @@ Transient.prototype.setupUI = function() {
     
     this.renderer = new transientcore.Renderer(this.gl, (this.canvas.width-10)/2, this.canvas.height, sceneShaders);
     this.generator = new genScene.SceneGenerator();
-    this.generator.generate([-1.5, 0.0, -0.75, 0.4, 0.5, -0.6, 1.0, 0.2], genScene.MaterialType.Diffuse, []);
-    this.generator.generate([-1.5, 0.0, -0.75, 0.4, 0.5, -0.6, 1.0, 0.2], genScene.MaterialType.Mirror, []);
-    this.generator.generate([-1.5, 0.0, -0.75, 0.4, 0.5, -0.6, 1.0, 0.2], genScene.MaterialType.Dielectric, []);
-    this.generator.generate([-1.5, 0.0, -0.75, 0.4, 0.5, -0.6, 1.0, 0.2], genScene.MaterialType.RoughMirror, [0.1]);
-    this.generator.generate([-1.5, 0.0, -0.75, 0.4, 0.5, -0.6, 1.0, 0.2], genScene.MaterialType.RoughDielectric, [0.2]);
 
     /* Let's try and make member variables in JS a little less verbose... */
     var renderer = this.renderer;
@@ -261,7 +257,7 @@ Transient.prototype.setupUI = function() {
         if (!renderer.isConf)
             renderer.setNormalizedEmitterPos(config.scenes[idx].posA, config.scenes[idx].posB);
     }
-    new tui.ButtonGroup("scene-selector", true, sceneNames, selectScene);
+    var sceneSelector = new tui.ButtonGroup("scene-selector", true, sceneNames, selectScene);
     
     var mouseListener = new tui.MouseListener(canvas, renderer.setEmitterPos.bind(renderer));
         
@@ -301,6 +297,13 @@ Transient.prototype.setupUI = function() {
     this.changePlayState = false;
     document.getElementById('play-button').addEventListener('click', (function() {
         this.changePlayState = true;
+    }).bind(this));
+
+    document.getElementById('add-button').addEventListener('click', (function() {
+        var ids = this.generator.generate([-1.5, 0.2, -0.75, 0.4], genScene.MaterialType.Diffuse, [0.5]);
+        config.scenes.push({'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER});
+        sceneSelector.addButton(config.scenes[config.scenes.length-1].name);
+        renderer.addScene(ids[0]);
     }).bind(this));
         
     selectScene(0);

@@ -72,7 +72,7 @@
     }
 
     SceneGenerator.prototype.generateIntersect = function(vertices, matType) {
-        if (vertices.length < 4) {
+        if (vertices.length > 0 && vertices.length < 4) {
             alert('Insufficient number of vertices');
             return '';
         }
@@ -103,9 +103,9 @@
         shader = this.generateSample(matType, matParams, shader);
         var sceneId = 'scene' + this.sceneNumber;
         this.sceneNumber++;
-        this.created++;
+        // this.created++;
         Shaders[sceneId] = shader;
-        return sceneId;
+        return [sceneId, this.created++];
     }
 
     exports.SceneGenerator = SceneGenerator;

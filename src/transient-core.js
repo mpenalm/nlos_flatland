@@ -386,6 +386,10 @@
         }
     }
 
+    Renderer.prototype.addScene = function (fragName) {
+        this.tracePrograms.push(new tgl.Shader(Shaders, "trace-vert", fragName));
+    }
+
     Renderer.prototype.setSpadPositions = function (changedBounds = false) {
         var changePos = (this.spadHeights === undefined || this.spadHeights.length != this.numSpads || changedBounds);
 
