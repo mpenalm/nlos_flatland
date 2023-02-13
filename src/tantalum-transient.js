@@ -132,7 +132,6 @@ Transient.prototype.setupUI = function() {
         "magnitudes": ["Amplitude", "Phase"],
         "material_types": ["Diffuse", "Mirror", "Dielectric", "RoughMirror", "RoughDielectric"]
     };
-    console.log(config);
     
     var sceneShaders = [], sceneNames = [];
     for (var i = 0; i < config.scenes.length; ++i) {
@@ -312,7 +311,7 @@ Transient.prototype.setupUI = function() {
             handles[i].style.visibility = 'hidden';
         }
         featureSizeSlider.sliderHandle.style.visibility = '';
-        // roughnessSlider.sliderHandle.style.visibility = '';
+        roughnessSlider.sliderHandle.style.visibility = '';
     }
     function showSliderHandles() {
         var handles = document.getElementsByClassName('slider-handle');
@@ -323,7 +322,7 @@ Transient.prototype.setupUI = function() {
 
     // Get the modal
     var modal = document.getElementById("myModal");
-    this.matType = 0;
+    this.matType = 2;
     var matType = this.matType;
     var typeSelector = new tui.ButtonGroup("material-types", true, config.material_types, function(idx) {
         matType = 2 + idx;
@@ -335,7 +334,7 @@ Transient.prototype.setupUI = function() {
     NumFeatures.prototype.setNFeatures = function (nFeatures) {
         this.value = nFeatures;
     }
-    var nFeatures = new NumFeatures(0);
+    var nFeatures = new NumFeatures(1);
     var featureSizeSlider = new tui.Slider("feature-size", 1, 250, true, function(nf) {
         this.setLabel((250 / nf) + " cm");
         nFeatures.setNFeatures(nf);
@@ -347,7 +346,7 @@ Transient.prototype.setupUI = function() {
         this.setLabel(alpha / 100);
         roughness = alpha / 100;
     })
-    roughnessSlider = 0.01;
+    roughnessSlider.setValue(0.01);
 
     document.getElementById('create-button').addEventListener('click', (function() {
         var vertices = generator.generateVertices([-1.5, 0.8], [1.0, 0.8], nFeatures.value);

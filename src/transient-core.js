@@ -171,6 +171,7 @@
         ];
         this.colormap = new Float32Array(colormap);
         this.colormapTex = new tgl.Texture(colormap.length / 4, 1, 4, true, false, true, this.colormap);
+        // seismic colormap for phase (python matplotlib)
 
         // Laplacian filter
         this.lapKernel = new Float32Array(9);

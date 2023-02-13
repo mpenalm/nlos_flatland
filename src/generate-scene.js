@@ -119,7 +119,6 @@
         while (x.length <= nFeatures) {
             x.push(x[x.length - 1] + featureSize);
         }
-        console.log(x.length);
         res = [];
         var y = [Math.min(0.999, start[1] - featureSize / 2), Math.min(0.999, start[1] + featureSize / 2)];
         for (var i = 0; i <= nFeatures; i++) {
