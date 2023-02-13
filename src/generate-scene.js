@@ -14,7 +14,7 @@
         RoughDielectric: 6,
     }
 
-    SceneGenerator.prototype.generateSample = function(matType, matParams, shader) {
+    SceneGenerator.prototype.generateSample = function (matType, matParams, shader) {
         var functionCall;
         switch (matType) {
             case MaterialType.Diffuse:
@@ -53,7 +53,7 @@
 
         var text;
         if (matType == MaterialType.RoughDielectric) {
-            text = 'float wiDotN;\n' + 
+            text = 'float wiDotN;\n' +
                 'vec2 res = ' + functionCall + params + ');\n' +
                 'if (wiDotN < 0.0)\n' +
                 '\ttMult = ior;\n' +
@@ -71,7 +71,7 @@
         return shader.replace(this.pattern, text);
     }
 
-    SceneGenerator.prototype.generateIntersect = function(vertices, matType) {
+    SceneGenerator.prototype.generateIntersect = function (vertices, matType) {
         if (vertices.length > 0 && vertices.length < 4) {
             alert('Insufficient number of vertices');
             return '';
@@ -82,12 +82,12 @@
         while (i + 3 < vertices.length) {
             v = [];
             for (var j = 0; j < 4; j++) {
-                if (vertices[i+j] % 1 === 0) {
+                if (vertices[i + j] % 1 === 0) {
                     // is integer, write as float
-                    v.push(vertices[i+j].toFixed(1));
+                    v.push(vertices[i + j].toFixed(1));
                 } else {
                     // is float, write as is
-                    v.push(vertices[i+j].toString());
+                    v.push(vertices[i + j].toString());
                 }
             }
             text += 'lineIntersect(ray, vec2(' + v[0] + ', ' + v[1] + '), ' +
@@ -103,9 +103,35 @@
         shader = this.generateSample(matType, matParams, shader);
         var sceneId = 'scene' + this.sceneNumber;
         this.sceneNumber++;
-        // this.created++;
         Shaders[sceneId] = shader;
         return [sceneId, this.created++];
+    }
+
+    SceneGenerator.prototype.generateVertices = function (start, end, nFeatures) {
+        if (nFeatures == 1) {
+            // Single feature, use given vertices
+            return [start[0], start[1], end[0], end[1]];
+        }
+
+        // More than one feature, compute intermediate values
+        var featureSize = Math.abs(end[0] - start[0]) / nFeatures;
+        var x = [start[0]];
+        while (x.length <= nFeatures) {
+            x.push(x[x.length - 1] + featureSize);
+        }
+        console.log(x.length);
+        res = [];
+        var y = [Math.min(0.999, start[1] - featureSize / 2), Math.min(0.999, start[1] + featureSize / 2)];
+        for (var i = 0; i <= nFeatures; i++) {
+            res.push(x[i]);
+            // if (i == 0)
+                // res.push(start[1]);
+            // else if (i == nFeatures)
+                // res.push(end[1]);
+            // else
+                res.push(y[i % 2]);
+        }
+        return res;
     }
 
     exports.SceneGenerator = SceneGenerator;

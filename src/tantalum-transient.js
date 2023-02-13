@@ -129,7 +129,8 @@ Transient.prototype.setupUI = function() {
         "filters": ["None", "Laplacian", "Gaussian", "Laplacian of Gaussian", "Phasor Fields"],
         "tone_mapper_labels": ["None", "Logarithmic", "Square root"],
         "tone_mapper_ids": ["none", "log(1.0+", "sqrt("],
-        "magnitudes": ["Amplitude", "Phase"]
+        "magnitudes": ["Amplitude", "Phase"],
+        "material_types": ["Diffuse", "Mirror", "Dielectric", "RoughMirror", "RoughDielectric"]
     };
     console.log(config);
     
@@ -144,6 +145,7 @@ Transient.prototype.setupUI = function() {
 
     /* Let's try and make member variables in JS a little less verbose... */
     var renderer = this.renderer;
+    var generator = this.generator;
     var canvas = this.canvas;
 
     this.progressBar = new tui.ProgressBar("render-progress", true);
@@ -300,11 +302,72 @@ Transient.prototype.setupUI = function() {
     }).bind(this));
 
     document.getElementById('add-button').addEventListener('click', (function() {
-        var ids = this.generator.generate([-1.5, 0.6, -0.75, 0.8, 0.5, 0.75, 1.0, 0.9], genScene.MaterialType.Diffuse, [0.5]);
+        modal.style.display = "block";
+        hideSliderHandles();
+    }).bind(this));
+
+    function hideSliderHandles() {
+        var handles = document.getElementsByClassName('slider-handle');
+        for (var i = 0; i < handles.length; i++) {
+            handles[i].style.visibility = 'hidden';
+        }
+        featureSizeSlider.sliderHandle.style.visibility = '';
+    }
+    function showSliderHandles() {
+        var handles = document.getElementsByClassName('slider-handle');
+        for (var i = 0; i < handles.length; i++) {
+            handles[i].style.visibility = '';
+        }
+    }
+
+    // Get the modal
+    var modal = document.getElementById("myModal");
+    this.matType = 0;
+    var matType = this.matType;
+    var typeSelector = new tui.ButtonGroup("material-types", true, config.material_types, function(idx) {
+        matType = 2 + idx;
+    });
+    typeSelector.select(0);
+    var NumFeatures = function (val) {
+        this.value = val;
+    }
+    NumFeatures.prototype.setNFeatures = function (nFeatures) {
+        this.value = nFeatures;
+    }
+    var nFeatures = new NumFeatures(0);
+    var featureSizeSlider = new tui.Slider("feature-size", 1, 250, true, function(nf) {
+        this.setLabel((250 / nf) + " cm");
+        nFeatures.setNFeatures(nf);
+    });
+    featureSizeSlider.setValue(1);
+
+    document.getElementById('create-button').addEventListener('click', (function() {
+        var vertices = generator.generateVertices([-1.5, 0.8], [1.0, 0.8], nFeatures.value);
+        var ids = generator.generate(vertices, genScene.MaterialType.Diffuse, [0.5]);
         config.scenes.push({'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER});
         sceneSelector.addButton(config.scenes[config.scenes.length-1].name);
         renderer.addScene(ids[0]);
+        modal.style.display = "none";
+        showSliderHandles();
+        sceneSelector.select(config.scenes.length - 1);
     }).bind(this));
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+        modal.style.display = "none";
+        showSliderHandles();
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+            showSliderHandles();
+        }
+    }
         
     selectScene(0);
         
