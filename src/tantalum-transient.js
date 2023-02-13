@@ -312,6 +312,7 @@ Transient.prototype.setupUI = function() {
             handles[i].style.visibility = 'hidden';
         }
         featureSizeSlider.sliderHandle.style.visibility = '';
+        // roughnessSlider.sliderHandle.style.visibility = '';
     }
     function showSliderHandles() {
         var handles = document.getElementsByClassName('slider-handle');
@@ -341,9 +342,16 @@ Transient.prototype.setupUI = function() {
     });
     featureSizeSlider.setValue(1);
 
+    var roughness = 0;
+    var roughnessSlider = new tui.Slider("roughness-slider", 1, 99, true, function(alpha) {
+        this.setLabel(alpha / 100);
+        roughness = alpha / 100;
+    })
+    roughnessSlider = 0.01;
+
     document.getElementById('create-button').addEventListener('click', (function() {
         var vertices = generator.generateVertices([-1.5, 0.8], [1.0, 0.8], nFeatures.value);
-        var ids = generator.generate(vertices, genScene.MaterialType.Diffuse, [0.5]);
+        var ids = generator.generate(vertices, matType, [0.5]);
         config.scenes.push({'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER});
         sceneSelector.addButton(config.scenes[config.scenes.length-1].name);
         renderer.addScene(ids[0]);
