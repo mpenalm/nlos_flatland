@@ -187,13 +187,14 @@ Transient.prototype.setupUI = function() {
     new tui.ButtonGroup("magnitude-selector", false, config.magnitudes, function(idx) {
         var usePhase = Boolean(idx);
         renderer.setUsePhase(usePhase);
-        var visibility = (usePhase) ? 'hidden' : 'visible';
+        // var visibility = (usePhase) ? 'hidden' : 'visible';
+        var display = (usePhase) ? 'none' : 'block';
         if (usePhase) {
             renderer.setToneMapper('none');
         } else {
             renderer.setToneMapper(config.tone_mapper_ids[tonemapSelector.selectedButton]);
         }
-        document.getElementById("tonemap-div").style.visibility = visibility;
+        document.getElementById("tonemap-div").style.display = display;
     });
 
     document.getElementById("filter-parameter").style.visibility = "hidden";
