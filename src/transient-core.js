@@ -589,13 +589,8 @@
 
     Renderer.prototype.computeBackprojection = function (inputTex, outputBuffer) {
         var gl = this.gl;
-        var w = this.numPixels[0] * this.numPixels[1];
-        var h = this.numSpads;
-        var twoRows = (w > this.maxTextureSize);
-        if (twoRows) {
-            w /= 2;
-            h *= 2;
-        }
+        var w = this.numPixels[0] * this.numPixels[1] / this.numRows;
+        var h = this.numSpads * this.numRows;
         this.quadVbo.bind();
         gl.disable(gl.BLEND);
         // Clear previous result
@@ -654,7 +649,7 @@
         // Sum all spad points' results
         this.bpSumProgram.bind();
         this.intermediateBuffer.bind(0);
-        this.bpSumProgram.uniformI("twoRows", twoRows);
+        this.bpSumProgram.uniformI("numRows", this.numRows);
         this.bpSumProgram.uniform2F("numPixels", this.numPixels[0], this.numPixels[1]);
         this.bpSumProgram.uniformTexture("fluence", this.intermediateBuffer);
         this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
@@ -842,15 +837,20 @@
     }
 
     Renderer.prototype.createNLOSBuffers = function (modifiedAttr) {
+        if ((modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels) && this.numPixels != undefined) {
+            var w = this.numPixels[0] * this.numPixels[1];
+            var h = 1;
+            while (w > this.maxTextureSize) {
+                w /= 2;
+                h *= 2;
+            }
+            this.numRows = h;
+        }
         // Common buffers for NLOS reconstruction
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.NumSpads)
             if (this.numPixels != undefined && this.numSpads != undefined) {
-                var w = this.numPixels[0] * this.numPixels[1];
-                var h = 1;
-                if (w > this.maxTextureSize) {
-                    w /= 2;
-                    h = 2;
-                }
+                var w = this.numPixels[0] * this.numPixels[1] / this.numRows;
+                var h = this.numRows;
                 this.intermediateBuffer = new tgl.Texture(w, h * this.numSpads, 4, true, false, true, null);
             } else
                 this.intermediateBuffer = null;
@@ -901,12 +901,8 @@
                         k += 4;
                     }
                 }
-                var w = this.numPixels[0] * this.numPixels[1];
-                var h = 1;
-                if (w > this.maxTextureSize) {
-                    w /= 2;
-                    h = 2;
-                }
+                var w = this.numPixels[0] * this.numPixels[1] / this.numRows;
+                var h = this.numRows;
                 this.planeGridTex = new tgl.Texture(w, h, 4, true, false, true, planeGridData);
             }
         }

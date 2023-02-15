@@ -113,7 +113,7 @@ Transient.prototype.colorBufferFloatTest = function(gl) {
 
 Transient.prototype.setupUI = function() {
     var config = {
-        "reconstruction_resolutions": [16, 32, 64, 128],
+        "reconstruction_resolutions": [32, 64, 128, 256],
         "scenes": [
             {'shader': 'scene10', 'name': 'Plane',            'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
             {'shader': 'scene9',  'name': 'Sphere',           'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER},
@@ -218,7 +218,7 @@ Transient.prototype.setupUI = function() {
         var height = config.reconstruction_resolutions[idx];
         renderer.changeReconstructionResolution(height);
     });
-    recResolutionSelector.select(3);
+    recResolutionSelector.select(2);
     new tui.ButtonGroup("capture-selector", true, config.capture_methods, function(idx) {
         renderer.setConfocal(Boolean(idx));
     });
@@ -276,19 +276,19 @@ Transient.prototype.setupUI = function() {
     });
     sampleSlider.setValue(600);
 
-    var tmaxSlider = new tui.Slider("tmax", 1, renderer.maxTextureSize, true, function(numIntervals) {
+    var tmaxSlider = new tui.Slider("tmax", 10, renderer.maxTextureSize, true, function(numIntervals) {
         var tmax = renderer.deltaT * numIntervals;
         this.setLabel(tmax + " m");
         renderer.setMaxTime(tmax);
     });
-    tmaxSlider.setValue(3333);
     
-    var deltaTSlider = new tui.Slider("delta-t", 1, 25, true, function(mm) {
+    var deltaTSlider = new tui.Slider("delta-t", 1, 250, true, function(mm) {
         this.setLabel(mm + " mm");
         renderer.setDeltaT(mm / 1000);
-        tmaxSlider.setValue(renderer.numIntervals);
+        tmaxSlider.setValue(renderer.numIntervals, false);
     });
     deltaTSlider.setValue(3);
+    tmaxSlider.setValue(3333);
         
     this.saveImageData = false;
     document.getElementById('save-button').addEventListener('click', (function() {

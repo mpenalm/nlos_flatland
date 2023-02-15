@@ -2,7 +2,7 @@
 
 uniform sampler2D fluence; // x time, y spad
 
-uniform int twoRows;
+uniform int numRows;
 uniform vec2 numPixels;
 
 varying vec2 mPos; // Pixel coordinates [0,1]
@@ -12,18 +12,16 @@ const int numSpads = {numSpads};
 void main() {
     float x = floor(mPos.x * numPixels.x);
     float y = floor(mPos.y * numPixels.y);
-    bool isSecond = (y >= numPixels.y / 2.0) && (twoRows == 1);
-    if (isSecond) {
-        y -= numPixels.y / 2.0;
-    }
-    float npy = numPixels.y / float(twoRows + 1);
+    float npy = numPixels.y / float(numRows);
+    float yStart = (floor(y / npy) * 2.0 + 1.0) / float(numRows * 2); // 0.5 for single row, for two rows: 0.25 for first, 0.75 for second
+    bool isSecond = (y >= npy) && (numRows == 2);
+    y = mod(y, npy);
     float pos = x + numPixels.x * (npy - 1.0 - y);
     pos = (pos + 0.5) / (numPixels.x * npy);
 
     float spadDist = 1.0 / float(numSpads);
 
     vec2 fluenceAccum = vec2(0.0);
-    float yStart = 0.5 + float(twoRows) * (float(isSecond) - 0.5) / 2.0; // 0.5 for single row, for two rows: 0.25 for first, 0.75 for second
     for (int i = 0; i < numSpads; i++) {
         fluenceAccum += texture2D(fluence, vec2(pos, spadDist * (float(i) + yStart))).xy;
     }

@@ -169,7 +169,7 @@ var Shaders = {
 
         'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
 
-        'uniform int twoRows;\n'                                                           +
+        'uniform int numRows;\n'                                                           +
         'uniform vec2 numPixels;\n\n'                                                      +
 
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
@@ -179,19 +179,17 @@ var Shaders = {
         'void main() {\n'                                                                  +
         '    float x = floor(mPos.x * numPixels.x);\n'                                     +
         '    float y = floor(mPos.y * numPixels.y);\n'                                     +
-        '    bool isSecond = (y >= numPixels.y / 2.0) && (twoRows == 1);\n'                +
-        '    if (isSecond) {\n'                                                            +
-        '        y -= numPixels.y / 2.0;\n'                                                +
-        '    }\n'                                                                          +
-        '    float npy = numPixels.y / float(twoRows + 1);\n'                              +
+        '    float npy = numPixels.y / float(numRows);\n'                                  +
+        '    float yStart = (floor(y / npy) * 2.0 + 1.0) / float(numRows * 2); // 0.5 for' +
+                          ' single row, for two rows: 0.25 for first, 0.75 for second\n'   +
+        '    bool isSecond = (y >= npy) && (numRows == 2);\n'                              +
+        '    y = mod(y, npy);\n'                                                           +
         '    float pos = x + numPixels.x * (npy - 1.0 - y);\n'                             +
         '    pos = (pos + 0.5) / (numPixels.x * npy);\n\n'                                 +
 
         '    float spadDist = 1.0 / float(numSpads);\n\n'                                  +
 
         '    vec2 fluenceAccum = vec2(0.0);\n'                                             +
-        '    float yStart = 0.5 + float(twoRows) * (float(isSecond) - 0.5) / 2.0; // 0.5 ' +
-                       'for single row, for two rows: 0.25 for first, 0.75 for second\n'   +
         '    for (int i = 0; i < numSpads; i++) {\n'                                       +
         '        fluenceAccum += texture2D(fluence, vec2(pos, spadDist * (float(i) + ySta' +
                                                                            'rt))).xy;\n'   +
