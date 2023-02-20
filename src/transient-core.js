@@ -612,7 +612,7 @@
             this.spadGridTex.bind(1);
             this.planeGridTex.bind(2);
             this.bpConfProgram.uniformF("tmax", this.maxTime);
-            this.bpConfProgram.uniformF("instant", this.instant / this.numIntervals);
+            this.bpConfProgram.uniformF("instant", this.instant * this.deltaT);
             this.bpConfProgram.uniformF("numSpads", this.numSpads);
             this.bpConfProgram.uniformTexture("fluence", inputTex);
             this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
@@ -627,7 +627,7 @@
             this.spadGridTex.bind(1);
             this.planeGridTex.bind(2);
             this.bpProgram.uniformF("tmax", this.maxTime);
-            this.bpProgram.uniformF("instant", this.instant / this.numIntervals);
+            this.bpProgram.uniformF("instant", this.instant * this.deltaT);
             this.bpProgram.uniformF("numSpads", this.numSpads);
             this.bpProgram.uniformTexture("fluence", inputTex);
             this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
