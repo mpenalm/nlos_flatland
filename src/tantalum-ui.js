@@ -118,8 +118,13 @@
         if (!target)
             return;
             
+        var sliderDiv = document.createElement("div");
+        sliderDiv.id = targetId;
+
         this.sliderBackground = document.createElement("div");
         this.sliderBackground.className = "slider";
+
+        sliderDiv.appendChild(this.sliderBackground);
         
         this.minValue = minValue;
         this.maxValue = maxValue;
@@ -146,12 +151,14 @@
         });
         
         var parent = target.parentNode;
-        parent.replaceChild(this.sliderBackground, target);
+        parent.replaceChild(sliderDiv, target);
+        // parent.replaceChild(this.sliderBackground, target);
         
         if (hasLabel) {
             this.label = document.createElement("p");
             this.label.className = "slider-label";
-            parent.insertBefore(this.label, this.sliderBackground.nextSibling);
+            sliderDiv.insertBefore(this.label, this.sliderBackground.nextSibling);
+            // parent.insertBefore(this.label, this.sliderBackground.nextSibling);
         }
 
         this.setPosition(0.45);
