@@ -349,16 +349,22 @@ Transient.prototype.setupUI = function () {
     });
     featureSizeSlider.setValue(1);
 
-    var roughness = 0;
+    var roughness = 0.01;
     var roughnessSlider = new tui.Slider("roughness-slider", 1, 99, true, function (alpha) {
         this.setLabel(alpha / 100);
         roughness = alpha / 100;
     })
-    roughnessSlider.setValue(0.01);
+    roughnessSlider.setValue(1);
 
     document.getElementById('create-button').addEventListener('click', (function () {
-        var vertices = generator.generateVertices([-1.5, 0.8], [1.0, 0.8], nFeatures.value);
-        var ids = generator.generate(vertices, matType, [0.5]);
+        var vertices = generator.generateVertices([1.0, 0.8], [-1.5, 0.8], nFeatures.value);
+        var matParams = [];
+        if (matType === genScene.MaterialType.RoughMirror || matType === genScene.MaterialType.RoughDielectric) {
+            matParams.push(roughness);
+        } else if (matType === genScene.MaterialType.Diffuse) {
+            matParams.push(0.5);
+        }
+        var ids = generator.generate(vertices, matType, matParams);
         config.scenes.push({ 'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER });
         sceneSelector.addButton(config.scenes[config.scenes.length - 1].name);
         renderer.addScene(ids[0]);

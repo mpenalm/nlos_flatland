@@ -925,7 +925,7 @@
         this.elapsedTimes = [];
         this.videoElapsedTimes = [];
         this.instant = 0;
-        this.msPerFrame = 1000 / 200;
+        this.msPerFrame = 1000 / 100;
         this.currentCall = 0;
         this.nlosElapsedTimes = [];
         this.setSpadPos([0, -0.6]);

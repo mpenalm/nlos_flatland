@@ -114,13 +114,13 @@
         }
 
         // More than one feature, compute intermediate values
-        var featureSize = Math.abs(end[0] - start[0]) / nFeatures;
+        var featureSize = (end[0] - start[0]) / nFeatures;
         var x = [start[0]];
         while (x.length <= nFeatures) {
             x.push(x[x.length - 1] + featureSize);
         }
         res = [];
-        var y = [Math.min(0.999, start[1] - featureSize / 2), Math.min(0.999, start[1] + featureSize / 2)];
+        var y = [Math.min(0.999, start[1] - Math.abs(featureSize) / 2), Math.min(0.999, start[1] + Math.abs(featureSize) / 2)];
         for (var i = 0; i <= nFeatures; i++) {
             res.push(x[i]);
             // if (i == 0)
