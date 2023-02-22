@@ -37,7 +37,6 @@ void main() {
             y = 2.0 * y - 1.0;
 
             vec2 n = texture2D(SpadNormals, vec2(y, 0.5)).xy;
-            //n = vec2(-1.0, 0.0);
             vec2 dir = spadPos - posA;
             float cosine = dot(n, dir);
 
