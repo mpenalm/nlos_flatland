@@ -115,13 +115,13 @@ Transient.prototype.setupUI = function () {
     var config = {
         "reconstruction_resolutions": [32, 64, 128, 256],
         "scenes": [
-            { 'shader': 'scene10', 'name': 'Plane', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER },
-            { 'shader': 'scene9', 'name': 'Sphere', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER },
-            { 'shader': 'scene11', 'name': 'Visibility test', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER },
-            // {'shader': 'scene12', 'name': 'Virtual mirror',   'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER},
-            { 'shader': 'scene13', 'name': 'Virtual mirror 2', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER },
-            { 'shader': 'scene14', 'name': 'Virtual mirror', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER },
-            { 'shader': 'scene15', 'name': 'Virtual mirror rotated', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER }
+            { 'shader': 'scene10', 'name': 'Plane', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene9', 'name': 'Sphere', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene11', 'name': 'Visibility test', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            // {'shader': 'scene12', 'name': 'Virtual mirror',   'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene13', 'name': 'Virtual mirror 2', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene14', 'name': 'Virtual mirror', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene15', 'name': 'Virtual mirror rotated', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse }
         ],
         "capture_methods": ["Non-confocal", "Confocal"],
         "camera_models": ["Confocal", "Transient"],
@@ -261,7 +261,7 @@ Transient.prototype.setupUI = function () {
     })
 
     function selectScene(idx) {
-        renderer.changeScene(idx);
+        renderer.changeScene(idx, config.scenes[idx].wallMat);
         if (!renderer.isConf)
             renderer.setNormalizedEmitterPos(config.scenes[idx].posA, config.scenes[idx].posB);
     }
@@ -330,12 +330,22 @@ Transient.prototype.setupUI = function () {
 
     // Get the modal
     var modal = document.getElementById("myModal");
+
+    // Add configuration options for the new scene to the modal
     this.matType = 2;
     var matType = this.matType;
     var typeSelector = new tui.ButtonGroup("material-types", true, config.material_types, function (idx) {
         matType = 2 + idx;
     });
     typeSelector.select(0);
+
+    this.wallMatType = genScene.MaterialType.Diffuse;
+    var wallMatType = this.wallMatType;
+    var wallTypeSelector = new tui.ButtonGroup("rwall-mat-types", true, ["Diffuse", "RoughDielectric"], function (idx) {
+        wallMatType = (idx == 0) ? genScene.MaterialType.Diffuse : genScene.MaterialType.RoughMirror;
+    })
+    wallTypeSelector.select(0);
+
     var NumFeatures = function (val) {
         this.value = val;
     }
@@ -350,7 +360,7 @@ Transient.prototype.setupUI = function () {
     featureSizeSlider.setValue(1);
 
     var roughness = 0.01;
-    var roughnessSlider = new tui.Slider("roughness-slider", 1, 99, true, function (alpha) {
+    var roughnessSlider = new tui.Slider("roughness-slider", 1, 200, true, function (alpha) {
         this.setLabel(alpha / 100);
         roughness = alpha / 100;
     })
@@ -364,8 +374,8 @@ Transient.prototype.setupUI = function () {
         } else if (matType === genScene.MaterialType.Diffuse) {
             matParams.push(0.5);
         }
-        var ids = generator.generate(vertices, matType, matParams);
-        config.scenes.push({ 'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER });
+        var ids = generator.generate(vertices, matType, matParams, wallMatType);
+        config.scenes.push({ 'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': wallMatType });
         sceneSelector.addButton(config.scenes[config.scenes.length - 1].name);
         renderer.addScene(ids[0]);
         modal.style.display = "none";

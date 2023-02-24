@@ -12,9 +12,11 @@ void intersect(Ray ray, inout Intersection isect) {
 vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, inout vec3 throughput, out float tMult) {
     tMult = 1.0;
     if (isect.mat == 0.0) {
+        // Bounding box
         throughput = vec3(0.0);
         return sampleDiffuse(state, wiLocal);
     } else if (isect.mat == 1.0) {
+        // Relay wall
         throughput *= vec3(0.5);
         return sampleDiffuse(state, wiLocal);
     } else {

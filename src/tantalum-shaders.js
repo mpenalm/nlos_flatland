@@ -243,6 +243,36 @@ var Shaders = {
         '    mPos = Position/2.0+vec2(0.5);\n'          +
         '}\n',
 
+    'bsdf-rwall':
+        'float coth(float x) {\n'                                                          +
+        '    float e2x = exp(2.0 * x);\n'                                                  +
+        '    return (e2x + 1.0) / (e2x - 1.0);\n'                                          +
+        '}\n\n'                                                                            +
+
+        'float sech2(float x) {\n'                                                         +
+        '    float num = 2.0 * exp(x);\n'                                                  +
+        '    float denom = 1.0 / (exp(2.0 * x) + 1.0);\n'                                  +
+        '    return num*num * denom*denom;\n'                                              +
+        '}\n\n'                                                                            +
+
+        'float pdf(int matId, float cosTheta, float sigma) {\n'                            +
+        '    if (cosTheta < 0.0) {\n'                                                      +
+        '        return 0.0; // Not true for RoughDielectric, but for that the ior is nee' +
+                                                                                 'ded\n'   +
+        '    }\n'                                                                          +
+        '    if (matId == 2) { // Diffuse\n'                                               +
+        '        return cosTheta;\n'                                                       +
+        '    } else if (matId == 5) { // RoughMirror\n'                                    +
+        '        float sigmaSq = sigma*sigma;\n'                                           +
+        '        float invSigmaSq = 1.0/sigmaSq;\n'                                        +
+        '        return 0.25*invSigmaSq * coth(PI*0.25*invSigmaSq) * sech2(acos(cosTheta)' +
+                                                                   '*0.5*invSigmaSq);\n'   +
+        '    } else {\n'                                                                   +
+        '        return 0.0; // Not true for RoughDielectric, but for that the ior is nee' +
+                                                                                 'ded\n'   +
+        '    }\n'                                                                          +
+        '}\n',
+
     'bsdf':
         'float sellmeierIor(vec3 b, vec3 c, float lambda) {\n'                             +
         '    float lSq = (lambda*1e-3)*(lambda*1e-3);\n'                                   +
@@ -532,48 +562,52 @@ var Shaders = {
         '}\n',
 
     'h-conf-vert':
-        '#include "preamble"\n\n'                                                           +
+        '#include "preamble"\n'                                                            +
+        '#include "bsdf-rwall"\n\n'                                                        +
 
-        'uniform sampler2D PosDataA;\n'                                                     +
-        'uniform sampler2D PosDataB;\n'                                                     +
-        'uniform sampler2D RgbData;\n'                                                      +
-        'uniform sampler2D TimeDataA;\n\n'                                                  +
+        'uniform sampler2D PosDataA;\n'                                                    +
+        'uniform sampler2D PosDataB;\n'                                                    +
+        'uniform sampler2D RgbData;\n'                                                     +
+        'uniform sampler2D TimeDataA;\n\n'                                                 +
 
-        'uniform float tmax;\n'                                                             +
-        'uniform float yNorm;\n'                                                            +
-        'uniform float spadRadius;\n'                                                       +
-        'uniform vec2 spadPos;    // Position of the physical spad device\n'                +
-        'uniform vec2 SpadGrid;   // Position scanned by device and illuminated by laser\n' +
-        'uniform vec2 SpadNormal;\n\n'                                                      +
+        'uniform float tmax;\n'                                                            +
+        'uniform float yNorm;\n'                                                           +
+        'uniform float spadRadius;\n'                                                      +
+        'uniform vec2 spadPos;   // Position of the physical spad device\n'                +
+        'uniform vec2 SpadGrid;  // Position scanned by device and illuminated by laser\n' +
+        'uniform vec2 SpadNormal;\n'                                                       +
+        'uniform int matId;      // Id of the relay wall bsdf, 2 = diffuse, 5 = roughmirr' +
+                                                        'or, no others should be used\n\n' +
 
-        'attribute vec2 TexCoord;\n\n'                                                      +
+        'attribute vec2 TexCoord;\n\n'                                                     +
 
-        'varying vec3 vColor;\n\n'                                                          +
+        'varying vec3 vColor;\n\n'                                                         +
 
-        'void main() {\n'                                                                   +
-        '    gl_Position = vec4(vec3(-1.0), 1.0);\n\n'                                      +
+        'void main() {\n'                                                                  +
+        '    gl_Position = vec4(vec3(-1.0), 1.0);\n\n'                                     +
 
-        '    vec2 posA = texture2D(PosDataA, TexCoord.xy).xy;\n'                            +
-        '    vec2 posB = texture2D(PosDataB, TexCoord.xy).xy;\n'                            +
-        '    vec2 dir = posB - posA;\n'                                                     +
-        '    float t0 = texture2D(TimeDataA, TexCoord.xy).x;\n'                             +
-        '    float biasCorrection = clamp(length(dir)/max(abs(dir.x), abs(dir.y)), 1.0, 1'  +
-                                                                           '.414214);\n\n'  +
+        '    vec2 posA = texture2D(PosDataA, TexCoord.xy).xy;\n'                           +
+        '    vec2 posB = texture2D(PosDataB, TexCoord.xy).xy;\n'                           +
+        '    vec2 dir = posB - posA;\n'                                                    +
+        '    float t0 = texture2D(TimeDataA, TexCoord.xy).x;\n'                            +
+        '    float biasCorrection = clamp(length(dir)/max(abs(dir.x), abs(dir.y)), 1.0, 1' +
+                                                                           '.414214);\n\n' +
 
-        '    if (distance(posA, SpadGrid) <= spadRadius) {\n'                               +
-        '        float t = t0 + distance(posA, spadPos); // Time needed to reach the sens'  +
-                                               'or, assuming vacuum and no occlusions\n'    +
-        '        float x = t / tmax * 2.0 - 1.0;\n'                                         +
-        '        float y = 2.0 * yNorm - 1.0;\n\n'                                          +
+        '    if (distance(posA, SpadGrid) <= spadRadius) {\n'                              +
+        '        float t = t0 + distance(posA, spadPos); // Time needed to reach the sens' +
+                                               'or, assuming vacuum and no occlusions\n'   +
+        '        float x = t / tmax * 2.0 - 1.0;\n'                                        +
+        '        float y = 2.0 * yNorm - 1.0;\n\n'                                         +
 
-        '        vec2 dir = spadPos - posA;\n'                                              +
-        '        float cosine = dot(SpadNormal, dir);\n\n'                                  +
+        '        vec2 dir = spadPos - posA;\n'                                             +
+        '        float cosine = dot(SpadNormal, dir);\n'                                   +
+        '        float p = pdf(matId, cosine, 0.5);\n\n'                                   +
 
-        '        gl_PointSize = 1.0;\n'                                                     +
-        '        gl_Position = vec4(x, y, 0.0, 1.0);\n'                                     +
-        '        vColor = max(vec3(0.0), cosine * texture2D(RgbData, TexCoord.xy).rgb*bia'  +
-                                      'sCorrection / vec3(spadRadius*spadRadius*PI));\n'    +
-        '    }\n'                                                                           +
+        '        gl_PointSize = 1.0;\n'                                                    +
+        '        gl_Position = vec4(x, y, 0.0, 1.0);\n'                                    +
+        '        vColor = max(vec3(0.0), p * texture2D(RgbData, TexCoord.xy).rgb*biasCorr' +
+                                           'ection / vec3(spadRadius*spadRadius*PI));\n'   +
+        '    }\n'                                                                          +
         '}\n',
 
     'h-frag':
@@ -586,7 +620,8 @@ var Shaders = {
         '}\n',
 
     'h-vert':
-        '#include "preamble"\n\n'                                                          +
+        '#include "preamble"\n'                                                            +
+        '#include "bsdf-rwall"\n\n'                                                        +
 
         'uniform sampler2D PosDataA;\n'                                                    +
         'uniform sampler2D PosDataB;\n'                                                    +
@@ -597,7 +632,9 @@ var Shaders = {
 
         'uniform float tmax;\n'                                                            +
         'uniform float spadRadius;\n'                                                      +
-        'uniform vec2 spadPos;    // Position of the physical spad device\n\n'             +
+        'uniform vec2 spadPos;   // Position of the physical spad device\n'                +
+        'uniform int matId;      // Id of the relay wall bsdf, 2 = diffuse, 5 = roughmirr' +
+                                                        'or, no others should be used\n\n' +
 
         'attribute vec2 TexCoord;\n\n'                                                     +
 
@@ -627,14 +664,14 @@ var Shaders = {
         '            y = 2.0 * y - 1.0;\n\n'                                               +
 
         '            vec2 n = texture2D(SpadNormals, vec2(y, 0.5)).xy;\n'                  +
-        '            //n = vec2(-1.0, 0.0);\n'                                             +
-        '            vec2 dir = spadPos - posA;\n'                                         +
-        '            float cosine = dot(n, dir);\n\n'                                      +
+        '            vec2 dir = normalize(spadPos - posA);\n'                              +
+        '            float cosine = dot(n, dir);\n'                                        +
+        '            float p = pdf(matId, cosine, 0.5);\n\n'                               +
 
         '            gl_PointSize = 1.0;\n'                                                +
         '            gl_Position = vec4(x, y, 0.0, 1.0);\n'                                +
-        '            vColor = max(vec3(0.0), cosine * texture2D(RgbData, TexCoord.xy).rgb' +
-                                  '*biasCorrection / vec3(spadRadius*spadRadius*PI));\n'   +
+        '            vColor = max(vec3(0.0), p * texture2D(RgbData, TexCoord.xy).rgb*bias' +
+                                       'Correction / vec3(spadRadius*spadRadius*PI));\n'   +
         '            break;\n'                                                             +
         '        }\n'                                                                      +
         '    }\n'                                                                          +
@@ -1179,9 +1216,11 @@ var Shaders = {
                                              'out vec3 throughput, out float tMult) {\n'   +
         '    tMult = 1.0;\n'                                                               +
         '    if (isect.mat == 0.0) {\n'                                                    +
+        '        // Bounding box\n'                                                        +
         '        throughput = vec3(0.0);\n'                                                +
         '        return sampleDiffuse(state, wiLocal);\n'                                  +
         '    } else if (isect.mat == 1.0) {\n'                                             +
+        '        // Relay wall\n'                                                          +
         '        throughput *= vec3(0.5);\n'                                               +
         '        return sampleDiffuse(state, wiLocal);\n'                                  +
         '    } else {\n'                                                                   +

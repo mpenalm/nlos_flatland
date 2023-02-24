@@ -587,9 +587,10 @@
         }
     }
 
-    Renderer.prototype.changeScene = function (idx) {
+    Renderer.prototype.changeScene = function (idx, rwallMaterial = genScene.Diffuse) {
         this.resetActiveBlock();
         this.currentScene = idx;
+        this.rwallMaterial = rwallMaterial;
         this.reset();
     }
 
@@ -1446,6 +1447,9 @@
             }
             // getArray unbinds current framebuffer
             this.fbo.bind();
+            // Clear captured signal
+            this.fbo.attachTexture(this.capturedBuffer, 0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
         }
         // Clear captured signal
         // this.fbo.attachTexture(this.capturedBuffer, 0);
@@ -1521,6 +1525,7 @@
             this.rayStates[next].timeTex.bind(4);
             this.spadGridTex.bind(5);
             this.spadNormalsTex.bind(6);
+            this.hProgram.uniformI("matId", this.rwallMaterial);
             this.hProgram.uniformF("tmax", this.maxTime);
             this.hProgram.uniformF("spadRadius", this.spadRadius);
             this.hProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
@@ -1540,6 +1545,7 @@
             this.rayStates[current].timeTex.bind(3);
             this.rayStates[next].timeTex.bind(4);
             this.spadNormalsTex.bind(6);
+            this.hConfProgram.uniformI("matId", this.rwallMaterial);
             this.hConfProgram.uniformF("tmax", this.maxTime);
             this.hConfProgram.uniformF("yNorm", (this.confCounter + 0.5) / this.numSpads);
             this.hConfProgram.uniformF("spadRadius", this.spadRadius);

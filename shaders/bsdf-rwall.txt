@@ -1,0 +1,25 @@
+float coth(float x) {
+    float e2x = exp(2.0 * x);
+    return (e2x + 1.0) / (e2x - 1.0);
+}
+
+float sech2(float x) {
+    float num = 2.0 * exp(x);
+    float denom = 1.0 / (exp(2.0 * x) + 1.0);
+    return num*num * denom*denom;
+}
+
+float pdf(int matId, float cosTheta, float sigma) {
+    if (cosTheta < 0.0) {
+        return 0.0; // Not true for RoughDielectric, but for that the ior is needed
+    }
+    if (matId == 2) { // Diffuse
+        return cosTheta;
+    } else if (matId == 5) { // RoughMirror
+        float sigmaSq = sigma*sigma;
+        float invSigmaSq = 1.0/sigmaSq;
+        return 0.25*invSigmaSq * coth(PI*0.25*invSigmaSq) * sech2(acos(cosTheta)*0.5*invSigmaSq);
+    } else {
+        return 0.0; // Not true for RoughDielectric, but for that the ior is needed
+    }
+}
