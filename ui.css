@@ -412,6 +412,30 @@ body {
     cursor: pointer;
 }
 
+#path-length {
+    height: 12px;
+    background-color: #181818;
+    border-width: 0px;
+    border-radius: 32px;
+}
+
+#path-length .noUi-connect {
+    background: #1F8DD6;
+    border-color: #1F8DD6;
+}
+
+#path-length .noUi-handle {
+    height: 18px;
+    width: 18px;
+    top: -3px;
+    right: -9px;
+    border-radius: 50%;
+    transition: background .25s;
+    border-color: #20A6FF;
+    background: #20A6FF;
+    cursor: pointer;
+}
+
 /* The Modal (background) */
 .modal {
     display: none; /* Hidden by default */

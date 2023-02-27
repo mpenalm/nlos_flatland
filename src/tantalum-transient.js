@@ -258,7 +258,7 @@ Transient.prototype.setupUI = function () {
         var high = parseFloat(values[1]);
         renderer.setSpadBoundaries(low, high);
         spadPositionsSlider.label.textContent = "[" + low + "," + high + "]";
-    })
+    });
 
     function selectScene(idx) {
         renderer.changeScene(idx, config.scenes[idx].wallMat);
@@ -269,11 +269,33 @@ Transient.prototype.setupUI = function () {
 
     var mouseListener = new tui.MouseListener(canvas, renderer.setEmitterPos.bind(renderer));
 
-    var bounceSlider = new tui.Slider("path-length", 1, 20, true, function (length) {
-        this.setLabel((length - 1) + " light bounces");
-        renderer.setMaxPathLength(length);
+    // var bounceSlider = new tui.Slider("path-length", 1, 20, true, function (length) {
+    //     this.setLabel((length - 1) + " light bounces");
+    //     renderer.setMaxPathLength(length);
+    // });
+    // bounceSlider.setValue(12);
+    var bounceSlider = document.getElementById("path-length");
+    noUiSlider.create(bounceSlider, {
+        start: [2, 12],
+        connect: true,
+        step: 1,
+        range: {
+            min: [1],
+            max: [20]
+        }
     });
-    bounceSlider.setValue(12);
+    bounceSlider.label = document.createElement("p");
+    bounceSlider.label.className = "slider-label";
+    var parent = bounceSlider.parentNode;
+    parent.insertBefore(bounceSlider.label, bounceSlider.nextSibling);
+    bounceSlider.label.textContent = "11 light bounces, capturing from bounce 2";
+    bounceSlider.noUiSlider.on('update', function (values) {
+        var low = parseFloat(values[0]);
+        var length = parseFloat(values[1]);
+        bounceSlider.label.textContent = (length - 1) + " light bounces, capturing from bounce " + low;
+        renderer.setMaxPathLength(length);
+        renderer.setMinPathLength(low);
+    })
 
     var sampleSlider = new tui.Slider("sample-count", 400, 700, true, function (exponent100) {
         var sampleCount = Math.floor(Math.pow(10, exponent100 * 0.01));

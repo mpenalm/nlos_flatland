@@ -78,7 +78,7 @@
         result[0] *= width;
         result[1] *= height;
         return result;
-    } 
+    }
     function isPowerOf2(value) {
         return (value & (value - 1)) === 0;
     }
@@ -119,6 +119,7 @@
             this.tracePrograms.push(new tgl.Shader(Shaders, "trace-vert", scenes[i]));
 
         this.maxPathLength = 12;
+        this.minPathLength = 2;
 
         this.deltaT = 0.003;
         this.maxTime = 10; // approximate max instant we want to store
@@ -215,7 +216,7 @@
 
     Renderer.prototype.loadTexture = function (url) {
         this.rulerTex = new tgl.Texture(1, 1, 4, false, false, true, new Uint8Array([0, 0, 255, 255]));
-      
+
         const image = new Image();
         image.onload = () => {
             // Get pixel values
@@ -223,13 +224,13 @@
             var context = canvas.getContext('2d');
             canvas.width = image.width;
             canvas.height = image.height;
-            context.drawImage(image, 0, 0 );
+            context.drawImage(image, 0, 0);
             var data = context.getImageData(0, 0, image.width, image.height).data;
             this.rulerTex = new tgl.Texture(image.width, image.height, 4, false, false, true, data);
             this.rulerLoaded = true;
         };
         image.src = url;
-      }
+    }
 
     Renderer.prototype.createVBOs = function () {
         var gl = this.gl;
@@ -553,8 +554,17 @@
     }
 
     Renderer.prototype.setMaxPathLength = function (length) {
-        this.maxPathLength = length;
-        this.reset();
+        if (length != this.maxPathLength) {
+            this.maxPathLength = length;
+            this.reset();
+        }
+    }
+
+    Renderer.prototype.setMinPathLength = function (length) {
+        if (length != this.minPathLength) {
+            this.minPathLength = length;
+            this.reset();
+        }
     }
 
     Renderer.prototype.setMaxSampleCount = function (count) {
@@ -1127,9 +1137,9 @@
         //     -this.aspect, -1.0]);
         vbo.copy(new Float32Array([
             0.0, -1.0,
-            1.0, 0.0, 
-            1.0, -1.0, 
-            0.0, 0.0, 
+            1.0, 0.0,
+            1.0, -1.0,
+            0.0, 0.0,
             // -this.aspect, -0.389,
             // -this.aspect + 500 / 720, -0.389,
             // -this.aspect + 500 / 720, -1.0,
@@ -1231,7 +1241,7 @@
         this.spadSegmentProgram.bind();
         this.sbVbo.bind();
         this.sbVbo.draw(this.spadSegmentProgram, this.gl.LINES);
-        
+
         /*if (this.rulerLoaded) {
             this.rulerTex.bind(0);
             this.rulerProgram.bind();
@@ -1341,9 +1351,9 @@
         this.rayVbo.draw(this.rayProgram, gl.LINES, this.raySize * this.activeBlock * 2);
 
         this.raysTraced += this.raySize * this.activeBlock;
+        if (this.pathLength >= this.minPathLength)
+            this.computeSpadValues(current, next);
         this.pathLength += 1;
-
-        this.computeSpadValues(current, next);
 
         this.quadVbo.bind();
 
@@ -1496,7 +1506,7 @@
             }
         }
 
-        if (this.videoElapsedTimes.length == 0 || (timestamp - this.videoElapsedTimes[this.videoElapsedTimes.length-1]) > this.msPerFrame) {
+        if (this.videoElapsedTimes.length == 0 || (timestamp - this.videoElapsedTimes[this.videoElapsedTimes.length - 1]) > this.msPerFrame) {
             this.videoElapsedTimes.push(timestamp);
             this.instant++;
             this.redraw();
