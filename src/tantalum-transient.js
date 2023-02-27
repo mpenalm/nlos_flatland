@@ -320,6 +320,7 @@ Transient.prototype.setupUI = function () {
         }
         featureSizeSlider.sliderHandle.style.visibility = '';
         roughnessSlider.sliderHandle.style.visibility = '';
+        wallRoughnessSlider.sliderHandle.style.visibility = '';
     }
     function showSliderHandles() {
         var handles = document.getElementsByClassName('slider-handle');
@@ -363,8 +364,15 @@ Transient.prototype.setupUI = function () {
     var roughnessSlider = new tui.Slider("roughness-slider", 1, 200, true, function (alpha) {
         this.setLabel(alpha / 100);
         roughness = alpha / 100;
-    })
+    });
     roughnessSlider.setValue(1);
+
+    var wallRoughness = 0.5;
+    var wallRoughnessSlider = new tui.Slider("rwall-roughness", 1, 200, true, function (alpha) {
+        this.setLabel(alpha / 100);
+        wallRoughness = alpha / 100;
+    });
+    wallRoughnessSlider.setValue(50);
 
     document.getElementById('create-button').addEventListener('click', (function () {
         var vertices = generator.generateVertices([1.0, 0.8], [-1.5, 0.8], nFeatures.value);
@@ -374,7 +382,13 @@ Transient.prototype.setupUI = function () {
         } else if (matType === genScene.MaterialType.Diffuse) {
             matParams.push(0.5);
         }
-        var ids = generator.generate(vertices, matType, matParams, wallMatType);
+        var wallMatParams = [0.5];
+        if (wallMatType === genScene.MaterialType.RoughMirror || wallMatType === genScene.MaterialType.RoughDielectric) {
+            wallMatParams.push(roughness);
+        } else if (wallMatType === genScene.MaterialType.Diffuse) {
+            wallMatParams.push(0.5);
+        }
+        var ids = generator.generate(vertices, matType, matParams, wallMatType, wallMatParams);
         config.scenes.push({ 'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': wallMatType });
         sceneSelector.addButton(config.scenes[config.scenes.length - 1].name);
         renderer.addScene(ids[0]);

@@ -16,6 +16,16 @@
         RoughDielectric: 6,
     }
 
+    function toPrint(n) {
+        if (n % 1 === 0) {
+            // is integer, write as float
+            return n.toFixed(1);
+        } else {
+            // is float, write as is
+            return n.toString();
+        }
+    }
+
     SceneGenerator.prototype.generateSample = function (matType, matParams, shader) {
         var functionCall;
         switch (matType) {
@@ -44,7 +54,7 @@
         }
         if (matType == MaterialType.RoughDielectric || matType == MaterialType.RoughMirror) {
             // for RoughDielectric and RoughMirror, matParams[0] is sigma (defines normal distribution)
-            params += ', ' + matParams[0];
+            params += ', ' + toPrint(matParams[0]);
         }
         if (matType == MaterialType.Dielectric || matType == MaterialType.RoughDielectric) {
             params += ', ior';
@@ -67,7 +77,7 @@
             text = 'float ior = 1.3;\n' + text;
         } else if (matType == MaterialType.Diffuse) {
             // for Diffuse, matParams[0] is albedo (always gray for now)
-            text = 'throughput *= vec3(' + matParams[0] + ');\n' + text;
+            text = 'throughput *= vec3(' + toPrint(matParams[0]) + ');\n' + text;
         }
 
         return shader.replace(this.pattern, text);
@@ -84,13 +94,7 @@
         while (i + 3 < vertices.length) {
             v = [];
             for (var j = 0; j < 4; j++) {
-                if (vertices[i + j] % 1 === 0) {
-                    // is integer, write as float
-                    v.push(vertices[i + j].toFixed(1));
-                } else {
-                    // is float, write as is
-                    v.push(vertices[i + j].toString());
-                }
+                v.push(toPrint(vertices[i+j]));
             }
             text += 'lineIntersect(ray, vec2(' + v[0] + ', ' + v[1] + '), ' +
                 'vec2(' + v[2] + ', ' + v[3] + '), ' + matType.toFixed(1) + ', isect);\n';
@@ -128,7 +132,7 @@
         }
         if (matType == MaterialType.RoughDielectric || matType == MaterialType.RoughMirror) {
             // for RoughDielectric and RoughMirror, matParams[0] is sigma (defines normal distribution)
-            params += ', ' + matParams[0];
+            params += ', ' + toPrint(matParams[0]);
         }
         if (matType == MaterialType.Dielectric || matType == MaterialType.RoughDielectric) {
             params += ', ior';
@@ -151,7 +155,7 @@
             text = 'float ior = 1.3;\n' + text;
         } else if (matType == MaterialType.Diffuse) {
             // for Diffuse, matParams[0] is albedo (always gray for now)
-            text = 'throughput *= vec3(' + matParams[0] + ');\n' + text;
+            text = 'throughput *= vec3(' + toPrint(matParams[0]) + ');\n' + text;
         }
 
         return shader.replace(this.relayWallPattern, RELAY_WALL_COMMENT + '\n' + text);
