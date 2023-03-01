@@ -261,7 +261,7 @@ var Shaders = {
                                                                                  'ded\n'   +
         '    }\n'                                                                          +
         '    if (matId == 2) { // Diffuse\n'                                               +
-        '        return cosTheta;\n'                                                       +
+        '        return cosTheta / 2.0;\n'                                                 +
         '    } else if (matId == 5) { // RoughMirror\n'                                    +
         '        float sigmaSq = sigma*sigma;\n'                                           +
         '        float invSigmaSq = 1.0/sigmaSq;\n'                                        +

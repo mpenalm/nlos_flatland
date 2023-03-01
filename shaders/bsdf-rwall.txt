@@ -14,7 +14,7 @@ float pdf(int matId, float cosTheta, float sigma) {
         return 0.0; // Not true for RoughDielectric, but for that the ior is needed
     }
     if (matId == 2) { // Diffuse
-        return cosTheta;
+        return cosTheta / 2.0;
     } else if (matId == 5) { // RoughMirror
         float sigmaSq = sigma*sigma;
         float invSigmaSq = 1.0/sigmaSq;
