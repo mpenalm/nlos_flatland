@@ -377,7 +377,7 @@ Transient.prototype.setupUI = function () {
     }
     var nFeatures = new NumFeatures(1);
     var featureSizeSlider = new tui.Slider("feature-size", 1, 250, true, function (nf) {
-        this.setLabel((250 / nf) + " cm");
+        this.setLabel((150 / nf).toFixed(4) + " cm");
         nFeatures.setNFeatures(nf);
     });
     featureSizeSlider.setValue(1);
@@ -397,7 +397,7 @@ Transient.prototype.setupUI = function () {
     wallRoughnessSlider.setValue(50);
 
     document.getElementById('create-button').addEventListener('click', (function () {
-        var vertices = generator.generateVertices([1.0, 0.8], [-1.5, 0.8], nFeatures.value);
+        var vertices = generator.generateVertices([0.0, 0.8], [-1.5, 0.8], nFeatures.value);
         var matParams = [];
         if (matType === genScene.MaterialType.RoughMirror || matType === genScene.MaterialType.RoughDielectric) {
             matParams.push(roughness);
