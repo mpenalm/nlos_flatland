@@ -79,9 +79,6 @@
         result[1] *= height;
         return result;
     }
-    function isPowerOf2(value) {
-        return (value & (value - 1)) === 0;
-    }
 
     var SpadData = function (pos, radius, deltaT, maxTime) {
         this.pos = pos;
