@@ -397,8 +397,22 @@ Transient.prototype.setupUI = function () {
     });
     wallRoughnessSlider.setValue(50);
 
+    function getCoordinate(label) {
+        var element = document.getElementById(label);
+        var val = element.value;
+        if (!val) val = element.placeholder;
+        val = parseFloat(val);
+        var min = parseFloat(element.min);
+        var max = parseFloat(element.max);
+        return Math.min(max, Math.max(min, val));
+    }
+
     document.getElementById('create-button').addEventListener('click', (function () {
-        var vertices = generator.generateVertices([1.0, 0.8], [-1.5, 0.8], nFeatures.value);
+        var x1 = getCoordinate("x1");
+        var x2 = getCoordinate("x2");
+        var y1 = getCoordinate("y1");
+        var y2 = getCoordinate("y2");
+        var vertices = generator.generateVertices([x1, y1], [x2, y2], nFeatures.value);
         var matParams = [];
         if (matType === genScene.MaterialType.RoughMirror || matType === genScene.MaterialType.RoughDielectric) {
             matParams.push(roughness);

@@ -26,6 +26,23 @@
         }
     }
 
+    function linspace(start, end, n) {
+        if (n == 1) {
+            return [(start + end) / 2.0];
+        } else if (n == 2) {
+            return [start, end];
+        } else {
+            var step = (end - start) / (n - 1);
+            var result = [start];
+            var accum = start + step;
+            while (result.length < n) {
+                result.push(accum);
+                accum += step;
+            }
+            return result;
+        }
+    }
+
     SceneGenerator.prototype.generateSample = function (matType, matParams, shader) {
         var functionCall;
         switch (matType) {
@@ -94,7 +111,7 @@
         while (i + 3 < vertices.length) {
             v = [];
             for (var j = 0; j < 4; j++) {
-                v.push(toPrint(vertices[i+j]));
+                v.push(toPrint(vertices[i + j]));
             }
             text += 'lineIntersect(ray, vec2(' + v[0] + ', ' + v[1] + '), ' +
                 'vec2(' + v[2] + ', ' + v[3] + '), ' + matType.toFixed(1) + ', isect);\n';
@@ -184,15 +201,40 @@
             x.push(x[x.length - 1] + featureSize);
         }
         res = [];
-        var y = [Math.min(0.999, start[1] - Math.abs(featureSize) / 2), Math.min(0.999, start[1] + Math.abs(featureSize) / 2)];
-        for (var i = 0; i <= nFeatures; i++) {
-            res.push(x[i]);
-            // if (i == 0)
-                // res.push(start[1]);
-            // else if (i == nFeatures)
-                // res.push(end[1]);
-            // else
+        var y = [];
+        var horizontal = (Math.abs(start[1] - end[1]) < 1e-5);
+        var vertical = (Math.abs(start[0] - end[0]) < 1e-5);
+        if (horizontal) {
+            y = [Math.min(0.999, start[1] - Math.abs(featureSize) / 2), Math.min(0.999, start[1] + Math.abs(featureSize) / 2)];
+            for (var i = 0; i <= nFeatures; i++) {
+                res.push(x[i]);
                 res.push(y[i % 2]);
+            }
+        } else {
+            y = linspace(start[1], end[1], nFeatures+1);
+            if (vertical) {
+                x = [Math.min(0.999, start[0] - Math.abs(featureSize) / 2), Math.min(0.999, start[0] + Math.abs(featureSize) / 2)];
+                for (var i = 0; i <= nFeatures; i++) {
+                    res.push(x[i % 2]);
+                    res.push(y[i]);
+                }
+            } else {
+                var angle = Math.atan(Math.abs(y[0] - y[1]) / Math.abs(x[0] - x[1]));
+                var xChange = -Math.sign(angle) * Math.abs(Math.sin(angle) * featureSize);
+                var yChange = Math.cos(angle) * Math.abs(featureSize);
+
+                for (var i = 0; i <= nFeatures; i++) {
+                    if (i % 2 == 0) {
+                        // Place on the line that joins both ends
+                        res.push(x[i]);
+                        res.push(y[i]);
+                    } else {
+                        // Triangle top vertex
+                        res.push(x[i] + xChange);
+                        res.push(y[i] + yChange);
+                    }
+                }
+            }
         }
         return res;
     }
