@@ -606,7 +606,7 @@ var Shaders = {
         '        gl_PointSize = 1.0;\n'                                                    +
         '        gl_Position = vec4(x, y, 0.0, 1.0);\n'                                    +
         '        vColor = max(vec3(0.0), p * texture2D(RgbData, TexCoord.xy).rgb*biasCorr' +
-                                           'ection / vec3(spadRadius*spadRadius*PI));\n'   +
+                                                   'ection / vec3(2.0 * spadRadius));\n'   +
         '    }\n'                                                                          +
         '}\n',
 
@@ -671,7 +671,7 @@ var Shaders = {
         '            gl_PointSize = 1.0;\n'                                                +
         '            gl_Position = vec4(x, y, 0.0, 1.0);\n'                                +
         '            vColor = max(vec3(0.0), p * texture2D(RgbData, TexCoord.xy).rgb*bias' +
-                                       'Correction / vec3(spadRadius*spadRadius*PI));\n'   +
+                                               'Correction / vec3(2.0 * spadRadius));\n'   +
         '            break;\n'                                                             +
         '        }\n'                                                                      +
         '    }\n'                                                                          +

@@ -45,7 +45,7 @@ void main() {
 
             gl_PointSize = 1.0;
             gl_Position = vec4(x, y, 0.0, 1.0);
-            vColor = max(vec3(0.0), p * texture2D(RgbData, TexCoord.xy).rgb*biasCorrection / vec3(spadRadius*spadRadius*PI));
+            vColor = max(vec3(0.0), p * texture2D(RgbData, TexCoord.xy).rgb*biasCorrection / vec3(2.0 * spadRadius));
             break;
         }
     }
