@@ -125,7 +125,7 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene15', 'name': 'Virtual mirror rotated', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse }
         ],
         "capture_methods": ["Non-confocal", "Confocal"],
-        "camera_models": ["Confocal", "Time-resolved"],
+        "camera_models": ["Confocal", "Transient"],
         "spad_num": [16, 32, 64, 128],
         "filters": ["None", "Laplacian", "Gaussian", "Laplacian of Gaussian", "Phasor Fields"],
         "tone_mapper_labels": ["None", "Logarithmic", "Square root"],
