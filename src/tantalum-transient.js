@@ -125,7 +125,7 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene15', 'name': 'Virtual mirror rotated', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse }
         ],
         "capture_methods": ["Non-confocal", "Confocal"],
-        "camera_models": ["Confocal", "Transient"],
+        "camera_models": ["Confocal", "Time-resolved"],
         "spad_num": [16, 32, 64, 128],
         "filters": ["None", "Laplacian", "Gaussian", "Laplacian of Gaussian", "Phasor Fields"],
         "tone_mapper_labels": ["None", "Logarithmic", "Square root"],
@@ -365,7 +365,7 @@ Transient.prototype.setupUI = function () {
 
     this.wallMatType = genScene.MaterialType.Diffuse;
     var wallMatType = this.wallMatType;
-    var wallTypeSelector = new tui.ButtonGroup("rwall-mat-types", true, ["Diffuse", "RoughDielectric"], function (idx) {
+    var wallTypeSelector = new tui.ButtonGroup("rwall-mat-types", true, ["Diffuse", "RoughMirror"], function (idx) {
         wallMatType = (idx == 0) ? genScene.MaterialType.Diffuse : genScene.MaterialType.RoughMirror;
     })
     wallTypeSelector.select(0);
