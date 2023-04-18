@@ -206,7 +206,7 @@ Transient.prototype.setupUI = function () {
 
     document.getElementById("filter-parameter").style.visibility = "hidden";
 
-    new tui.ButtonGroup("filter-selector", true, config.filters, function (idx) {
+    (new tui.ButtonGroup("filter-selector", true, config.filters, function (idx) {
         renderer.setFilterType(filterTypes[idx]);
         if (idx < 4) {
             document.getElementById("filter-parameter").style.visibility = "hidden";
@@ -215,7 +215,7 @@ Transient.prototype.setupUI = function () {
             wlSlider.show(filterTypes[idx] === 'pf');
             // magSelector.show(filterTypes[idx] === 'pf');
         }
-    });
+    })).select(4);
 
     resolutionLabels = [];
     for (var i = 0; i < config.reconstruction_resolutions.length; ++i)
