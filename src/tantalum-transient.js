@@ -421,9 +421,7 @@ Transient.prototype.setupUI = function () {
         }
         var wallMatParams = [0.5];
         if (wallMatType === genScene.MaterialType.RoughMirror || wallMatType === genScene.MaterialType.RoughDielectric) {
-            wallMatParams.push(roughness);
-        } else if (wallMatType === genScene.MaterialType.Diffuse) {
-            wallMatParams.push(0.5);
+            wallMatParams = [wallRoughness];
         }
         var ids = generator.generate(vertices, matType, matParams, wallMatType, wallMatParams);
         config.scenes.push({ 'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': wallMatType });
