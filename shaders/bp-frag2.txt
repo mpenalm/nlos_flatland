@@ -19,11 +19,12 @@ const int numSpads = {numSpads};
 
 void main() {
     float spadDist = 1.0 / float(numSpads);
+    float xSpad = spadDist / 2.0;
+
+    vec2 pixelPos = texture2D(planeGrid, mPos).xy;
 
     vec2 fluenceAccum = vec2(0.0);
-    float xSpad = spadDist / 2.0;
     for (int i = 0; i < numSpads; i++) {
-        vec2 pixelPos = texture2D(planeGrid, mPos).xy;
         vec2 wallSpad = texture2D(spadGrid, vec2(xSpad, 0.5)).xy;
         float dlp = distance(laserGrid, laserPos);
         float dl  = distance(laserGrid, pixelPos);
@@ -32,8 +33,10 @@ void main() {
         float dt = ds + dsp + dl + dlp + instant;
 
         float t = dt / tmax;
-        xSpad += spadDist;
         fluenceAccum += texture2D(fluence, vec2(t, xSpad)).xy;
+        xSpad += spadDist;
     }
     gl_FragColor = vec4(fluenceAccum, 0.0, 1.0);
+    
+    gl_FragColor = vec4(pixelPos, 0.0, 1.0);
 }

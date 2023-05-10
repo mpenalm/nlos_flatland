@@ -19,4 +19,7 @@ void main() {
     xCoord += float(usePhase == 1 && fluenceVec.x != 0.0) * (fluenceTex + PI) / (2.0 * PI);
     xCoord += float(usePhase == 1 && fluenceVec.x == 0.0) * (PI / 2.0 * sign(fluenceVec.y) + PI) / (2.0 * PI);
     gl_FragColor = texture2D(colormap, vec2(xCoord, 0.5));
+
+    //vec2 maxMin = texture2D(maxValue, vec2(0.5)).xy;
+    //gl_FragColor = vec4((fluenceVec - maxMin.y) / (maxMin.x - maxMin.y), 0.0, 1.0);
 }

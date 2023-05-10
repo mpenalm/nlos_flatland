@@ -3,6 +3,7 @@
     var LAMBDA_MAX = 750.0;
 
     var DEBUG = false;
+    var TESTING = false;
 
     function intermediatePositions(start, end, n) {
         if (n == 1) {
@@ -110,7 +111,6 @@
         this.hConfProgram = new tgl.Shader(Shaders, "h-conf-vert", "h-frag");
         // this.hProgram         = new tgl.Shader(Shaders,       "h-vert",       "h-frag"); // added in setSpadPositions
         this.spadSegmentProgram = new tgl.Shader(Shaders, "spad-segment-vert", "spad-segment-frag");
-        this.rulerProgram = new tgl.Shader(Shaders, "ruler-vert", "ruler-frag");
         this.tracePrograms = [];
         for (var i = 0; i < scenes.length; ++i)
             this.tracePrograms.push(new tgl.Shader(Shaders, "trace-vert", scenes[i]));
@@ -204,29 +204,6 @@
         this.instant = 0;
         this.playing = false;
         this.usePhase = false;
-
-        // this.loadTexture("ruler.png");
-        // Flip image pixels into the bottom-to-top order that WebGL expects.
-        // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        this.rulerLoaded = false;
-    }
-
-    Renderer.prototype.loadTexture = function (url) {
-        this.rulerTex = new tgl.Texture(1, 1, 4, false, false, true, new Uint8Array([0, 0, 255, 255]));
-
-        const image = new Image();
-        image.onload = () => {
-            // Get pixel values
-            var canvas = document.createElement('canvas');
-            var context = canvas.getContext('2d');
-            canvas.width = image.width;
-            canvas.height = image.height;
-            context.drawImage(image, 0, 0);
-            var data = context.getImageData(0, 0, image.width, image.height).data;
-            this.rulerTex = new tgl.Texture(image.width, image.height, 4, false, false, true, data);
-            this.rulerLoaded = true;
-        };
-        image.src = url;
     }
 
     Renderer.prototype.createVBOs = function () {
@@ -428,6 +405,9 @@
             var bpSumFrag = this.replaceNumSpads("bp-sum-frag");
             Shaders["replacedSum"] = bpSumFrag;
             this.bpSumProgram = new tgl.Shader(Shaders, "bp-vert", "replacedSum");
+            var bpFrag2 = this.replaceNumSpads("bp-frag2");
+            Shaders["replacedBp"] = bpFrag2;
+            this.bpProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedBp");
             var hVert = this.replaceNumSpads("h-vert");
             Shaders["replacedH"] = hVert;
             this.hProgram = new tgl.Shader(Shaders, "replacedH", "h-frag");
@@ -607,52 +587,55 @@
         var h = this.numSpads * this.numRows;
         this.quadVbo.bind();
         gl.disable(gl.BLEND);
-        // Clear previous result
-        gl.viewport(0, 0, w, h);
-        this.fbo.attachTexture(this.intermediateBuffer, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
 
-        // Backprojection divided by spad points
-        if (this.isConf) {
-            // Confocal data
-            this.bpConfProgram.bind();
-            inputTex.bind(0);
-            this.spadGridTex.bind(1);
-            this.planeGridTex.bind(2);
-            this.bpConfProgram.uniformF("tmax", this.maxTime);
-            this.bpConfProgram.uniformF("instant", this.instant * this.deltaT);
-            this.bpConfProgram.uniformF("numSpads", this.numSpads);
-            this.bpConfProgram.uniformTexture("fluence", inputTex);
-            this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-            this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-            this.bpConfProgram.uniformTexture("wallGrid", this.spadGridTex);
-            this.bpConfProgram.uniformTexture("planeGrid", this.planeGridTex);
-            this.quadVbo.draw(this.bpConfProgram, gl.TRIANGLE_FAN);
-        } else {
-            // Non-confocal data
-            this.bpProgram.bind();
-            inputTex.bind(0);
-            this.spadGridTex.bind(1);
-            this.planeGridTex.bind(2);
-            this.bpProgram.uniformF("tmax", this.maxTime);
-            this.bpProgram.uniformF("instant", this.instant * this.deltaT);
-            this.bpProgram.uniformF("numSpads", this.numSpads);
-            this.bpProgram.uniformTexture("fluence", inputTex);
-            this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-            this.bpProgram.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
-            this.bpProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-            this.bpProgram.uniformTexture("spadGrid", this.spadGridTex);
-            this.bpProgram.uniformTexture("planeGrid", this.planeGridTex);
-            this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
-        }
+        if (!TESTING) {
+            // Clear previous result
+            gl.viewport(0, 0, w, h);
+            this.fbo.attachTexture(this.intermediateBuffer, 0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
 
-        if (DEBUG) {
-            var ibuff = this.intermediateBuffer.getArray(this.numPixels[0] * this.numPixels[1] * this.numSpads);
-            this.ibuff = [];
-            for (let i = 0; i < ibuff.length; i += 4) {
-                this.ibuff.push(ibuff[i]);
+            // Backprojection divided by spad points
+            if (this.isConf) {
+                // Confocal data
+                this.bpConfProgram.bind();
+                inputTex.bind(0);
+                this.spadGridTex.bind(1);
+                this.planeGridTex.bind(2);
+                this.bpConfProgram.uniformF("tmax", this.maxTime);
+                this.bpConfProgram.uniformF("instant", this.instant * this.deltaT);
+                this.bpConfProgram.uniformF("numSpads", this.numSpads);
+                this.bpConfProgram.uniformTexture("fluence", inputTex);
+                this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+                this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+                this.bpConfProgram.uniformTexture("wallGrid", this.spadGridTex);
+                this.bpConfProgram.uniformTexture("planeGrid", this.planeGridTex);
+                this.quadVbo.draw(this.bpConfProgram, gl.TRIANGLE_FAN);
+            } else {
+                // Non-confocal data
+                this.bpProgram.bind();
+                inputTex.bind(0);
+                this.spadGridTex.bind(1);
+                this.planeGridTex.bind(2);
+                this.bpProgram.uniformF("tmax", this.maxTime);
+                this.bpProgram.uniformF("instant", this.instant * this.deltaT);
+                this.bpProgram.uniformF("numSpads", this.numSpads);
+                this.bpProgram.uniformTexture("fluence", inputTex);
+                this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+                this.bpProgram.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
+                this.bpProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+                this.bpProgram.uniformTexture("spadGrid", this.spadGridTex);
+                this.bpProgram.uniformTexture("planeGrid", this.planeGridTex);
+                this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
             }
-            this.fbo.bind();
+
+            if (DEBUG) {
+                var ibuff = this.intermediateBuffer.getArray(this.numPixels[0] * this.numPixels[1] * this.numSpads);
+                this.ibuff = [];
+                for (let i = 0; i < ibuff.length; i += 4) {
+                    this.ibuff.push(ibuff[i]);
+                }
+                this.fbo.bind();
+            }
         }
 
         // Clear previous result
@@ -660,13 +643,29 @@
         this.fbo.attachTexture(outputBuffer, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        // Sum all spad points' results
-        this.bpSumProgram.bind();
-        this.intermediateBuffer.bind(0);
-        this.bpSumProgram.uniformI("numRows", this.numRows);
-        this.bpSumProgram.uniform2F("numPixels", this.numPixels[0], this.numPixels[1]);
-        this.bpSumProgram.uniformTexture("fluence", this.intermediateBuffer);
-        this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
+        if (TESTING) {
+            this.bpProgram2.bind();
+            inputTex.bind(0);
+            this.spadGridTex.bind(1);
+            this.planeGridTex.bind(2);
+            this.bpProgram2.uniformF("tmax", this.maxTime);
+            this.bpProgram2.uniformF("instant", this.instant * this.deltaT);
+            this.bpProgram2.uniformTexture("fluence", inputTex);
+            this.bpProgram2.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+            this.bpProgram2.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
+            this.bpProgram2.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+            this.bpProgram2.uniformTexture("spadGrid", this.spadGridTex);
+            this.bpProgram2.uniformTexture("planeGrid", this.planeGridTex);
+            this.quadVbo.draw(this.bpProgram2, gl.TRIANGLE_FAN);
+        } else {
+            // Sum all spad points' resul  ts
+            this.bpSumProgram.bind();
+            this.intermediateBuffer.bind(0);
+            this.bpSumProgram.uniformI("numRows", this.numRows);
+            this.bpSumProgram.uniform2F("numPixels", this.numPixels[0], this.numPixels[1]);
+            this.bpSumProgram.uniformTexture("fluence", this.intermediateBuffer);
+            this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
+        }
     }
 
     Renderer.prototype.findMax = function (inputTex, isComplex = false) {
@@ -918,6 +917,7 @@
                 var w = this.numPixels[0] * this.numPixels[1] / this.numRows;
                 var h = this.numRows;
                 this.planeGridTex = new tgl.Texture(w, h, 4, true, false, true, planeGridData);
+                this.planeGridData = planeGridData;
             }
         }
     }
@@ -1238,15 +1238,6 @@
         this.spadSegmentProgram.bind();
         this.sbVbo.bind();
         this.sbVbo.draw(this.spadSegmentProgram, this.gl.LINES);
-
-        /*if (this.rulerLoaded) {
-            this.rulerTex.bind(0);
-            this.rulerProgram.bind();
-            this.rulerProgram.uniformF("Aspect", this.aspect);
-            this.rulerProgram.uniformTexture("u_ruler", this.rulerTex);
-            this.quadVbo3.bind();
-            this.quadVbo3.draw(this.rulerProgram, this.gl.TRIANGLE_FAN);
-        }*/
         this.gl.disable(this.gl.BLEND);
     }
 
@@ -1437,7 +1428,11 @@
             // else filterType === 'none', and this.filteredBuffer == this.unfilteredBuffer
         }
 
-        var maxValueTex = this.findMax(this.filteredBuffer, this.filterType === 'pf');
+        var maxValueTex;
+        if (!TESTING)
+            maxValueTex = this.findMax(this.filteredBuffer, this.filterType === 'pf');
+        else
+            maxValueTex = this.findMax(this.filteredBuffer, false);
 
         if (DEBUG) {
             var h = this.capturedBuffer.getArray(this.h.length);
