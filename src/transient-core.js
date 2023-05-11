@@ -110,7 +110,7 @@
         this.rayProgram = new tgl.Shader(Shaders, "ray-vert", "ray-frag");
         this.hConfProgram = new tgl.Shader(Shaders, "h-conf-vert", "h-frag");
         // this.hProgram         = new tgl.Shader(Shaders,       "h-vert",       "h-frag"); // added in setSpadPositions
-        this.spadSegmentProgram = new tgl.Shader(Shaders, "spad-segment-vert", "spad-segment-frag");
+        this.geometryProgram = new tgl.Shader(Shaders, "geometry-vert", "geometry-frag");
         this.tracePrograms = [];
         for (var i = 0; i < scenes.length; ++i)
             this.tracePrograms.push(new tgl.Shader(Shaders, "trace-vert", scenes[i]));
@@ -204,6 +204,117 @@
         this.instant = 0;
         this.playing = false;
         this.usePhase = false;
+        this.createSceneVBOs();
+    }
+
+    Renderer.prototype.createSceneVBOs = function () {
+        this.sceneVBOs = [];
+
+        // Plane
+        this.sceneVBOs.push(new tgl.VertexBuffer());
+        this.sceneVBOs[0].addAttribute("Position", 2, this.gl.FLOAT, false)
+        this.sceneVBOs[0].init(4);
+        var vboData = new Float32Array(4 * 2);
+        addRelayWallVertices(vboData, this.aspect);
+        vboData[4] =  0.0;
+        vboData[5] =  0.2;
+        vboData[6] =  0.0;
+        vboData[7] = -0.2;
+        this.sceneVBOs[0].copy(vboData);
+
+        // Sphere
+        this.sceneVBOs.push(new tgl.VertexBuffer());
+        this.sceneVBOs[1].addAttribute("Position", 2, this.gl.FLOAT, false)
+        this.sceneVBOs[1].init(10);
+        vboData = new Float32Array(10 * 2);
+        addRelayWallVertices(vboData, this.aspect);
+        vboData[4]  =  -0.95 / this.aspect;
+        vboData[5]  =   0.25 + 0.4;
+        vboData[6]  = (-0.95 - 0.4) / this.aspect;
+        vboData[7]  =   0.25;
+        vboData[8]  = (-0.95 - 0.4) / this.aspect;
+        vboData[9]  =   0.25;
+        vboData[10] =  -0.95 / this.aspect;
+        vboData[11] =   0.25 - 0.4;
+        vboData[12] =  -0.95 / this.aspect;
+        vboData[13] =   0.25 - 0.4;
+        vboData[14] = (-0.95 + 0.4) / this.aspect;
+        vboData[15] =   0.25;
+        vboData[16] = (-0.95 + 0.4) / this.aspect;
+        vboData[17] =   0.25;
+        vboData[18] =  -0.95 / this.aspect;
+        vboData[19] =   0.25 + 0.4;
+        this.sceneVBOs[1].copy(vboData);
+
+        // Visibility test
+        this.sceneVBOs.push(new tgl.VertexBuffer());
+        this.sceneVBOs[2].addAttribute("Position", 2, this.gl.FLOAT, false)
+        this.sceneVBOs[2].init(8);
+        vboData = new Float32Array(8 * 2);
+        addRelayWallVertices(vboData, this.aspect);
+        vboData[4]  =  0.0;
+        vboData[5]  =  0.2;
+        vboData[6]  =  0.0;
+        vboData[7]  = -0.2;
+        vboData[8]  =  0.0;
+        vboData[9]  =  0.2;
+        vboData[10] =  0.2 / this.aspect;
+        vboData[11] =  0.54641;
+        vboData[12] = -0.2 / this.aspect;
+        vboData[13] = -0.54641;
+        vboData[14] =  0.0;
+        vboData[15] = -0.2;
+        this.sceneVBOs[2].copy(vboData);
+
+        // Virtual mirror
+        this.sceneVBOs.push(new tgl.VertexBuffer());
+        this.sceneVBOs[3].addAttribute("Position", 2, this.gl.FLOAT, false)
+        this.sceneVBOs[3].init(4);
+        vboData = new Float32Array(4 * 2);
+        addRelayWallVertices(vboData, this.aspect);
+        vboData[4] =  0.4 / this.aspect;
+        vboData[5] =  0.2;
+        vboData[6] =  0.4 / this.aspect;
+        vboData[7] = -0.2;
+        this.sceneVBOs[3].copy(vboData);
+
+        // Virtual mirror 2
+        this.sceneVBOs.push(new tgl.VertexBuffer());
+        this.sceneVBOs[4].addAttribute("Position", 2, this.gl.FLOAT, false)
+        this.sceneVBOs[4].init(6);
+        vboData = new Float32Array(6 * 2);
+        vboData[0]  =  1.2 / this.aspect;
+        vboData[1]  = -1.0;
+        vboData[2]  =  1.2 / this.aspect;
+        vboData[3]  =  0.0;
+        vboData[4]  =  0.3 / this.aspect;
+        vboData[5]  = -0.2;
+        vboData[6]  =  0.5 / this.aspect;
+        vboData[7]  = -0.8;
+        vboData[8]  = -0.1 / this.aspect;
+        vboData[9]  =  0.1;
+        vboData[10] =  1.3 / this.aspect;
+        vboData[11] =  0.1;
+        this.sceneVBOs[4].copy(vboData);
+
+        // Virtual mirror rotated
+        this.sceneVBOs.push(new tgl.VertexBuffer());
+        this.sceneVBOs[5].addAttribute("Position", 2, this.gl.FLOAT, false)
+        this.sceneVBOs[5].init(4);
+        vboData = new Float32Array(4 * 2);
+        addRelayWallVertices(vboData, this.aspect);
+        vboData[4]  =  0.5 / this.aspect;
+        vboData[5]  =  0.2;
+        vboData[6]  =  0.4 / this.aspect;
+        vboData[7]  = -0.2;
+        this.sceneVBOs[5].copy(vboData);
+    }
+
+    function addRelayWallVertices(vboData, aspect) {
+        vboData[0] =  1.2 / aspect;
+        vboData[1] = -1.0;
+        vboData[2] =  1.2 / aspect;
+        vboData[3] =  1.0;
     }
 
     Renderer.prototype.createVBOs = function () {
@@ -368,8 +479,24 @@
         }
     }
 
-    Renderer.prototype.addScene = function (fragName) {
+    Renderer.prototype.addScene = function (fragName, vertices) {
         this.tracePrograms.push(new tgl.Shader(Shaders, "trace-vert", fragName));
+        
+        // Add vertex buffer to show the geometry
+        this.sceneVBOs.push(new tgl.VertexBuffer());
+        this.sceneVBOs[this.sceneVBOs.length-1].addAttribute("Position", 2, this.gl.FLOAT, false)
+        var numSegments = (vertices.length / 2 - 1);
+        this.sceneVBOs[this.sceneVBOs.length-1].init(numSegments * 2 + 2);
+        var vboData = new Float32Array((numSegments * 2 + 2) * 2);
+        addRelayWallVertices(vboData, this.aspect);
+        var j = 4;
+        for (var i  = 0; i < numSegments; i++) {
+            vboData[j] = vertices[2*i] / this.aspect; j++;
+            vboData[j] = vertices[2*i + 1]; j++;
+            vboData[j] = vertices[2*i + 2] / this.aspect; j++;
+            vboData[j] = vertices[2*i + 3]; j++;
+        }
+        this.sceneVBOs[this.sceneVBOs.length-1].copy(vboData);
     }
 
     Renderer.prototype.setSpadPositions = function (changedBounds = false) {
@@ -1235,9 +1362,14 @@
         this.quadVbo.draw(this.compositeProgram, this.gl.TRIANGLE_FAN);
 
         this.gl.enable(this.gl.BLEND);
-        this.spadSegmentProgram.bind();
+        this.geometryProgram.bind();
+        this.geometryProgram.uniform4F("uColor", 0.0, 0.0, 1.0, 1.0);
+        this.sceneVBOs[this.currentScene].bind();
+        this.sceneVBOs[this.currentScene].draw(this.geometryProgram, this.gl.LINES);
+
+        this.geometryProgram.uniform4F("uColor", 0.3765, 0.9412, 0.5255, 1.0);
         this.sbVbo.bind();
-        this.sbVbo.draw(this.spadSegmentProgram, this.gl.LINES);
+        this.sbVbo.draw(this.geometryProgram, this.gl.LINES);
         this.gl.disable(this.gl.BLEND);
     }
 
@@ -1482,10 +1614,15 @@
         this.showProgram.uniformTexture("maxValue", maxValueTex);
         this.quadVbo.bind();
         this.quadVbo.draw(this.showProgram, gl.TRIANGLE_FAN);
+        
+        this.geometryProgram.bind();
+        this.geometryProgram.uniform4F("uColor", 0.0, 0.0, 1.0, 1.0);
+        this.sceneVBOs[this.currentScene].bind();
+        this.sceneVBOs[this.currentScene].draw(this.geometryProgram, this.gl.LINES);
 
-        this.spadSegmentProgram.bind();
+        this.geometryProgram.uniform4F("uColor", 0.3765, 0.9412, 0.5255, 1.0);
         this.sbVbo.bind();
-        this.sbVbo.draw(this.spadSegmentProgram, this.gl.LINES);
+        this.sbVbo.draw(this.geometryProgram, this.gl.LINES);
         gl.disable(gl.BLEND);
     }
 

@@ -264,6 +264,12 @@ var tgl = {'init': function(gl, multiBufExt) {
             gl.uniform2f(id, f1, f2);
     }
 
+    tgl.Shader.prototype.uniform4F = function(name, f1, f2, f3, f4) {
+        var id = this.uniformIndex(name);
+        if (id != -1)
+            gl.uniform4f(id, f1, f2, f3, f4);
+    }
+
     tgl.Shader.prototype.uniformFV = function(name, v) {
         var id = this.uniformIndex(name);
         if (id != -1)

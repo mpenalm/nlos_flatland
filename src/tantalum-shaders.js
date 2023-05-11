@@ -606,6 +606,24 @@ var Shaders = {
         '	gl_FragColor = meanColor;\n'                                                     +
         '}\n',
 
+    'geometry-frag':
+        '#include "preamble"\n\n'      +
+
+        'uniform vec4 uColor;\n\n'     +
+
+        'void main() {\n'              +
+        '    gl_FragColor = uColor;\n' +
+        '}\n',
+
+    'geometry-vert':
+        '#include "preamble"\n\n'                  +
+
+        'attribute vec3 Position;\n\n'             +
+
+        'void main() {\n'                          +
+        '    gl_Position = vec4(Position, 1.0);\n' +
+        '}\n',
+
     'h-conf-vert':
         '#include "preamble"\n'                                                            +
         '#include "bsdf-rwall"\n\n'                                                        +
@@ -1814,8 +1832,8 @@ var Shaders = {
         'void intersect(Ray ray, inout Intersection isect) {\n'                            +
         '    bboxIntersect(ray, vec2(0.0), vec2(1.78, 1.0), 3.0, isect);\n'                +
         '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, 1.0), 0.0, isect);\n'           +
-        '    sphereIntersect(ray, vec2(-0.95,   0.25),    0.4, 0.0, isect); // top left -' +
-                                                                '1.35,-0.15 0.15,0.65\n'   +
+        '    sphereIntersect(ray, vec2(-0.95, 0.25), 0.4, 0.0, isect); // top left -1.35,' +
+                                                                     '-0.15 0.15,0.65\n'   +
         '}\n\n'                                                                            +
 
         'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
@@ -1914,22 +1932,6 @@ var Shaders = {
         'void main() {\n'                               +
         '    gl_Position = vec4(Position, 1.0, 1.0);\n' +
         '    mPos = Position/2.0+vec2(0.5);\n'          +
-        '}\n',
-
-    'spad-segment-frag':
-        '#include "preamble"\n\n'                                 +
-
-        'void main() {\n'                                         +
-        '    gl_FragColor = vec4(0.3765, 0.9412, 0.5255, 1.0);\n' +
-        '}\n',
-
-    'spad-segment-vert':
-        '#include "preamble"\n\n'                  +
-
-        'attribute vec3 Position;\n\n'             +
-
-        'void main() {\n'                          +
-        '    gl_Position = vec4(Position, 1.0);\n' +
         '}\n',
 
     'sum-frag':
@@ -2042,32 +2044,5 @@ var Shaders = {
         'void main() {\n'                          +
         '    gl_Position = vec4(Position, 1.0);\n' +
         '    vTexCoord = TexCoord;\n'              +
-        '}\n',
-
-    'Untitled-1':
-        '#include "trace-frag"\n\n'                                                        +
-
-        '#include "bsdf"\n'                                                                +
-        '#include "intersect"\n\n'                                                         +
-
-        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
-        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 0.0, isect);\n'                +
-        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, 1.0), 1.0, isect);\n'           +
-        '    lineIntersect(ray, vec2(-1.5, 0.2), vec2(-0.75, 0.4), 2.0, isect);\n'         +
-        '}\n\n'                                                                            +
-
-        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
-                                             'out vec3 throughput, out float tMult) {\n'   +
-        '    tMult = 1.0;\n'                                                               +
-        '    if (isect.mat == 0.0) {\n'                                                    +
-        '        throughput = vec3(0.0);\n'                                                +
-        '        return sampleDiffuse(state, wiLocal);\n'                                  +
-        '    } else if (isect.mat == 1.0) {\n'                                             +
-        '        throughput *= vec3(0.5);\n'                                               +
-        '        return sampleDiffuse(state, wiLocal);\n'                                  +
-        '    } else {\n'                                                                   +
-        '        throughput += vec3(0.5);\n'                                               +
-        'return sampleDiffuse(state, wiLocal);\n'                                          +
-        '    }\n'                                                                          +
         '}\n'
 }

@@ -426,7 +426,7 @@ Transient.prototype.setupUI = function () {
         var ids = generator.generate(vertices, matType, matParams, wallMatType, wallMatParams);
         config.scenes.push({ 'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': wallMatType });
         sceneSelector.addButton(config.scenes[config.scenes.length - 1].name);
-        renderer.addScene(ids[0]);
+        renderer.addScene(ids[0], vertices);
         modal.style.display = "none";
         showSliderHandles();
         sceneSelector.select(config.scenes.length - 1);
