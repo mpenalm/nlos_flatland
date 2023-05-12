@@ -125,7 +125,7 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene15', 'name': 'Virtual mirror rotated', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse }
         ],
         "capture_methods": ["Non-confocal", "Confocal"],
-        "camera_models": ["Confocal", "Transient"],
+        "camera_models": ["Confocal", "Transient", "Conventional"],
         "spad_num": [16, 32, 64, 128],
         "filters": ["None", "Laplacian", "Gaussian", "Laplacian of Gaussian", "Phasor Fields"],
         "tone_mapper_labels": ["None", "Logarithmic", "Square root"],
@@ -277,7 +277,7 @@ Transient.prototype.setupUI = function () {
     // bounceSlider.setValue(12);
     var bounceSlider = document.getElementById("path-length");
     noUiSlider.create(bounceSlider, {
-        start: [2, 12],
+        start: [3, 12],
         connect: true,
         step: 1,
         range: {
@@ -289,7 +289,7 @@ Transient.prototype.setupUI = function () {
     bounceSlider.label.className = "slider-label";
     var parent = bounceSlider.parentNode;
     parent.insertBefore(bounceSlider.label, bounceSlider.nextSibling);
-    bounceSlider.label.textContent = "11 light bounces, capturing from bounce 2";
+    bounceSlider.label.textContent = "11 light bounces, capturing from bounce 3";
     bounceSlider.noUiSlider.on('update', function (values) {
         var low = parseFloat(values[0]);
         var length = parseFloat(values[1]);

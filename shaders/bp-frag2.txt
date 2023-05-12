@@ -33,7 +33,7 @@ void main() {
         float dt = ds + dsp + dl + dlp + instant;
 
         float t = dt / tmax;
-        fluenceAccum += texture2D(fluence, vec2(t, xSpad)).xy;
+        fluenceAccum += texture2D(fluence, vec2(t, xSpad)).xy * vec2(t <= 1.0);
         xSpad += spadDist;
     }
     gl_FragColor = vec4(fluenceAccum, 0.0, 1.0);

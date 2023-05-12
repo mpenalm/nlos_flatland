@@ -359,10 +359,12 @@
             // Confocal camera
             this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-frag");
             this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-frag");
+            this.isConvCamera = false;
         } else {
-            // Transient camera
+            // Transient camera or conventional camera
             this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-transient-camera-frag");
             this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-transient-camera-frag");
+            this.isConvCamera = (id == 2);
         }
         if (this.finished())
             this.redraw();

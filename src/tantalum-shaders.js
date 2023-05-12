@@ -92,7 +92,7 @@ var Shaders = {
         '    float dt = 2.0 * ds + dsp + dlp + instant;\n\n'                               +
 
         '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
+        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'       +
         '}\n',
 
     'bp-conf-transient-camera-frag':
@@ -127,7 +127,7 @@ var Shaders = {
         '    float dt = ds + dsp + dlp + instant;\n\n'                                     +
 
         '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
+        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'       +
         '}\n',
 
     'bp-frag':
@@ -161,52 +161,52 @@ var Shaders = {
         '    float dt = ds + dsp + dl + dlp + instant;\n\n'                                +
 
         '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
+        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'       +
         '}\n',
 
     'bp-frag2':
-        '#include "preamble"\n\n'                                                          +
+        '#include "preamble"\n\n'                                                           +
 
-        'uniform float tmax;\n\n'                                                          +
+        'uniform float tmax;\n\n'                                                           +
 
-        'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
+        'uniform sampler2D fluence; // x time, y spad\n\n'                                  +
 
-        'uniform float instant;\n'                                                         +
-        'uniform vec2 laserPos;\n'                                                         +
-        'uniform vec2 laserGrid; // could be more than one, actually\n'                    +
-        'uniform vec2 spadPos;\n'                                                          +
-        'uniform sampler2D spadGrid;\n\n'                                                  +
+        'uniform float instant;\n'                                                          +
+        'uniform vec2 laserPos;\n'                                                          +
+        'uniform vec2 laserGrid; // could be more than one, actually\n'                     +
+        'uniform vec2 spadPos;\n'                                                           +
+        'uniform sampler2D spadGrid;\n\n'                                                   +
 
-        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
-        '        // positions of the considered pixels, on a row\n\n'                      +
+        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                            +
+        '        // positions of the considered pixels, on a row\n\n'                       +
 
-        'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
+        'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                 +
 
-        'const int numSpads = {numSpads};\n\n'                                             +
+        'const int numSpads = {numSpads};\n\n'                                              +
 
-        'void main() {\n'                                                                  +
-        '    float spadDist = 1.0 / float(numSpads);\n'                                    +
-        '    float xSpad = spadDist / 2.0;\n\n'                                            +
+        'void main() {\n'                                                                   +
+        '    float spadDist = 1.0 / float(numSpads);\n'                                     +
+        '    float xSpad = spadDist / 2.0;\n\n'                                             +
 
-        '    vec2 pixelPos = texture2D(planeGrid, mPos).xy;\n\n'                           +
+        '    vec2 pixelPos = texture2D(planeGrid, mPos).xy;\n\n'                            +
 
-        '    vec2 fluenceAccum = vec2(0.0);\n'                                             +
-        '    for (int i = 0; i < numSpads; i++) {\n'                                       +
-        '        vec2 wallSpad = texture2D(spadGrid, vec2(xSpad, 0.5)).xy;\n'              +
-        '        float dlp = distance(laserGrid, laserPos);\n'                             +
-        '        float dl  = distance(laserGrid, pixelPos);\n'                             +
-        '        float dsp = distance(wallSpad, spadPos); // distance spad device to capt' +
-                                                                         'ured points\n'   +
-        '        float ds  = distance(wallSpad, pixelPos);\n'                              +
-        '        float dt = ds + dsp + dl + dlp + instant;\n\n'                            +
+        '    vec2 fluenceAccum = vec2(0.0);\n'                                              +
+        '    for (int i = 0; i < numSpads; i++) {\n'                                        +
+        '        vec2 wallSpad = texture2D(spadGrid, vec2(xSpad, 0.5)).xy;\n'               +
+        '        float dlp = distance(laserGrid, laserPos);\n'                              +
+        '        float dl  = distance(laserGrid, pixelPos);\n'                              +
+        '        float dsp = distance(wallSpad, spadPos); // distance spad device to capt'  +
+                                                                         'ured points\n'    +
+        '        float ds  = distance(wallSpad, pixelPos);\n'                               +
+        '        float dt = ds + dsp + dl + dlp + instant;\n\n'                             +
 
-        '        float t = dt / tmax;\n'                                                   +
-        '        fluenceAccum += texture2D(fluence, vec2(t, xSpad)).xy;\n'                 +
-        '        xSpad += spadDist;\n'                                                     +
-        '    }\n'                                                                          +
-        '    gl_FragColor = vec4(fluenceAccum, 0.0, 1.0);\n\n'                             +
+        '        float t = dt / tmax;\n'                                                    +
+        '        fluenceAccum += texture2D(fluence, vec2(t, xSpad)).xy * vec2(t <= 1.0);\n' +
+        '        xSpad += spadDist;\n'                                                      +
+        '    }\n'                                                                           +
+        '    gl_FragColor = vec4(fluenceAccum, 0.0, 1.0);\n\n'                              +
 
-        '    gl_FragColor = vec4(pixelPos, 0.0, 1.0);\n'                                   +
+        '    gl_FragColor = vec4(pixelPos, 0.0, 1.0);\n'                                    +
         '}\n',
 
     'bp-sum-frag':
@@ -273,7 +273,7 @@ var Shaders = {
         '    float dt = ds + dsp + dlp + instant;\n\n'                                     +
 
         '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
+        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'       +
         '}\n',
 
     'bp-vert':

@@ -25,5 +25,5 @@ void main() {
     float dt = 2.0 * ds + dsp + dlp + instant;
 
     float t = dt / tmax;
-    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));
+    gl_FragColor = texture2D(fluence, vec2(t, mPos.y)) * vec4(t <= 1.0);
 }
