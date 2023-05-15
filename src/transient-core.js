@@ -216,9 +216,9 @@
         this.sceneVBOs[0].init(4);
         var vboData = new Float32Array(4 * 2);
         addRelayWallVertices(vboData, this.aspect);
-        vboData[4] =  0.0;
-        vboData[5] =  0.2;
-        vboData[6] =  0.0;
+        vboData[4] = 0.0;
+        vboData[5] = 0.2;
+        vboData[6] = 0.0;
         vboData[7] = -0.2;
         this.sceneVBOs[0].copy(vboData);
 
@@ -228,22 +228,22 @@
         this.sceneVBOs[1].init(10);
         vboData = new Float32Array(10 * 2);
         addRelayWallVertices(vboData, this.aspect);
-        vboData[4]  =  -0.95 / this.aspect;
-        vboData[5]  =   0.25 + 0.4;
-        vboData[6]  = (-0.95 - 0.4) / this.aspect;
-        vboData[7]  =   0.25;
-        vboData[8]  = (-0.95 - 0.4) / this.aspect;
-        vboData[9]  =   0.25;
-        vboData[10] =  -0.95 / this.aspect;
-        vboData[11] =   0.25 - 0.4;
-        vboData[12] =  -0.95 / this.aspect;
-        vboData[13] =   0.25 - 0.4;
+        vboData[4] = -0.95 / this.aspect;
+        vboData[5] = 0.25 + 0.4;
+        vboData[6] = (-0.95 - 0.4) / this.aspect;
+        vboData[7] = 0.25;
+        vboData[8] = (-0.95 - 0.4) / this.aspect;
+        vboData[9] = 0.25;
+        vboData[10] = -0.95 / this.aspect;
+        vboData[11] = 0.25 - 0.4;
+        vboData[12] = -0.95 / this.aspect;
+        vboData[13] = 0.25 - 0.4;
         vboData[14] = (-0.95 + 0.4) / this.aspect;
-        vboData[15] =   0.25;
+        vboData[15] = 0.25;
         vboData[16] = (-0.95 + 0.4) / this.aspect;
-        vboData[17] =   0.25;
-        vboData[18] =  -0.95 / this.aspect;
-        vboData[19] =   0.25 + 0.4;
+        vboData[17] = 0.25;
+        vboData[18] = -0.95 / this.aspect;
+        vboData[19] = 0.25 + 0.4;
         this.sceneVBOs[1].copy(vboData);
 
         // Visibility test
@@ -252,17 +252,17 @@
         this.sceneVBOs[2].init(8);
         vboData = new Float32Array(8 * 2);
         addRelayWallVertices(vboData, this.aspect);
-        vboData[4]  =  0.0;
-        vboData[5]  =  0.2;
-        vboData[6]  =  0.0;
-        vboData[7]  = -0.2;
-        vboData[8]  =  0.0;
-        vboData[9]  =  0.2;
-        vboData[10] =  0.2 / this.aspect;
-        vboData[11] =  0.54641;
+        vboData[4] = 0.0;
+        vboData[5] = 0.2;
+        vboData[6] = 0.0;
+        vboData[7] = -0.2;
+        vboData[8] = 0.0;
+        vboData[9] = 0.2;
+        vboData[10] = 0.2 / this.aspect;
+        vboData[11] = 0.54641;
         vboData[12] = -0.2 / this.aspect;
         vboData[13] = -0.54641;
-        vboData[14] =  0.0;
+        vboData[14] = 0.0;
         vboData[15] = -0.2;
         this.sceneVBOs[2].copy(vboData);
 
@@ -272,9 +272,9 @@
         this.sceneVBOs[3].init(4);
         vboData = new Float32Array(4 * 2);
         addRelayWallVertices(vboData, this.aspect);
-        vboData[4] =  0.4 / this.aspect;
-        vboData[5] =  0.2;
-        vboData[6] =  0.4 / this.aspect;
+        vboData[4] = 0.4 / this.aspect;
+        vboData[5] = 0.2;
+        vboData[6] = 0.4 / this.aspect;
         vboData[7] = -0.2;
         this.sceneVBOs[3].copy(vboData);
 
@@ -283,18 +283,18 @@
         this.sceneVBOs[4].addAttribute("Position", 2, this.gl.FLOAT, false)
         this.sceneVBOs[4].init(6);
         vboData = new Float32Array(6 * 2);
-        vboData[0]  =  1.2 / this.aspect;
-        vboData[1]  = -1.0;
-        vboData[2]  =  1.2 / this.aspect;
-        vboData[3]  =  0.0;
-        vboData[4]  =  0.3 / this.aspect;
-        vboData[5]  = -0.2;
-        vboData[6]  =  0.5 / this.aspect;
-        vboData[7]  = -0.8;
-        vboData[8]  = -0.1 / this.aspect;
-        vboData[9]  =  0.1;
-        vboData[10] =  1.3 / this.aspect;
-        vboData[11] =  0.1;
+        vboData[0] = 1.2 / this.aspect;
+        vboData[1] = -1.0;
+        vboData[2] = 1.2 / this.aspect;
+        vboData[3] = 0.0;
+        vboData[4] = 0.3 / this.aspect;
+        vboData[5] = -0.2;
+        vboData[6] = 0.5 / this.aspect;
+        vboData[7] = -0.8;
+        vboData[8] = -0.1 / this.aspect;
+        vboData[9] = 0.1;
+        vboData[10] = 1.3 / this.aspect;
+        vboData[11] = 0.1;
         this.sceneVBOs[4].copy(vboData);
 
         // Virtual mirror rotated
@@ -303,18 +303,18 @@
         this.sceneVBOs[5].init(4);
         vboData = new Float32Array(4 * 2);
         addRelayWallVertices(vboData, this.aspect);
-        vboData[4]  =  0.5 / this.aspect;
-        vboData[5]  =  0.2;
-        vboData[6]  =  0.4 / this.aspect;
-        vboData[7]  = -0.2;
+        vboData[4] = 0.5 / this.aspect;
+        vboData[5] = 0.2;
+        vboData[6] = 0.4 / this.aspect;
+        vboData[7] = -0.2;
         this.sceneVBOs[5].copy(vboData);
     }
 
     function addRelayWallVertices(vboData, aspect) {
-        vboData[0] =  1.2 / aspect;
+        vboData[0] = 1.2 / aspect;
         vboData[1] = -1.0;
-        vboData[2] =  1.2 / aspect;
-        vboData[3] =  1.0;
+        vboData[2] = 1.2 / aspect;
+        vboData[3] = 1.0;
     }
 
     Renderer.prototype.createVBOs = function () {
@@ -483,22 +483,22 @@
 
     Renderer.prototype.addScene = function (fragName, vertices) {
         this.tracePrograms.push(new tgl.Shader(Shaders, "trace-vert", fragName));
-        
+
         // Add vertex buffer to show the geometry
         this.sceneVBOs.push(new tgl.VertexBuffer());
-        this.sceneVBOs[this.sceneVBOs.length-1].addAttribute("Position", 2, this.gl.FLOAT, false)
+        this.sceneVBOs[this.sceneVBOs.length - 1].addAttribute("Position", 2, this.gl.FLOAT, false)
         var numSegments = (vertices.length / 2 - 1);
-        this.sceneVBOs[this.sceneVBOs.length-1].init(numSegments * 2 + 2);
+        this.sceneVBOs[this.sceneVBOs.length - 1].init(numSegments * 2 + 2);
         var vboData = new Float32Array((numSegments * 2 + 2) * 2);
         addRelayWallVertices(vboData, this.aspect);
         var j = 4;
-        for (var i  = 0; i < numSegments; i++) {
-            vboData[j] = vertices[2*i] / this.aspect; j++;
-            vboData[j] = vertices[2*i + 1]; j++;
-            vboData[j] = vertices[2*i + 2] / this.aspect; j++;
-            vboData[j] = vertices[2*i + 3]; j++;
+        for (var i = 0; i < numSegments; i++) {
+            vboData[j] = vertices[2 * i] / this.aspect; j++;
+            vboData[j] = vertices[2 * i + 1]; j++;
+            vboData[j] = vertices[2 * i + 2] / this.aspect; j++;
+            vboData[j] = vertices[2 * i + 3]; j++;
         }
-        this.sceneVBOs[this.sceneVBOs.length-1].copy(vboData);
+        this.sceneVBOs[this.sceneVBOs.length - 1].copy(vboData);
     }
 
     Renderer.prototype.setSpadPositions = function (changedBounds = false) {
@@ -723,41 +723,57 @@
             this.fbo.attachTexture(this.intermediateBuffer, 0);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
-            // Backprojection divided by spad points
-            if (this.isConf) {
-                // Confocal data
-                this.bpConfProgram.bind();
-                inputTex.bind(0);
-                this.spadGridTex.bind(1);
-                this.planeGridTex.bind(2);
-                this.bpConfProgram.uniformF("tmax", this.maxTime);
-                this.bpConfProgram.uniformF("instant", this.instant * this.deltaT);
-                this.bpConfProgram.uniformF("numSpads", this.numSpads);
-                this.bpConfProgram.uniformTexture("fluence", inputTex);
-                this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-                this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-                this.bpConfProgram.uniformTexture("wallGrid", this.spadGridTex);
-                this.bpConfProgram.uniformTexture("planeGrid", this.planeGridTex);
-                this.quadVbo.draw(this.bpConfProgram, gl.TRIANGLE_FAN);
-            } else {
-                // Non-confocal data
-                this.bpProgram.bind();
-                inputTex.bind(0);
-                this.spadGridTex.bind(1);
-                this.planeGridTex.bind(2);
-                this.bpProgram.uniformF("tmax", this.maxTime);
-                this.bpProgram.uniformF("instant", this.instant * this.deltaT);
-                this.bpProgram.uniformF("numSpads", this.numSpads);
-                this.bpProgram.uniformTexture("fluence", inputTex);
-                this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-                this.bpProgram.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
-                this.bpProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-                this.bpProgram.uniformTexture("spadGrid", this.spadGridTex);
-                this.bpProgram.uniformTexture("planeGrid", this.planeGridTex);
-                this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
+            var instant = (this.isConvCamera) ? 0 : this.instant;
+            var n = (this.isConvCamera) ? this.numIntervals : 1;
+            if (this.isConvCamera) gl.enable(gl.BLEND);
+
+            for (var i = 0; i < n; i++) {
+                // Backprojection divided by spad points
+                if (this.isConf) {
+                    // Confocal data
+                    this.bpConfProgram.bind();
+                    inputTex.bind(0);
+                    this.spadGridTex.bind(1);
+                    this.planeGridTex.bind(2);
+                    this.bpConfProgram.uniformF("tmax", this.maxTime);
+                    this.bpConfProgram.uniformF("instant", instant * this.deltaT);
+                    this.bpConfProgram.uniformF("numSpads", this.numSpads);
+                    this.bpConfProgram.uniformTexture("fluence", inputTex);
+                    this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+                    this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+                    this.bpConfProgram.uniformTexture("wallGrid", this.spadGridTex);
+                    this.bpConfProgram.uniformTexture("planeGrid", this.planeGridTex);
+                    this.quadVbo.draw(this.bpConfProgram, gl.TRIANGLE_FAN);
+                } else {
+                    // Non-confocal data
+                    this.bpProgram.bind();
+                    inputTex.bind(0);
+                    this.spadGridTex.bind(1);
+                    this.planeGridTex.bind(2);
+                    this.bpProgram.uniformF("tmax", this.maxTime);
+                    this.bpProgram.uniformF("instant", instant * this.deltaT);
+                    this.bpProgram.uniformF("numSpads", this.numSpads);
+                    this.bpProgram.uniformTexture("fluence", inputTex);
+                    this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+                    this.bpProgram.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
+                    this.bpProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+                    this.bpProgram.uniformTexture("spadGrid", this.spadGridTex);
+                    this.bpProgram.uniformTexture("planeGrid", this.planeGridTex);
+                    this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
+                }
+                // console.log(instant);
+
+                if (DEBUG && this.isConvCamera && (this.ibuff == undefined || this.ibuff[0][0] == undefined || this.ibuff.length < 10) && ((instant - 1) % 5 == 0)) {
+                    var ibuff = this.intermediateBuffer.getArray(this.numPixels[0] * this.numPixels[1] * this.numSpads);
+                    if (instant == 0)
+                        this.ibuff = [];
+                    this.ibuff.push(ibuff);
+                    this.fbo.bind();
+                }
+                instant++;
             }
 
-            if (DEBUG) {
+            if (DEBUG && !this.isConvCamera) {
                 var ibuff = this.intermediateBuffer.getArray(this.numPixels[0] * this.numPixels[1] * this.numSpads);
                 this.ibuff = [];
                 for (let i = 0; i < ibuff.length; i += 4) {
@@ -766,6 +782,7 @@
                 this.fbo.bind();
             }
         }
+        if (this.isConvCamera) gl.disable(gl.BLEND);
 
         // Clear previous result
         gl.viewport(0, 0, this.numPixels[0], this.numPixels[1]);
@@ -787,7 +804,7 @@
             this.bpProgram2.uniformTexture("planeGrid", this.planeGridTex);
             this.quadVbo.draw(this.bpProgram2, gl.TRIANGLE_FAN);
         } else {
-            // Sum all spad points' resul  ts
+            // Sum all spad points' results
             this.bpSumProgram.bind();
             this.intermediateBuffer.bind(0);
             this.bpSumProgram.uniformI("numRows", this.numRows);
@@ -1616,7 +1633,7 @@
         this.showProgram.uniformTexture("maxValue", maxValueTex);
         this.quadVbo.bind();
         this.quadVbo.draw(this.showProgram, gl.TRIANGLE_FAN);
-        
+
         this.geometryProgram.bind();
         this.geometryProgram.uniform4F("uColor", 0.0, 0.0, 1.0, 1.0);
         this.sceneVBOs[this.currentScene].bind();
