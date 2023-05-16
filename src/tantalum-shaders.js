@@ -250,6 +250,7 @@ var Shaders = {
 
         'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
 
+        'uniform int useAbsolute;\n'                                                       +
         'uniform float numSpads;\n'                                                        +
         'uniform float instant;\n'                                                         +
         'uniform vec2 laserPos;\n'                                                         +
@@ -273,7 +274,11 @@ var Shaders = {
         '    float dt = ds + dsp + dlp + instant;\n\n'                                     +
 
         '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'       +
+        '    vec4 result = texture2D(fluence, vec2(t, mPos.y));\n'                         +
+        '    result.x = result.x * float(1 - useAbsolute) + length(result.xy) * float(use' +
+                                                                          'Absolute);\n'   +
+        '    result.y = result.y * float(1 - useAbsolute);\n'                              +
+        '    gl_FragColor = result * vec4(t <= 1.0);\n'                                    +
         '}\n',
 
     'bp-vert':

@@ -724,7 +724,7 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             var instant = (this.isConvCamera) ? 0 : this.instant;
-            var n = (this.isConvCamera) ? this.numIntervals : 1;
+            var n = (this.isConvCamera) ? 10 : 1;
             if (this.isConvCamera) gl.enable(gl.BLEND);
 
             for (var i = 0; i < n; i++) {
@@ -750,6 +750,7 @@
                     inputTex.bind(0);
                     this.spadGridTex.bind(1);
                     this.planeGridTex.bind(2);
+                    this.bpProgram.uniformI("useAbsolute", this.isConvCamera);
                     this.bpProgram.uniformF("tmax", this.maxTime);
                     this.bpProgram.uniformF("instant", instant * this.deltaT);
                     this.bpProgram.uniformF("numSpads", this.numSpads);
@@ -770,7 +771,7 @@
                     this.ibuff.push(ibuff);
                     this.fbo.bind();
                 }
-                instant++;
+                instant+=10;
             }
 
             if (DEBUG && !this.isConvCamera) {
@@ -840,7 +841,9 @@
             maxBuffers[current].bind(0);
             this.maxProgram.uniform2F("numPixels", numPixels[0], numPixels[1]);
             this.maxProgram.uniformI("useSameChannel", useSameChannel);
-            this.maxProgram.uniformI("isComplex", useSameChannel && isComplex); // Only complex in the first pass, after that it's just modules
+            this.maxProgram.uniformI("isComplex", useSameChannel && isComplex && !this.isConvCamera);
+                // Only complex in the first pass, after that it's just modules
+                // When using the conventional camera, we are using modules
             this.maxProgram.uniformTexture("tex", maxBuffers[current]);
             this.quadVbo.draw(this.maxProgram, gl.TRIANGLE_FAN);
 
@@ -1588,9 +1591,9 @@
         if (DEBUG) {
             var h = this.capturedBuffer.getArray(this.h.length);
             for (let i = 0; i < this.h.length; i++) {
-                if (h[4 * i + 3] > 1)
-                    this.h[i] = h[4 * i] / (h[4 * i + 3] - 1);
-                else
+                // if (h[4 * i + 3] > 1)
+                    // this.h[i] = h[4 * i] / (h[4 * i + 3] - 1);
+                // else
                     this.h[i] = h[4 * i];
             }
             var f = this.filteredBuffer.getArray(this.numPixels[0] * this.numPixels[1]);
@@ -1601,7 +1604,7 @@
             // getArray unbinds current framebuffer
             this.fbo.bind();
             // Clear captured signal
-            this.fbo.attachTexture(this.capturedBuffer, 0);
+            // this.fbo.attachTexture(this.capturedBuffer, 0);
             gl.clear(gl.COLOR_BUFFER_BIT);
         }
         // Clear captured signal
@@ -1614,8 +1617,10 @@
         gl.viewport(this.width + this.separationWidth, 0, this.width, this.height);
         gl.scissor(this.width + this.separationWidth, 0, this.width, this.height);
 
+        var usePhase = (this.usePhase && this.filterType === 'pf' && !this.isConvCamera);
+
         this.showProgram.bind();
-        if (this.usePhase)
+        if (usePhase)
             this.colormapSeismicTex.bind(0);
         else
             this.colormapHotTex.bind(0);
@@ -1623,9 +1628,9 @@
         maxValueTex.bind(2);
         this.showProgram.uniformF("Aspect", this.aspect);
         this.showProgram.uniformI("numSpads", this.numSpads);
-        this.showProgram.uniformI("isComplex", this.filterType === 'pf');
-        this.showProgram.uniformI("usePhase", this.usePhase && this.filterType === 'pf');
-        if (this.usePhase)
+        this.showProgram.uniformI("isComplex", this.filterType === 'pf' && !this.isConvCamera);
+        this.showProgram.uniformI("usePhase", usePhase);
+        if (usePhase)
             this.showProgram.uniformTexture("colormap", this.colormapSeismicTex);
         else
             this.showProgram.uniformTexture("colormap", this.colormapHotTex);
