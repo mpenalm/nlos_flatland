@@ -717,17 +717,18 @@
         this.quadVbo.bind();
         gl.disable(gl.BLEND);
 
-        if (!TESTING) {
-            // Clear previous result
-            gl.viewport(0, 0, w, h);
-            this.fbo.attachTexture(this.intermediateBuffer, 0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
 
-            var instant = (this.isConvCamera) ? 0 : this.instant;
-            var n = (this.isConvCamera) ? 10 : 1;
-            if (this.isConvCamera) gl.enable(gl.BLEND);
+        var instant = (this.isConvCamera) ? 0 : this.instant;
+        var n = (this.isConvCamera) ? 1 : 1;
 
-            for (var i = 0; i < n; i++) {
+        for (var i = 0; i < n; i++) {
+
+            if (!TESTING) {
+                // Clear previous result
+                gl.viewport(0, 0, w, h);
+                this.fbo.attachTexture(this.intermediateBuffer, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+
                 // Backprojection divided by spad points
                 if (this.isConf) {
                     // Confocal data
@@ -763,18 +764,10 @@
                     this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
                 }
                 // console.log(instant);
-
-                if (DEBUG && this.isConvCamera && (this.ibuff == undefined || this.ibuff[0][0] == undefined || this.ibuff.length < 10) && ((instant - 1) % 5 == 0)) {
-                    var ibuff = this.intermediateBuffer.getArray(this.numPixels[0] * this.numPixels[1] * this.numSpads);
-                    if (instant == 0)
-                        this.ibuff = [];
-                    this.ibuff.push(ibuff);
-                    this.fbo.bind();
-                }
                 instant+=10;
             }
 
-            if (DEBUG && !this.isConvCamera) {
+            if (DEBUG) {
                 var ibuff = this.intermediateBuffer.getArray(this.numPixels[0] * this.numPixels[1] * this.numSpads);
                 this.ibuff = [];
                 for (let i = 0; i < ibuff.length; i += 4) {
@@ -782,36 +775,37 @@
                 }
                 this.fbo.bind();
             }
-        }
-        if (this.isConvCamera) gl.disable(gl.BLEND);
 
-        // Clear previous result
-        gl.viewport(0, 0, this.numPixels[0], this.numPixels[1]);
-        this.fbo.attachTexture(outputBuffer, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
+            // Clear previous result
+            gl.viewport(0, 0, this.numPixels[0], this.numPixels[1]);
+            this.fbo.attachTexture(outputBuffer, 0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
 
-        if (TESTING) {
-            this.bpProgram2.bind();
-            inputTex.bind(0);
-            this.spadGridTex.bind(1);
-            this.planeGridTex.bind(2);
-            this.bpProgram2.uniformF("tmax", this.maxTime);
-            this.bpProgram2.uniformF("instant", this.instant * this.deltaT);
-            this.bpProgram2.uniformTexture("fluence", inputTex);
-            this.bpProgram2.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-            this.bpProgram2.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
-            this.bpProgram2.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-            this.bpProgram2.uniformTexture("spadGrid", this.spadGridTex);
-            this.bpProgram2.uniformTexture("planeGrid", this.planeGridTex);
-            this.quadVbo.draw(this.bpProgram2, gl.TRIANGLE_FAN);
-        } else {
-            // Sum all spad points' results
-            this.bpSumProgram.bind();
-            this.intermediateBuffer.bind(0);
-            this.bpSumProgram.uniformI("numRows", this.numRows);
-            this.bpSumProgram.uniform2F("numPixels", this.numPixels[0], this.numPixels[1]);
-            this.bpSumProgram.uniformTexture("fluence", this.intermediateBuffer);
-            this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
+            if (TESTING) {
+                this.bpProgram2.bind();
+                inputTex.bind(0);
+                this.spadGridTex.bind(1);
+                this.planeGridTex.bind(2);
+                this.bpProgram2.uniformF("tmax", this.maxTime);
+                this.bpProgram2.uniformF("instant", this.instant * this.deltaT);
+                this.bpProgram2.uniformTexture("fluence", inputTex);
+                this.bpProgram2.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+                this.bpProgram2.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
+                this.bpProgram2.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+                this.bpProgram2.uniformTexture("spadGrid", this.spadGridTex);
+                this.bpProgram2.uniformTexture("planeGrid", this.planeGridTex);
+                this.quadVbo.draw(this.bpProgram2, gl.TRIANGLE_FAN);
+            } else {
+                // Sum all spad points' results
+                // if (this.isConvCamera) gl.enable(gl.BLEND);
+                this.bpSumProgram.bind();
+                this.intermediateBuffer.bind(0);
+                this.bpSumProgram.uniformI("numRows", this.numRows);
+                this.bpSumProgram.uniform2F("numPixels", this.numPixels[0], this.numPixels[1]);
+                this.bpSumProgram.uniformTexture("fluence", this.intermediateBuffer);
+                this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
+                // if (this.isConvCamera) gl.disable(gl.BLEND);
+            }
         }
     }
 
@@ -842,8 +836,8 @@
             this.maxProgram.uniform2F("numPixels", numPixels[0], numPixels[1]);
             this.maxProgram.uniformI("useSameChannel", useSameChannel);
             this.maxProgram.uniformI("isComplex", useSameChannel && isComplex && !this.isConvCamera);
-                // Only complex in the first pass, after that it's just modules
-                // When using the conventional camera, we are using modules
+            // Only complex in the first pass, after that it's just modules
+            // When using the conventional camera, we are using modules
             this.maxProgram.uniformTexture("tex", maxBuffers[current]);
             this.quadVbo.draw(this.maxProgram, gl.TRIANGLE_FAN);
 
@@ -859,9 +853,9 @@
         var height = this.numSpads;
         var width = this.numIntervals;
         var sumBuffers = [this.capturedBuffer];
-
+    
         var gl = this.gl;
-
+    
         this.fbo.bind();
         this.quadVbo.bind();
         var current = 0;
@@ -872,22 +866,22 @@
             height = (height > 1) ? height / 2 : height;
             var next = 1 - current;
             sumBuffers[next] = new tgl.Texture(width, height, 4, true, false, true, null);
-
+    
             gl.viewport(0, 0, width, height);
             this.fbo.attachTexture(sumBuffers[next], 0);
             gl.clear(gl.COLOR_BUFFER_BIT);
-
+    
             this.sumProgram.bind();
             sumBuffers[current].bind(0);
             this.sumProgram.uniformI("oneRow", oneRow);
             this.sumProgram.uniform2F("numPixels", width, height);
             this.sumProgram.uniformTexture("tex", sumBuffers[current]);
             this.quadVbo.draw(this.sumProgram, gl.TRIANGLE_FAN);
-
+    
             current = next;
         }
         this.fbo.unbind();
-
+    
         return sumBuffers[current];
     }
     */
@@ -1592,9 +1586,9 @@
             var h = this.capturedBuffer.getArray(this.h.length);
             for (let i = 0; i < this.h.length; i++) {
                 // if (h[4 * i + 3] > 1)
-                    // this.h[i] = h[4 * i] / (h[4 * i + 3] - 1);
+                // this.h[i] = h[4 * i] / (h[4 * i + 3] - 1);
                 // else
-                    this.h[i] = h[4 * i];
+                this.h[i] = h[4 * i];
             }
             var f = this.filteredBuffer.getArray(this.numPixels[0] * this.numPixels[1]);
             this.f = [];

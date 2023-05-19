@@ -275,9 +275,9 @@ var Shaders = {
 
         '    float t = dt / tmax;\n'                                                       +
         '    vec4 result = texture2D(fluence, vec2(t, mPos.y));\n'                         +
-        '    result.x = result.x * float(1 - useAbsolute) + length(result.xy) * float(use' +
-                                                                          'Absolute);\n'   +
-        '    result.y = result.y * float(1 - useAbsolute);\n'                              +
+        '    //result.x = result.x * float(1 - useAbsolute) + length(result.xy) * float(u' +
+                                                                        'seAbsolute);\n'   +
+        '    //result.y = result.y * float(1 - useAbsolute);\n'                            +
         '    gl_FragColor = result * vec4(t <= 1.0);\n'                                    +
         '}\n',
 
