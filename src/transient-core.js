@@ -717,9 +717,14 @@
         this.quadVbo.bind();
         gl.disable(gl.BLEND);
 
+        
+        // Clear previous result
+        gl.viewport(0, 0, this.numPixels[0], this.numPixels[1]);
+        this.fbo.attachTexture(outputBuffer, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
 
         var instant = (this.isConvCamera) ? 0 : this.instant;
-        var n = (this.isConvCamera) ? 1 : 1;
+        var n = (this.isConvCamera) ? this.numIntervals : 1;
 
         for (var i = 0; i < n; i++) {
 
@@ -739,7 +744,7 @@
                     this.bpConfProgram.uniformF("tmax", this.maxTime);
                     this.bpConfProgram.uniformF("instant", instant * this.deltaT);
                     this.bpConfProgram.uniformF("numSpads", this.numSpads);
-                    this.bpConfProgram.uniformTexture("fluence", inputTex);
+                    this.bpConfProgram.uniformTexture("radiance", inputTex);
                     this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
                     this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
                     this.bpConfProgram.uniformTexture("wallGrid", this.spadGridTex);
@@ -751,11 +756,10 @@
                     inputTex.bind(0);
                     this.spadGridTex.bind(1);
                     this.planeGridTex.bind(2);
-                    this.bpProgram.uniformI("useAbsolute", this.isConvCamera);
                     this.bpProgram.uniformF("tmax", this.maxTime);
                     this.bpProgram.uniformF("instant", instant * this.deltaT);
                     this.bpProgram.uniformF("numSpads", this.numSpads);
-                    this.bpProgram.uniformTexture("fluence", inputTex);
+                    this.bpProgram.uniformTexture("radiance", inputTex);
                     this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
                     this.bpProgram.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
                     this.bpProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
@@ -764,7 +768,7 @@
                     this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
                 }
                 // console.log(instant);
-                instant+=10;
+                instant++;
             }
 
             if (DEBUG) {
@@ -776,10 +780,8 @@
                 this.fbo.bind();
             }
 
-            // Clear previous result
             gl.viewport(0, 0, this.numPixels[0], this.numPixels[1]);
             this.fbo.attachTexture(outputBuffer, 0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
 
             if (TESTING) {
                 this.bpProgram2.bind();
@@ -788,7 +790,7 @@
                 this.planeGridTex.bind(2);
                 this.bpProgram2.uniformF("tmax", this.maxTime);
                 this.bpProgram2.uniformF("instant", this.instant * this.deltaT);
-                this.bpProgram2.uniformTexture("fluence", inputTex);
+                this.bpProgram2.uniformTexture("radiance", inputTex);
                 this.bpProgram2.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
                 this.bpProgram2.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
                 this.bpProgram2.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
@@ -797,14 +799,15 @@
                 this.quadVbo.draw(this.bpProgram2, gl.TRIANGLE_FAN);
             } else {
                 // Sum all spad points' results
-                // if (this.isConvCamera) gl.enable(gl.BLEND);
+                if (this.isConvCamera) gl.enable(gl.BLEND);
                 this.bpSumProgram.bind();
                 this.intermediateBuffer.bind(0);
                 this.bpSumProgram.uniformI("numRows", this.numRows);
+                this.bpSumProgram.uniformI("useAbsolute", this.isConvCamera);
                 this.bpSumProgram.uniform2F("numPixels", this.numPixels[0], this.numPixels[1]);
-                this.bpSumProgram.uniformTexture("fluence", this.intermediateBuffer);
+                this.bpSumProgram.uniformTexture("radiance", this.intermediateBuffer);
                 this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
-                // if (this.isConvCamera) gl.disable(gl.BLEND);
+                if (this.isConvCamera) gl.disable(gl.BLEND);
             }
         }
     }
@@ -835,7 +838,8 @@
             maxBuffers[current].bind(0);
             this.maxProgram.uniform2F("numPixels", numPixels[0], numPixels[1]);
             this.maxProgram.uniformI("useSameChannel", useSameChannel);
-            this.maxProgram.uniformI("isComplex", useSameChannel && isComplex && !this.isConvCamera);
+            this.maxProgram.uniformI("isComplex", useSameChannel && isComplex);
+            // this.maxProgram.uniformI("isComplex", useSameChannel && isComplex);
             // Only complex in the first pass, after that it's just modules
             // When using the conventional camera, we are using modules
             this.maxProgram.uniformTexture("tex", maxBuffers[current]);
@@ -898,7 +902,7 @@
         this.lapProgram.uniformF("Aspect", this.aspect);
         this.lapProgram.uniform2F("numPixels", this.numPixels[0], this.numPixels[1]);
         this.lapProgram.uniformFV("kernel", this.lapKernel);
-        this.lapProgram.uniformTexture("fluence", this.unfilteredBuffer);
+        this.lapProgram.uniformTexture("radiance", this.unfilteredBuffer);
         this.quadVbo.draw(this.lapProgram, gl.TRIANGLE_FAN);
     }
 
@@ -1578,7 +1582,7 @@
 
         var maxValueTex;
         if (!TESTING)
-            maxValueTex = this.findMax(this.filteredBuffer, this.filterType === 'pf');
+            maxValueTex = this.findMax(this.filteredBuffer, this.filterType === 'pf' && this.isConvCamera);
         else
             maxValueTex = this.findMax(this.filteredBuffer, false);
 
@@ -1623,12 +1627,13 @@
         this.showProgram.uniformF("Aspect", this.aspect);
         this.showProgram.uniformI("numSpads", this.numSpads);
         this.showProgram.uniformI("isComplex", this.filterType === 'pf' && !this.isConvCamera);
+        // this.showProgram.uniformI("isComplex", this.filterType === 'pf');
         this.showProgram.uniformI("usePhase", usePhase);
         if (usePhase)
             this.showProgram.uniformTexture("colormap", this.colormapSeismicTex);
         else
             this.showProgram.uniformTexture("colormap", this.colormapHotTex);
-        this.showProgram.uniformTexture("fluence", this.filteredBuffer);
+        this.showProgram.uniformTexture("radiance", this.filteredBuffer);
         this.showProgram.uniformTexture("maxValue", maxValueTex);
         this.quadVbo.bind();
         this.quadVbo.draw(this.showProgram, gl.TRIANGLE_FAN);

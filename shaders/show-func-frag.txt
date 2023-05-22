@@ -1,6 +1,6 @@
 #include "preamble"
 
-uniform sampler2D fluence;
+uniform sampler2D radiance;
 uniform sampler2D colormap;
 
 uniform sampler2D maxValue; // it would be nice to check what is faster
@@ -10,14 +10,14 @@ uniform int usePhase;
 varying vec2 mPos; // Pixel coordinates [0,1]
 
 void main() {
-    vec2 fluenceVec = texture2D(fluence, mPos).xy;
+    vec2 radianceVec = texture2D(radiance, mPos).xy;
     // If complex number, compute module (length), otherwise, use only the first component
-    float fluenceTex = abs(fluenceVec.x) * float(1 - isComplex) + length(fluenceVec) * float(isComplex);
-    fluenceTex *= float(1 - usePhase);
-    fluenceTex += float(usePhase) * atan(fluenceVec.y, fluenceVec.x);
-    float xCoord = float(1 - usePhase) * {func}fluenceTex) / {func}texture2D(maxValue, vec2(0.5)).x);
-    xCoord += {func}fluenceTex + PI) / {func}2.0 * PI) * float(usePhase == 1 && fluenceVec.x != 0.0);
-    xCoord += {func}PI / 2.0 * sign(fluenceVec.y) + PI) / {func}2.0 * PI) * float(usePhase == 1 && fluenceVec.x == 0.0);
+    float radianceTex = abs(radianceVec.x) * float(1 - isComplex) + length(radianceVec) * float(isComplex);
+    radianceTex *= float(1 - usePhase);
+    radianceTex += float(usePhase) * atan(radianceVec.y, radianceVec.x);
+    float xCoord = float(1 - usePhase) * {func}radianceTex) / {func}texture2D(maxValue, vec2(0.5)).x);
+    xCoord += {func}radianceTex + PI) / {func}2.0 * PI) * float(usePhase == 1 && radianceVec.x != 0.0);
+    xCoord += {func}PI / 2.0 * sign(radianceVec.y) + PI) / {func}2.0 * PI) * float(usePhase == 1 && radianceVec.x == 0.0);
 
     gl_FragColor = texture2D(colormap, vec2(xCoord, 0.5));
 }

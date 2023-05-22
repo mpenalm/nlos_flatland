@@ -29,7 +29,7 @@ var Shaders = {
 
         'uniform float tmax;\n\n'                                                          +
 
-        'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
+        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
         'uniform float numPixels;\n'                                                       +
         'uniform vec2 laserPos;\n'                                                         +
@@ -57,7 +57,7 @@ var Shaders = {
         '    float dt = 2.0 * ds + dsp + dlp;\n\n'                                         +
 
         '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y));\n'                        +
+        '    gl_FragColor = texture2D(radiance, vec2(t, mPos.y));\n'                       +
         '}\n',
 
     'bp-conf-frag':
@@ -65,7 +65,7 @@ var Shaders = {
 
         'uniform float tmax;\n\n'                                                          +
 
-        'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
+        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
         'uniform float numSpads;\n'                                                        +
         'uniform float instant;\n'                                                         +
@@ -92,7 +92,7 @@ var Shaders = {
         '    float dt = 2.0 * ds + dsp + dlp + instant;\n\n'                               +
 
         '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'       +
+        '    gl_FragColor = texture2D(radiance, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'      +
         '}\n',
 
     'bp-conf-transient-camera-frag':
@@ -100,7 +100,7 @@ var Shaders = {
 
         'uniform float tmax;\n\n'                                                          +
 
-        'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
+        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
         'uniform float numSpads;\n'                                                        +
         'uniform float instant;\n'                                                         +
@@ -127,7 +127,7 @@ var Shaders = {
         '    float dt = ds + dsp + dlp + instant;\n\n'                                     +
 
         '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'       +
+        '    gl_FragColor = texture2D(radiance, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'      +
         '}\n',
 
     'bp-frag':
@@ -135,7 +135,7 @@ var Shaders = {
 
         'uniform float tmax;\n\n'                                                          +
 
-        'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
+        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
         'uniform float numSpads;\n'                                                        +
         'uniform float instant;\n'                                                         +
@@ -161,60 +161,62 @@ var Shaders = {
         '    float dt = ds + dsp + dl + dlp + instant;\n\n'                                +
 
         '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(fluence, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'       +
+        '    gl_FragColor = texture2D(radiance, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'      +
         '}\n',
 
     'bp-frag2':
-        '#include "preamble"\n\n'                                                           +
+        '#include "preamble"\n\n'                                                          +
 
-        'uniform float tmax;\n\n'                                                           +
+        'uniform float tmax;\n\n'                                                          +
 
-        'uniform sampler2D fluence; // x time, y spad\n\n'                                  +
+        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
-        'uniform float instant;\n'                                                          +
-        'uniform vec2 laserPos;\n'                                                          +
-        'uniform vec2 laserGrid; // could be more than one, actually\n'                     +
-        'uniform vec2 spadPos;\n'                                                           +
-        'uniform sampler2D spadGrid;\n\n'                                                   +
+        'uniform float instant;\n'                                                         +
+        'uniform vec2 laserPos;\n'                                                         +
+        'uniform vec2 laserGrid; // could be more than one, actually\n'                    +
+        'uniform vec2 spadPos;\n'                                                          +
+        'uniform sampler2D spadGrid;\n\n'                                                  +
 
-        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                            +
-        '        // positions of the considered pixels, on a row\n\n'                       +
+        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
+        '        // positions of the considered pixels, on a row\n\n'                      +
 
-        'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                 +
+        'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
 
-        'const int numSpads = {numSpads};\n\n'                                              +
+        'const int numSpads = {numSpads};\n\n'                                             +
 
-        'void main() {\n'                                                                   +
-        '    float spadDist = 1.0 / float(numSpads);\n'                                     +
-        '    float xSpad = spadDist / 2.0;\n\n'                                             +
+        'void main() {\n'                                                                  +
+        '    float spadDist = 1.0 / float(numSpads);\n'                                    +
+        '    float xSpad = spadDist / 2.0;\n\n'                                            +
 
-        '    vec2 pixelPos = texture2D(planeGrid, mPos).xy;\n\n'                            +
+        '    vec2 pixelPos = texture2D(planeGrid, mPos).xy;\n\n'                           +
 
-        '    vec2 fluenceAccum = vec2(0.0);\n'                                              +
-        '    for (int i = 0; i < numSpads; i++) {\n'                                        +
-        '        vec2 wallSpad = texture2D(spadGrid, vec2(xSpad, 0.5)).xy;\n'               +
-        '        float dlp = distance(laserGrid, laserPos);\n'                              +
-        '        float dl  = distance(laserGrid, pixelPos);\n'                              +
-        '        float dsp = distance(wallSpad, spadPos); // distance spad device to capt'  +
-                                                                         'ured points\n'    +
-        '        float ds  = distance(wallSpad, pixelPos);\n'                               +
-        '        float dt = ds + dsp + dl + dlp + instant;\n\n'                             +
+        '    vec2 radianceAccum = vec2(0.0);\n'                                            +
+        '    for (int i = 0; i < numSpads; i++) {\n'                                       +
+        '        vec2 wallSpad = texture2D(spadGrid, vec2(xSpad, 0.5)).xy;\n'              +
+        '        float dlp = distance(laserGrid, laserPos);\n'                             +
+        '        float dl  = distance(laserGrid, pixelPos);\n'                             +
+        '        float dsp = distance(wallSpad, spadPos); // distance spad device to capt' +
+                                                                         'ured points\n'   +
+        '        float ds  = distance(wallSpad, pixelPos);\n'                              +
+        '        float dt = ds + dsp + dl + dlp + instant;\n\n'                            +
 
-        '        float t = dt / tmax;\n'                                                    +
-        '        fluenceAccum += texture2D(fluence, vec2(t, xSpad)).xy * vec2(t <= 1.0);\n' +
-        '        xSpad += spadDist;\n'                                                      +
-        '    }\n'                                                                           +
-        '    gl_FragColor = vec4(fluenceAccum, 0.0, 1.0);\n\n'                              +
+        '        float t = dt / tmax;\n'                                                   +
+        '        radianceAccum += texture2D(radiance, vec2(t, xSpad)).xy * vec2(t <= 1.0)' +
+                                                                                   ';\n'   +
+        '        xSpad += spadDist;\n'                                                     +
+        '    }\n'                                                                          +
+        '    gl_FragColor = vec4(radianceAccum, 0.0, 1.0);\n\n'                            +
 
-        '    gl_FragColor = vec4(pixelPos, 0.0, 1.0);\n'                                    +
+        '    gl_FragColor = vec4(pixelPos, 0.0, 1.0);\n'                                   +
         '}\n',
 
     'bp-sum-frag':
         '#include "preamble"\n\n'                                                          +
 
-        'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
+        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
         'uniform int numRows;\n'                                                           +
+        'uniform int useAbsolute;\n'                                                       +
         'uniform vec2 numPixels;\n\n'                                                      +
 
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
@@ -234,13 +236,19 @@ var Shaders = {
 
         '    float spadDist = 1.0 / float(numSpads);\n\n'                                  +
 
-        '    vec2 fluenceAccum = vec2(0.0);\n'                                             +
+        '    vec2 radianceAccum = vec2(0.0);\n'                                            +
         '    for (int i = 0; i < numSpads; i++) {\n'                                       +
-        '        fluenceAccum += texture2D(fluence, vec2(pos, spadDist * (float(i) + ySta' +
-                                                                           'rt))).xy;\n'   +
+        '        radianceAccum += texture2D(radiance, vec2(pos, spadDist * (float(i) + yS' +
+                                                                         'tart))).xy;\n'   +
         '    }\n\n'                                                                        +
 
-        '    gl_FragColor = vec4(fluenceAccum, 0.0, 1.0);\n'                               +
+        '    //radianceAccum.x = radianceAccum.x * float(1 - useAbsolute) + length(radian' +
+                                                      'ceAccum) * float(useAbsolute);\n'   +
+        '    //radianceAccum.y = radianceAccum.y * float(1 - useAbsolute);\n'              +
+        '    float result = length(radianceAccum);\n'                                      +
+        '    gl_FragColor = vec4(result, 0.0, 0.0, 1.0);\n\n'                              +
+
+        '    //gl_FragColor = vec4(radianceAccum, 0.0, 1.0);\n'                            +
         '}\n',
 
     'bp-transient-camera-frag':
@@ -248,9 +256,8 @@ var Shaders = {
 
         'uniform float tmax;\n\n'                                                          +
 
-        'uniform sampler2D fluence; // x time, y spad\n\n'                                 +
+        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
-        'uniform int useAbsolute;\n'                                                       +
         'uniform float numSpads;\n'                                                        +
         'uniform float instant;\n'                                                         +
         'uniform vec2 laserPos;\n'                                                         +
@@ -274,7 +281,7 @@ var Shaders = {
         '    float dt = ds + dsp + dlp + instant;\n\n'                                     +
 
         '    float t = dt / tmax;\n'                                                       +
-        '    vec4 result = texture2D(fluence, vec2(t, mPos.y));\n'                         +
+        '    vec4 result = texture2D(radiance, vec2(t, mPos.y));\n'                        +
         '    //result.x = result.x * float(1 - useAbsolute) + length(result.xy) * float(u' +
                                                                         'seAbsolute);\n'   +
         '    //result.y = result.y * float(1 - useAbsolute);\n'                            +
@@ -867,7 +874,7 @@ var Shaders = {
     'lap-frag':
         '#include "preamble"\n\n'                                                          +
 
-        'uniform sampler2D fluence;\n'                                                     +
+        'uniform sampler2D radiance;\n'                                                    +
         'uniform float Aspect;\n\n'                                                        +
 
         'uniform vec2 numPixels;\n\n'                                                      +
@@ -893,8 +900,8 @@ var Shaders = {
                                                                    '= 7) ? 1.0 : 2.0;\n'   +
         '            d.y += float(i / kernelWidth);\n'                                     +
         '            vec2 posTex = mPos + d * ps;\n'                                       +
-        '            acc += kernel[i] * texture2D(fluence, posTex).x * float(posTex.x >= ' +
-                      '0.0 && posTex.x <= 1.0 && posTex.y >= 0.0 && posTex.y <= 1.0);\n'   +
+        '            acc += kernel[i] * texture2D(radiance, posTex).x * float(posTex.x >=' +
+                     ' 0.0 && posTex.x <= 1.0 && posTex.y >= 0.0 && posTex.y <= 1.0);\n'   +
         '        }\n\n'                                                                    +
 
         '        gl_FragColor = vec4(acc, 0.0, 0.0, 1.0);\n'                               +
@@ -1140,7 +1147,7 @@ var Shaders = {
     'pf-filter-frag':
         '#include "preamble"\n\n'                                                       +
 
-        'uniform sampler2D fluence;\n'                                                  +
+        'uniform sampler2D radiance;\n'                                                 +
         'uniform sampler2D timeTex;\n\n'                                                +
 
         'uniform float deltaT;\n'                                                       +
@@ -1867,7 +1874,7 @@ var Shaders = {
     'show-frag':
         '#include "preamble"\n\n'                                                          +
 
-        'uniform sampler2D fluence;\n'                                                     +
+        'uniform sampler2D radiance;\n'                                                    +
         'uniform sampler2D colormap;\n\n'                                                  +
 
         'uniform sampler2D maxValue; // it would be nice to check what is faster\n'        +
@@ -1877,30 +1884,30 @@ var Shaders = {
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
 
         'void main() {\n'                                                                  +
-        '    vec2 fluenceVec = texture2D(fluence, mPos).xy;\n'                             +
+        '    vec2 radianceVec = texture2D(radiance, mPos).xy;\n'                           +
         '    // If complex number, compute module (length), otherwise, use only the first' +
                                                                           ' component\n'   +
-        '    float fluenceTex = abs(fluenceVec.x) * float(1 - isComplex) + length(fluence' +
-                                                            'Vec) * float(isComplex);\n'   +
-        '    fluenceTex *= float(1 - usePhase);\n'                                         +
-        '    fluenceTex += float(usePhase) * atan(fluenceVec.y, fluenceVec.x);\n'          +
-        '    float xCoord = fluenceTex / texture2D(maxValue, vec2(0.5)).x * float(1 - use' +
-                                                                             'Phase);\n'   +
-        '    xCoord += float(usePhase == 1 && fluenceVec.x != 0.0) * (fluenceTex + PI) / ' +
-                                                                         '(2.0 * PI);\n'   +
-        '    xCoord += float(usePhase == 1 && fluenceVec.x == 0.0) * (PI / 2.0 * sign(flu' +
-                                                      'enceVec.y) + PI) / (2.0 * PI);\n'   +
+        '    float radianceTex = abs(radianceVec.x) * float(1 - isComplex) + length(radia' +
+                                                         'nceVec) * float(isComplex);\n'   +
+        '    radianceTex *= float(1 - usePhase);\n'                                        +
+        '    radianceTex += float(usePhase) * atan(radianceVec.y, radianceVec.x);\n'       +
+        '    float xCoord = radianceTex / texture2D(maxValue, vec2(0.5)).x * float(1 - us' +
+                                                                            'ePhase);\n'   +
+        '    xCoord += float(usePhase == 1 && radianceVec.x != 0.0) * (radianceTex + PI) ' +
+                                                                       '/ (2.0 * PI);\n'   +
+        '    xCoord += float(usePhase == 1 && radianceVec.x == 0.0) * (PI / 2.0 * sign(ra' +
+                                                    'dianceVec.y) + PI) / (2.0 * PI);\n'   +
         '    gl_FragColor = texture2D(colormap, vec2(xCoord, 0.5));\n\n'                   +
 
         '    //vec2 maxMin = texture2D(maxValue, vec2(0.5)).xy;\n'                         +
-        '    //gl_FragColor = vec4((fluenceVec - maxMin.y) / (maxMin.x - maxMin.y), 0.0, ' +
-                                                                               '1.0);\n'   +
+        '    //gl_FragColor = vec4((radianceVec - maxMin.y) / (maxMin.x - maxMin.y), 0.0,' +
+                                                                              ' 1.0);\n'   +
         '}\n',
 
     'show-func-frag':
         '#include "preamble"\n\n'                                                          +
 
-        'uniform sampler2D fluence;\n'                                                     +
+        'uniform sampler2D radiance;\n'                                                    +
         'uniform sampler2D colormap;\n\n'                                                  +
 
         'uniform sampler2D maxValue; // it would be nice to check what is faster\n'        +
@@ -1910,19 +1917,19 @@ var Shaders = {
         'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
 
         'void main() {\n'                                                                  +
-        '    vec2 fluenceVec = texture2D(fluence, mPos).xy;\n'                             +
+        '    vec2 radianceVec = texture2D(radiance, mPos).xy;\n'                           +
         '    // If complex number, compute module (length), otherwise, use only the first' +
                                                                           ' component\n'   +
-        '    float fluenceTex = abs(fluenceVec.x) * float(1 - isComplex) + length(fluence' +
-                                                            'Vec) * float(isComplex);\n'   +
-        '    fluenceTex *= float(1 - usePhase);\n'                                         +
-        '    fluenceTex += float(usePhase) * atan(fluenceVec.y, fluenceVec.x);\n'          +
-        '    float xCoord = float(1 - usePhase) * {func}fluenceTex) / {func}texture2D(max' +
-                                                               'Value, vec2(0.5)).x);\n'   +
-        '    xCoord += {func}fluenceTex + PI) / {func}2.0 * PI) * float(usePhase == 1 && ' +
-                                                               'fluenceVec.x != 0.0);\n'   +
-        '    xCoord += {func}PI / 2.0 * sign(fluenceVec.y) + PI) / {func}2.0 * PI) * floa' +
-                                            't(usePhase == 1 && fluenceVec.x == 0.0);\n\n' +
+        '    float radianceTex = abs(radianceVec.x) * float(1 - isComplex) + length(radia' +
+                                                         'nceVec) * float(isComplex);\n'   +
+        '    radianceTex *= float(1 - usePhase);\n'                                        +
+        '    radianceTex += float(usePhase) * atan(radianceVec.y, radianceVec.x);\n'       +
+        '    float xCoord = float(1 - usePhase) * {func}radianceTex) / {func}texture2D(ma' +
+                                                              'xValue, vec2(0.5)).x);\n'   +
+        '    xCoord += {func}radianceTex + PI) / {func}2.0 * PI) * float(usePhase == 1 &&' +
+                                                             ' radianceVec.x != 0.0);\n'   +
+        '    xCoord += {func}PI / 2.0 * sign(radianceVec.y) + PI) / {func}2.0 * PI) * flo' +
+                                          'at(usePhase == 1 && radianceVec.x == 0.0);\n\n' +
 
         '    gl_FragColor = texture2D(colormap, vec2(xCoord, 0.5));\n'                     +
         '}\n',
