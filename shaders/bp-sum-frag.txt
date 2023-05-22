@@ -30,7 +30,10 @@ void main() {
     //radianceAccum.x = radianceAccum.x * float(1 - useAbsolute) + length(radianceAccum) * float(useAbsolute);
     //radianceAccum.y = radianceAccum.y * float(1 - useAbsolute);
     float result = length(radianceAccum);
-    gl_FragColor = vec4(result, 0.0, 0.0, 1.0);
 
-    //gl_FragColor = vec4(radianceAccum, 0.0, 1.0);
+    if (useAbsolute > 0) {
+        gl_FragColor = vec4(result, 0.0, 0.0, 1.0);
+    } else {
+        gl_FragColor = vec4(radianceAccum, 0.0, 1.0);
+    }
 }

@@ -245,10 +245,13 @@ var Shaders = {
         '    //radianceAccum.x = radianceAccum.x * float(1 - useAbsolute) + length(radian' +
                                                       'ceAccum) * float(useAbsolute);\n'   +
         '    //radianceAccum.y = radianceAccum.y * float(1 - useAbsolute);\n'              +
-        '    float result = length(radianceAccum);\n'                                      +
-        '    gl_FragColor = vec4(result, 0.0, 0.0, 1.0);\n\n'                              +
+        '    float result = length(radianceAccum);\n\n'                                    +
 
-        '    //gl_FragColor = vec4(radianceAccum, 0.0, 1.0);\n'                            +
+        '    if (useAbsolute > 0) {\n'                                                     +
+        '        gl_FragColor = vec4(result, 0.0, 0.0, 1.0);\n'                            +
+        '    } else {\n'                                                                   +
+        '        gl_FragColor = vec4(radianceAccum, 0.0, 1.0);\n'                          +
+        '    }\n'                                                                          +
         '}\n',
 
     'bp-transient-camera-frag':
@@ -282,9 +285,6 @@ var Shaders = {
 
         '    float t = dt / tmax;\n'                                                       +
         '    vec4 result = texture2D(radiance, vec2(t, mPos.y));\n'                        +
-        '    //result.x = result.x * float(1 - useAbsolute) + length(result.xy) * float(u' +
-                                                                        'seAbsolute);\n'   +
-        '    //result.y = result.y * float(1 - useAbsolute);\n'                            +
         '    gl_FragColor = result * vec4(t <= 1.0);\n'                                    +
         '}\n',
 

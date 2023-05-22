@@ -726,6 +726,7 @@
         var instant = (this.isConvCamera) ? 0 : this.instant;
         var n = (this.isConvCamera) ? this.numIntervals : 1;
 
+        var start = Date.now();
         for (var i = 0; i < n; i++) {
 
             if (!TESTING) {
@@ -810,6 +811,8 @@
                 if (this.isConvCamera) gl.disable(gl.BLEND);
             }
         }
+        var finish = Date.now();
+        if (this.isConvCamera) console.log(`${finish-start} ms`);
     }
 
     Renderer.prototype.findMax = function (inputTex, isComplex = false) {
