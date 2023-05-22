@@ -210,7 +210,7 @@
     Renderer.prototype.createSceneVBOs = function () {
         this.sceneVBOs = [];
 
-        // Plane
+        // Line
         this.sceneVBOs.push(new tgl.VertexBuffer());
         this.sceneVBOs[0].addAttribute("Position", 2, this.gl.FLOAT, false)
         this.sceneVBOs[0].init(4);
@@ -222,7 +222,7 @@
         vboData[7] = -0.2;
         this.sceneVBOs[0].copy(vboData);
 
-        // Sphere
+        // Circle
         this.sceneVBOs.push(new tgl.VertexBuffer());
         this.sceneVBOs[1].addAttribute("Position", 2, this.gl.FLOAT, false)
         this.sceneVBOs[1].init(10);
@@ -308,6 +308,8 @@
         vboData[6] = 0.4 / this.aspect;
         vboData[7] = -0.2;
         this.sceneVBOs[5].copy(vboData);
+
+        // Second corner
     }
 
     function addRelayWallVertices(vboData, aspect) {
