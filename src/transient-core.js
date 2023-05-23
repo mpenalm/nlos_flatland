@@ -2,8 +2,10 @@
     var LAMBDA_MIN = 360.0;
     var LAMBDA_MAX = 750.0;
 
+    // var SECOND_CORNER_SCENE = 6;
+
     var DEBUG = false;
-    var TESTING = false;
+    var TESTING = true;
 
     function intermediatePositions(start, end, n) {
         if (n == 1) {
@@ -209,23 +211,25 @@
 
     Renderer.prototype.createSceneVBOs = function () {
         this.sceneVBOs = [];
+        var i = 0;
 
         // Line
         this.sceneVBOs.push(new tgl.VertexBuffer());
-        this.sceneVBOs[0].addAttribute("Position", 2, this.gl.FLOAT, false)
-        this.sceneVBOs[0].init(4);
+        this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
+        this.sceneVBOs[i].init(4);
         var vboData = new Float32Array(4 * 2);
         addRelayWallVertices(vboData, this.aspect);
         vboData[4] = 0.0;
         vboData[5] = 0.2;
         vboData[6] = 0.0;
         vboData[7] = -0.2;
-        this.sceneVBOs[0].copy(vboData);
+        this.sceneVBOs[i].copy(vboData);
 
         // Circle
+        i++;
         this.sceneVBOs.push(new tgl.VertexBuffer());
-        this.sceneVBOs[1].addAttribute("Position", 2, this.gl.FLOAT, false)
-        this.sceneVBOs[1].init(10);
+        this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
+        this.sceneVBOs[i].init(10);
         vboData = new Float32Array(10 * 2);
         addRelayWallVertices(vboData, this.aspect);
         vboData[4] = -0.95 / this.aspect;
@@ -244,12 +248,13 @@
         vboData[17] = 0.25;
         vboData[18] = -0.95 / this.aspect;
         vboData[19] = 0.25 + 0.4;
-        this.sceneVBOs[1].copy(vboData);
+        this.sceneVBOs[i].copy(vboData);
 
         // Visibility test
+        i++;
         this.sceneVBOs.push(new tgl.VertexBuffer());
-        this.sceneVBOs[2].addAttribute("Position", 2, this.gl.FLOAT, false)
-        this.sceneVBOs[2].init(8);
+        this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
+        this.sceneVBOs[i].init(8);
         vboData = new Float32Array(8 * 2);
         addRelayWallVertices(vboData, this.aspect);
         vboData[4] = 0.0;
@@ -264,24 +269,26 @@
         vboData[13] = -0.54641;
         vboData[14] = 0.0;
         vboData[15] = -0.2;
-        this.sceneVBOs[2].copy(vboData);
+        this.sceneVBOs[i].copy(vboData);
 
         // Virtual mirror
+        i++;
         this.sceneVBOs.push(new tgl.VertexBuffer());
-        this.sceneVBOs[3].addAttribute("Position", 2, this.gl.FLOAT, false)
-        this.sceneVBOs[3].init(4);
+        this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
+        this.sceneVBOs[i].init(4);
         vboData = new Float32Array(4 * 2);
         addRelayWallVertices(vboData, this.aspect);
         vboData[4] = 0.4 / this.aspect;
         vboData[5] = 0.2;
         vboData[6] = 0.4 / this.aspect;
         vboData[7] = -0.2;
-        this.sceneVBOs[3].copy(vboData);
+        this.sceneVBOs[i].copy(vboData);
 
         // Virtual mirror 2
+        i++;
         this.sceneVBOs.push(new tgl.VertexBuffer());
-        this.sceneVBOs[4].addAttribute("Position", 2, this.gl.FLOAT, false)
-        this.sceneVBOs[4].init(6);
+        this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
+        this.sceneVBOs[i].init(6);
         vboData = new Float32Array(6 * 2);
         vboData[0] = 1.2 / this.aspect;
         vboData[1] = -1.0;
@@ -295,21 +302,77 @@
         vboData[9] = 0.1;
         vboData[10] = 1.3 / this.aspect;
         vboData[11] = 0.1;
-        this.sceneVBOs[4].copy(vboData);
+        this.sceneVBOs[i].copy(vboData);
 
         // Virtual mirror rotated
+        i++;
         this.sceneVBOs.push(new tgl.VertexBuffer());
-        this.sceneVBOs[5].addAttribute("Position", 2, this.gl.FLOAT, false)
-        this.sceneVBOs[5].init(4);
+        this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
+        this.sceneVBOs[i].init(4);
         vboData = new Float32Array(4 * 2);
         addRelayWallVertices(vboData, this.aspect);
         vboData[4] = 0.5 / this.aspect;
         vboData[5] = 0.2;
         vboData[6] = 0.4 / this.aspect;
         vboData[7] = -0.2;
-        this.sceneVBOs[5].copy(vboData);
+        this.sceneVBOs[i].copy(vboData);
+
+        /*
+        // Second corner
+        i++;
+        this.sceneVBOs.push(new tgl.VertexBuffer());
+        this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
+        this.sceneVBOs[i].init(6);
+        vboData = new Float32Array(6 * 2);
+        vboData[0] = -1.0 / this.aspect;
+        vboData[1] = 0.0;
+        vboData[2] = 0.0 / this.aspect;
+        vboData[3] = 0.0;
+        vboData[4] = -0.25 / this.aspect;
+        vboData[5] = 0.75;
+        vboData[6] = 0.75 / this.aspect;
+        vboData[7] = 0.75;
+        vboData[8] = 1.05 / this.aspect;
+        vboData[9] = -0.45;
+        vboData[10] = 1.45 / this.aspect;
+        vboData[11] = -0.05;
+        this.sceneVBOs[i].copy(vboData);*/
 
         // Second corner
+        i++;
+        this.sceneVBOs.push(new tgl.VertexBuffer());
+        this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
+        this.sceneVBOs[i].init(6);
+        vboData = new Float32Array(6 * 2);
+        vboData[0] = 1.2 / this.aspect;
+        vboData[1] = -1.0;
+        vboData[2] = 1.2 / this.aspect;
+        vboData[3] = -0.2;
+        vboData[4] = 0.4 / this.aspect;
+        vboData[5] = -0.6;
+        vboData[6] = 0.4 / this.aspect;
+        vboData[7] = 0.2;
+        vboData[8] = 1.2 / this.aspect;
+        vboData[9] = 1.0;
+        vboData[10] = 1.6 / this.aspect;
+        vboData[11] = 0.6;
+        this.sceneVBOs[i].copy(vboData);
+
+        // Second corner target
+        i++;
+        this.sceneVBOs.push(new tgl.VertexBuffer());
+        this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
+        this.sceneVBOs[i].init(4);
+        vboData = new Float32Array(4 * 2);
+        vboData[0] = 1.2 / this.aspect;
+        vboData[1] = -1.0;
+        vboData[2] = 1.2 / this.aspect;
+        vboData[3] = -0.2;
+        vboData[4] = -0.4 / this.aspect;
+        vboData[5] = 1.0;
+        vboData[6] = -0.8 / this.aspect;
+        vboData[7] = 0.6;
+        this.sceneVBOs[i].copy(vboData);
     }
 
     function addRelayWallVertices(vboData, aspect) {
@@ -361,11 +424,13 @@
             // Confocal camera
             this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-frag");
             this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-frag");
+            this.bpProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedBp");
             this.isConvCamera = false;
         } else {
             // Transient camera or conventional camera
             this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-transient-camera-frag");
             this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-transient-camera-frag");
+            this.bpProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedTransientBp");
             this.isConvCamera = (id == 2);
         }
         if (this.finished())
@@ -389,7 +454,7 @@
     Renderer.prototype.changeSpadResolution = function (numSpads) {
         if (this.spadHeights === undefined || this.spadHeights.length != numSpads) {
             this.numSpads = numSpads;
-            this.setSpadPositions();
+            this.setSpadPositions(false/*, this.currentScene == SECOND_CORNER_SCENE*/);
             this.createNLOSBuffers(ModifiedAttributes.NumSpads);
             this.resetActiveBlock();
             this.reset();
@@ -398,11 +463,17 @@
 
     Renderer.prototype.setSpadBoundaries = function (low, high) {
         if (this.spadBoundaries === undefined || this.spadBoundaries[0] != low || this.spadBoundaries != high) {
-            this.spadBoundaries = [low, high];
+            var realLow = low, realHigh = high;
+            // if (this.currentScene == SECOND_CORNER_SCENE) {
+            //     realLow = (low - 1) / 2;
+            //     realHigh = (high - 1) / 2;
+            // }
+            this.spadBoundaries = [realLow, realHigh];
             this.sbVbo = this.createSBVbo();
-            this.setSpadPositions(true);
+            this.setSpadPositions(true/*, this.currentScene == SECOND_CORNER_SCENE*/);
             this.resetActiveBlock();
             this.reset();
+            console.log(this.spadBoundaries);
         }
     }
 
@@ -503,7 +574,7 @@
         this.sceneVBOs[this.sceneVBOs.length - 1].copy(vboData);
     }
 
-    Renderer.prototype.setSpadPositions = function (changedBounds = false) {
+    Renderer.prototype.setSpadPositions = function (changedBounds = false, horizontal = false) {
         var changePos = (this.spadHeights === undefined || this.spadHeights.length != this.numSpads || changedBounds);
 
         if (changePos && this.spadBoundaries != undefined && this.numSpads != undefined) {
@@ -511,12 +582,22 @@
             this.spadPoints = [];
 
             this.spads = [];
-            for (var i = 0; i < this.spadHeights.length; i++) {
-                var h = this.spadHeights[i];
-                this.spads.push(new SpadData([1.2, h], this.spadRadius, this.deltaT, this.maxTime));
-                this.spadPoints.push(1.2);
-                this.spadPoints.push(h);
+            if (horizontal) {
+                for (var i = 0; i < this.spadHeights.length; i++) {
+                    var h = this.spadHeights[i];
+                    this.spads.push(new SpadData([h, 0.0], this.spadRadius, this.deltaT, this.maxTextureSize));
+                    this.spadPoints.push(h);
+                    this.spadPoints.push(0.0);
+                }
+            } else {
+                for (var i = 0; i < this.spadHeights.length; i++) {
+                    var h = this.spadHeights[i];
+                    this.spads.push(new SpadData([1.2, h], this.spadRadius, this.deltaT, this.maxTime));
+                    this.spadPoints.push(1.2);
+                    this.spadPoints.push(h);
+                }
             }
+            // console.log(this.spadPoints);
 
             var spadGridData = new Float32Array(this.numSpads * 4);
             for (var i = 0; i < this.numSpads; i++) {
@@ -527,9 +608,16 @@
             }
             this.spadGridTex = new tgl.Texture(this.numSpads, 1, 4, true, false, true, spadGridData);
             this.spadNormalsData = spadGridData;
-            for (var i = 0; i < this.numSpads; i++) {
-                this.spadNormalsData[i * 4] = -1.0;
-                this.spadNormalsData[i * 4 + 1] = 0.0;
+            if (horizontal) {
+                for (var i = 0; i < this.numSpads; i++) {
+                    this.spadNormalsData[i * 4] = 0.0;
+                    this.spadNormalsData[i * 4 + 1] = 1.0;
+                }
+            } else {
+                for (var i = 0; i < this.numSpads; i++) {
+                    this.spadNormalsData[i * 4] = -1.0;
+                    this.spadNormalsData[i * 4 + 1] = 0.0;
+                }
             }
             this.spadNormalsTex = new tgl.Texture(this.numSpads, 1, 4, true, false, true, this.spadNormalsData);
 
@@ -539,6 +627,8 @@
             var bpFrag2 = this.replaceNumSpads("bp-frag2");
             Shaders["replacedBp"] = bpFrag2;
             this.bpProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedBp");
+            bpFrag2 = this.replaceNumSpads("bp-transient-camera-frag2");
+            Shaders["replacedTransientBp"] = bpFrag2;
             var hVert = this.replaceNumSpads("h-vert");
             Shaders["replacedH"] = hVert;
             this.hProgram = new tgl.Shader(Shaders, "replacedH", "h-frag");
@@ -707,7 +797,26 @@
 
     Renderer.prototype.changeScene = function (idx, rwallMaterial = genScene.Diffuse) {
         this.resetActiveBlock();
-        this.currentScene = idx;
+        /*if (idx == SECOND_CORNER_SCENE + 1) {
+            this.setSpadPos([0.4, -0.8]);
+        } else {*/
+            this.setSpadPos([0, -0.6]);
+        // }
+
+        /*if (this.currentScene == SECOND_CORNER_SCENE) {
+            // Changing from the different relay wall
+            this.setSpadPos([0, -0.6]);
+            this.currentScene = idx;
+            this.setSpadBoundaries(this.spadBoundaries[0] * 2 + 1, this.spadBoundaries[1] * 2 + 1);
+            this.setSpadPositions(true, false);
+        } else if (idx == SECOND_CORNER_SCENE) {
+            // Changing to the different relay wall
+            this.setSpadPos([[-1, 0.8]]);
+            this.currentScene = idx;
+            this.setSpadBoundaries(this.spadBoundaries[0], this.spadBoundaries[1]);
+            this.setSpadPositions(true, true);
+        } else*/
+            this.currentScene = idx;
         this.rwallMaterial = rwallMaterial;
         this.reset();
     }
@@ -719,7 +828,7 @@
         this.quadVbo.bind();
         gl.disable(gl.BLEND);
 
-        
+
         // Clear previous result
         gl.viewport(0, 0, this.numPixels[0], this.numPixels[1]);
         this.fbo.attachTexture(outputBuffer, 0);
@@ -787,12 +896,14 @@
             this.fbo.attachTexture(outputBuffer, 0);
 
             if (TESTING) {
+                if (this.isConvCamera) gl.enable(gl.BLEND);
                 this.bpProgram2.bind();
                 inputTex.bind(0);
                 this.spadGridTex.bind(1);
                 this.planeGridTex.bind(2);
                 this.bpProgram2.uniformF("tmax", this.maxTime);
                 this.bpProgram2.uniformF("instant", this.instant * this.deltaT);
+                this.bpProgram2.uniformI("useAbsolute", this.isConvCamera);
                 this.bpProgram2.uniformTexture("radiance", inputTex);
                 this.bpProgram2.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
                 this.bpProgram2.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
@@ -800,6 +911,7 @@
                 this.bpProgram2.uniformTexture("spadGrid", this.spadGridTex);
                 this.bpProgram2.uniformTexture("planeGrid", this.planeGridTex);
                 this.quadVbo.draw(this.bpProgram2, gl.TRIANGLE_FAN);
+                if (this.isConvCamera) gl.enable(gl.BLEND);
             } else {
                 // Sum all spad points' results
                 if (this.isConvCamera) gl.enable(gl.BLEND);
@@ -814,7 +926,7 @@
             }
         }
         var finish = Date.now();
-        if (this.isConvCamera) console.log(`${finish-start} ms`);
+        if (this.isConvCamera) console.log(`${finish - start} ms`);
     }
 
     Renderer.prototype.findMax = function (inputTex, isComplex = false) {
@@ -1068,7 +1180,8 @@
                 }
                 var w = this.numPixels[0] * this.numPixels[1] / this.numRows;
                 var h = this.numRows;
-                this.planeGridTex = new tgl.Texture(w, h, 4, true, false, true, planeGridData);
+                // this.planeGridTex = new tgl.Texture(w, h, 4, true, false, true, planeGridData);
+                this.planeGridTex = new tgl.Texture(this.numPixels[0], this.numPixels[1], 4, true, false, true, planeGridData);
                 this.planeGridData = planeGridData;
             }
         }
@@ -1306,10 +1419,17 @@
         var vbo = new tgl.VertexBuffer();
         vbo.addAttribute("Position", 2, this.gl.FLOAT, false);
         vbo.init(2);
-        vbo.copy(new Float32Array([
-            1.2 / this.aspect, this.spadBoundaries[0],
-            1.2 / this.aspect, this.spadBoundaries[1]
-        ]));
+        /*if (this.currentScene == SECOND_CORNER_SCENE) {
+            vbo.copy(new Float32Array([
+                this.spadBoundaries[0] / this.aspect, 0.0,
+                this.spadBoundaries[1] / this.aspect, 0.0
+            ]))
+        } else {*/
+            vbo.copy(new Float32Array([
+                1.2 / this.aspect, this.spadBoundaries[0],
+                1.2 / this.aspect, this.spadBoundaries[1]
+            ]));
+        //}
         return vbo;
     }
 

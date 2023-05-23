@@ -23,7 +23,7 @@ void main() {
     float spadDist = 1.0 / float(numSpads);
 
     vec2 radianceAccum = vec2(0.0);
-    for (int i = 0; i < numSpads; i++) {
+    for (int i = 0; i < 1; i++) {
         radianceAccum += texture2D(radiance, vec2(pos, spadDist * (float(i) + yStart))).xy;
     }
 

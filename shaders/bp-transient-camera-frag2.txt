@@ -4,6 +4,7 @@ uniform float tmax;
 
 uniform sampler2D radiance; // x time, y spad
 
+uniform int useAbsolute; // To accumulate for the conventional camera
 uniform float instant;
 uniform vec2 laserPos;
 uniform vec2 laserGrid; // could be more than one, actually
@@ -13,7 +14,7 @@ uniform sampler2D spadGrid;
 uniform sampler2D planeGrid; // Plane to reconstruct
         // positions of the considered pixels, on a row
 
-varying vec2 mPos; // Pixel coordinates [0,1]
+varying vec2 mPos; // Pixel coordinates [0,1]; x = time, y = spad
 
 const int numSpads = {numSpads};
 
@@ -26,14 +27,18 @@ void main() {
     for (int i = 0; i < numSpads; i++) {
         vec2 wallSpad = texture2D(spadGrid, vec2(xSpad, 0.5)).xy;
         float dlp = distance(laserGrid, laserPos);
-        float dl  = distance(laserGrid, pixelPos);
         float dsp = distance(wallSpad, spadPos); // distance spad device to captured points
         float ds  = distance(wallSpad, pixelPos);
-        float dt = ds + dsp + dl + dlp + instant;
+        float dt = ds + dsp + dlp + instant;
 
         float t = dt / tmax;
         radianceAccum += texture2D(radiance, vec2(t, xSpad)).xy * vec2(t <= 1.0);
         xSpad += spadDist;
     }
-    gl_FragColor = vec4(radianceAccum, 0.0, 1.0);
+
+    if (useAbsolute > 0) {
+        gl_FragColor = vec4(length(radianceAccum), 0.0, 0.0, 1.0);
+    } else {
+        gl_FragColor = vec4(radianceAccum, 0.0, 1.0);
+    }
 }

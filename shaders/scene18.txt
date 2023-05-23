@@ -7,13 +7,13 @@ void intersect(Ray ray, inout Intersection isect) {
     bboxIntersect(ray, vec2(0.0), vec2(1.78, 1.0), 3.0, isect);
 
     // Relay wall
-    lineIntersect(ray, vec2(-1.0, 0.0), vec2(0.0, 0.0), 0.0, isect);
+    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2,  -0.2), 0.0, isect);
 
     // Mirror
-    lineIntersect(ray, vec2(-0.25, 0.75), vec2(0.75, 0.75), 0.0, isect);
+    lineIntersect(ray, vec2(0.4, -0.6), vec2(0.4, 0.2), 0.0, isect);
 
     // Hidden object
-    lineIntersect(ray, vec2(1.05, -0.45), vec2(1.45, -0.05), 0.0, isect);
+    lineIntersect(ray, vec2(1.2, 1.0), vec2(1.6, 0.6), 0.0, isect);
 }
 
 vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, inout vec3 throughput, out float tMult) {
@@ -31,7 +31,7 @@ vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in
         throughput *= vec3(0.0);
         return sampleDiffuse(state, wiLocal);
     } else {
-        throughput *= vec3(0.5);
+        throughput *= vec3(0.8);
         return sampleDiffuse(state, wiLocal);
     }
 }

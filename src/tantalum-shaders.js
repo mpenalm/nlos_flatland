@@ -188,8 +188,7 @@ var Shaders = {
         '    float spadDist = 1.0 / float(numSpads);\n'                                    +
         '    float xSpad = spadDist / 2.0;\n\n'                                            +
 
-        '    vec2 pixelPos = texture2D(planeGrid, mPos).xy;\n\n'                           +
-
+        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 1.0 - mPos.y)).xy;\n'       +
         '    vec2 radianceAccum = vec2(0.0);\n'                                            +
         '    for (int i = 0; i < numSpads; i++) {\n'                                       +
         '        vec2 wallSpad = texture2D(spadGrid, vec2(xSpad, 0.5)).xy;\n'              +
@@ -205,9 +204,7 @@ var Shaders = {
                                                                                    ';\n'   +
         '        xSpad += spadDist;\n'                                                     +
         '    }\n'                                                                          +
-        '    gl_FragColor = vec4(radianceAccum, 0.0, 1.0);\n\n'                            +
-
-        '    gl_FragColor = vec4(pixelPos, 0.0, 1.0);\n'                                   +
+        '    gl_FragColor = vec4(radianceAccum, 0.0, 1.0);\n'                              +
         '}\n',
 
     'bp-sum-frag':
@@ -237,7 +234,7 @@ var Shaders = {
         '    float spadDist = 1.0 / float(numSpads);\n\n'                                  +
 
         '    vec2 radianceAccum = vec2(0.0);\n'                                            +
-        '    for (int i = 0; i < numSpads; i++) {\n'                                       +
+        '    for (int i = 0; i < 1; i++) {\n'                                              +
         '        radianceAccum += texture2D(radiance, vec2(pos, spadDist * (float(i) + yS' +
                                                                          'tart))).xy;\n'   +
         '    }\n\n'                                                                        +
@@ -286,6 +283,54 @@ var Shaders = {
         '    float t = dt / tmax;\n'                                                       +
         '    vec4 result = texture2D(radiance, vec2(t, mPos.y));\n'                        +
         '    gl_FragColor = result * vec4(t <= 1.0);\n'                                    +
+        '}\n',
+
+    'bp-transient-camera-frag2':
+        '#include "preamble"\n\n'                                                          +
+
+        'uniform float tmax;\n\n'                                                          +
+
+        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
+
+        'uniform int useAbsolute; // To accumulate for the conventional camera\n'          +
+        'uniform float instant;\n'                                                         +
+        'uniform vec2 laserPos;\n'                                                         +
+        'uniform vec2 laserGrid; // could be more than one, actually\n'                    +
+        'uniform vec2 spadPos;\n'                                                          +
+        'uniform sampler2D spadGrid;\n\n'                                                  +
+
+        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
+        '        // positions of the considered pixels, on a row\n\n'                      +
+
+        'varying vec2 mPos; // Pixel coordinates [0,1]; x = time, y = spad\n\n'            +
+
+        'const int numSpads = {numSpads};\n\n'                                             +
+
+        'void main() {\n'                                                                  +
+        '    float spadDist = 1.0 / float(numSpads);\n'                                    +
+        '    float xSpad = spadDist / 2.0;\n\n'                                            +
+
+        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 1.0 - mPos.y)).xy;\n'       +
+        '    vec2 radianceAccum = vec2(0.0);\n'                                            +
+        '    for (int i = 0; i < numSpads; i++) {\n'                                       +
+        '        vec2 wallSpad = texture2D(spadGrid, vec2(xSpad, 0.5)).xy;\n'              +
+        '        float dlp = distance(laserGrid, laserPos);\n'                             +
+        '        float dsp = distance(wallSpad, spadPos); // distance spad device to capt' +
+                                                                         'ured points\n'   +
+        '        float ds  = distance(wallSpad, pixelPos);\n'                              +
+        '        float dt = ds + dsp + dlp + instant;\n\n'                                 +
+
+        '        float t = dt / tmax;\n'                                                   +
+        '        radianceAccum += texture2D(radiance, vec2(t, xSpad)).xy * vec2(t <= 1.0)' +
+                                                                                   ';\n'   +
+        '        xSpad += spadDist;\n'                                                     +
+        '    }\n\n'                                                                        +
+
+        '    if (useAbsolute > 0) {\n'                                                     +
+        '        gl_FragColor = vec4(length(radianceAccum), 0.0, 0.0, 1.0);\n'             +
+        '    } else {\n'                                                                   +
+        '        gl_FragColor = vec4(radianceAccum, 0.0, 1.0);\n'                          +
+        '    }\n'                                                                          +
         '}\n',
 
     'bp-vert':
@@ -1604,9 +1649,16 @@ var Shaders = {
         '#include "intersect"\n\n'                                                         +
 
         'void intersect(Ray ray, inout Intersection isect) {\n'                            +
-        '    bboxIntersect(ray, vec2(0.0), vec2(1.78, 1.0), 3.0, isect);\n'                +
-        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, 0.0), 0.0, isect);\n'           +
-        '    sphereIntersect(ray, vec2(1.78, 0.5), 0.3, 0.0, isect);\n'                    +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.78, 1.0), 3.0, isect);\n\n'              +
+
+        '    // Relay wall\n'                                                              +
+        '    lineIntersect(ray, vec2(-1.0, 0.0), vec2(0.0, 0.0), 0.0, isect);\n\n'         +
+
+        '    // Mirror\n'                                                                  +
+        '    lineIntersect(ray, vec2(-0.25, 0.75), vec2(0.75, 0.75), 0.0, isect);\n\n'     +
+
+        '    // Hidden object\n'                                                           +
+        '    lineIntersect(ray, vec2(1.05, -0.45), vec2(1.45, -0.05), 0.0, isect);\n'      +
         '}\n\n'                                                                            +
 
         'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
@@ -1628,6 +1680,90 @@ var Shaders = {
         '        return sampleDiffuse(state, wiLocal);\n'                                  +
         '    } else {\n'                                                                   +
         '        throughput *= vec3(0.5);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    }\n'                                                                          +
+        '}\n',
+
+    'scene18':
+        '#include "trace-frag"\n\n'                                                        +
+
+        '#include "bsdf"\n'                                                                +
+        '#include "intersect"\n\n'                                                         +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.78, 1.0), 3.0, isect);\n\n'              +
+
+        '    // Relay wall\n'                                                              +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2,  -0.2), 0.0, isect);\n\n'       +
+
+        '    // Mirror\n'                                                                  +
+        '    lineIntersect(ray, vec2(0.4, -0.6), vec2(0.4, 0.2), 0.0, isect);\n\n'         +
+
+        '    // Hidden object\n'                                                           +
+        '    lineIntersect(ray, vec2(1.2, 1.0), vec2(1.6, 0.6), 0.0, isect);\n'            +
+        '}\n\n'                                                                            +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
+                                             'out vec3 throughput, out float tMult) {\n'   +
+        '    tMult = 1.0;\n'                                                               +
+        '    if (isect.mat == 1.0) {\n'                                                    +
+        '        float ior = sqrt(sellmeierIor(vec3(1.0396, 0.2318, 1.0105), vec3(0.0060,' +
+                                                         ' 0.0200, 103.56), lambda));\n'   +
+        '        if (wiLocal.y < 0.0) {\n'                                                 +
+        '            // The ray comes from inside the dielectric material - it will take ' +
+                                                                        'longer times\n'   +
+        '            tMult = ior;\n'                                                       +
+        '        }\n'                                                                      +
+        '        return sampleDielectric(state, wiLocal, ior);\n'                          +
+        '    } else if (isect.mat == 2.0) {\n'                                             +
+        '        return sampleMirror(wiLocal);\n'                                          +
+        '    } else if (isect.mat == 3.0) {\n'                                             +
+        '        throughput *= vec3(0.0);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else {\n'                                                                   +
+        '        throughput *= vec3(0.8);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    }\n'                                                                          +
+        '}\n',
+
+    'scene19':
+        '#include "trace-frag"\n\n'                                                        +
+
+        '#include "bsdf"\n'                                                                +
+        '#include "intersect"\n\n'                                                         +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.78, 1.0), 3.0, isect);\n\n'              +
+
+        '    // Relay wall\n'                                                              +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2,  -0.2), 0.0, isect);\n\n'       +
+
+        '    // Mirror\n'                                                                  +
+        '    //lineIntersect(ray, vec2(0.4, -0.6), vec2(0.4, 0.2), 0.0, isect);\n\n'       +
+
+        '    // Hidden object\n'                                                           +
+        '    lineIntersect(ray, vec2(-0.4, 1.0), vec2(-0.8, 0.6), 0.0, isect);\n'          +
+        '}\n\n'                                                                            +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
+                                             'out vec3 throughput, out float tMult) {\n'   +
+        '    tMult = 1.0;\n'                                                               +
+        '    if (isect.mat == 1.0) {\n'                                                    +
+        '        float ior = sqrt(sellmeierIor(vec3(1.0396, 0.2318, 1.0105), vec3(0.0060,' +
+                                                         ' 0.0200, 103.56), lambda));\n'   +
+        '        if (wiLocal.y < 0.0) {\n'                                                 +
+        '            // The ray comes from inside the dielectric material - it will take ' +
+                                                                        'longer times\n'   +
+        '            tMult = ior;\n'                                                       +
+        '        }\n'                                                                      +
+        '        return sampleDielectric(state, wiLocal, ior);\n'                          +
+        '    } else if (isect.mat == 2.0) {\n'                                             +
+        '        return sampleMirror(wiLocal);\n'                                          +
+        '    } else if (isect.mat == 3.0) {\n'                                             +
+        '        throughput *= vec3(0.0);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else {\n'                                                                   +
+        '        throughput *= vec3(0.8);\n'                                               +
         '        return sampleDiffuse(state, wiLocal);\n'                                  +
         '    }\n'                                                                          +
         '}\n',
@@ -1922,10 +2058,15 @@ var Shaders = {
         '    vec2 radianceVec = texture2D(radiance, mPos).xy;\n'                           +
         '    // If complex number, compute module (length), otherwise, use only the first' +
                                                                           ' component\n'   +
-        '    float radianceTex = abs(radianceVec.x) * float(1 - isComplex) + length(radia' +
-                                                         'nceVec) * float(isComplex);\n'   +
-        '    radianceTex *= float(1 - usePhase);\n'                                        +
-        '    radianceTex += float(usePhase) * atan(radianceVec.y, radianceVec.x);\n'       +
+        '    float radianceTex;\n'                                                         +
+        '    if (isComplex > 0)\n'                                                         +
+        '        radianceTex = length(radianceVec);\n'                                     +
+        '    else\n'                                                                       +
+        '        radianceTex = abs(radianceVec.x);\n'                                      +
+        '    if (usePhase > 0)\n'                                                          +
+        '        radianceTex = atan(radianceVec.y, radianceVec.x);\n'                      +
+        '    //radianceTex *= float(1 - usePhase);\n'                                      +
+        '    //radianceTex += float(usePhase) * atan(radianceVec.y, radianceVec.x);\n'     +
         '    float xCoord = radianceTex / texture2D(maxValue, vec2(0.5)).x * float(1 - us' +
                                                                             'ePhase);\n'   +
         '    xCoord += float(usePhase == 1 && radianceVec.x != 0.0) * (radianceTex + PI) ' +
