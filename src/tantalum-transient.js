@@ -134,7 +134,19 @@ Transient.prototype.setupUI = function () {
         "tone_mapper_labels": ["None", "Logarithmic", "Square root"],
         "tone_mapper_ids": ["none", "log(1.0+", "sqrt("],
         "magnitudes": ["Amplitude", "Phase"],
-        "material_types": ["Diffuse", "Mirror", "Dielectric", "RoughMirror", "RoughDielectric"]
+        "material_types": ["Diffuse", "Mirror", "Dielectric", "RoughMirror", "RoughDielectric"],
+        "vertices": [
+            // Line
+            [0.0, 0.2, 0.0, -0.2],
+            // Visibility test
+            [0.0, 0.2, 0.0, -0.2,
+                0.0, 0.2, 0.2, 0.54641,
+                -0.2, 0.54641, 0.0, -0.2],
+            // Virtual mirror
+            [0.4, 0.2, 0.4, -0.2],
+            // Virtual mirror rotated
+            [0.5, 0.2, 0.4, -0.2],
+        ]
     };
 
     var sceneShaders = [], sceneNames = [];
@@ -411,10 +423,28 @@ Transient.prototype.setupUI = function () {
     }
     var nFeatures = new NumFeatures(1);
     var featureSizeSlider = new tui.Slider("feature-size", 1, 250, true, function (nf) {
-        this.setLabel((250 / nf).toFixed(4) + " cm");
+        var x1 = getCoordinate("x1");
+        var x2 = getCoordinate("x2");
+        var y1 = getCoordinate("y1");
+        var y2 = getCoordinate("y2");
+        var d = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+        this.setLabel((d * 100 / nf).toFixed(4) + " cm");
         nFeatures.setNFeatures(nf);
     });
     featureSizeSlider.setValue(1);
+    document.getElementById("x1").onchange = function () { updateFeatureSize() };
+    document.getElementById("x2").onchange = function () { updateFeatureSize() };
+    document.getElementById("y1").onchange = function () { updateFeatureSize() };
+    document.getElementById("y2").onchange = function () { updateFeatureSize() };
+    function updateFeatureSize() {
+        var x1 = getCoordinate("x1");
+        var x2 = getCoordinate("x2");
+        var y1 = getCoordinate("y1");
+        var y2 = getCoordinate("y2");
+        var d = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+        var nf = featureSizeSlider.value;
+        featureSizeSlider.setLabel((d * 100 / nf).toFixed(4) + " cm");
+    }
 
     var roughness = 0.01;
     var roughnessSlider = new tui.Slider("roughness-slider", 1, 200, true, function (alpha) {
@@ -430,6 +460,31 @@ Transient.prototype.setupUI = function () {
     });
     wallRoughnessSlider.setValue(50);
 
+    document.getElementById("segment-div").style.display = 'block';
+    document.getElementById("scene-div").style.display = 'none';
+    var usingModifiedScene = false;
+    new tui.ButtonGroup("type-of-scene", true, ["Single segment", "Predefined scene"], function (idx) {
+        if (idx == 0) {
+            document.getElementById("segment-div").style.display = 'block';
+            document.getElementById("scene-div").style.display = 'none';
+            usingModifiedScene = false;
+        } else {
+            document.getElementById("segment-div").style.display = 'none';
+            document.getElementById("scene-div").style.display = 'block';
+            usingModifiedScene = true;
+        }
+    });
+
+    sceneShaders = [];
+    sceneNames = [];
+    for (var i = 0; i < config.scenes.length; ++i) {
+        if (i != 1 && i != 4 && i < 6) {
+            sceneShaders.push(config.scenes[i].shader);
+            sceneNames.push(config.scenes[i].name);
+        }
+    }
+    var modSceneSelector = new tui.ButtonGroup("mod-scene-selector", true, sceneNames, function () { });
+
     function getCoordinate(label) {
         var element = document.getElementById(label);
         var val = element.value;
@@ -441,11 +496,22 @@ Transient.prototype.setupUI = function () {
     }
 
     document.getElementById('create-button').addEventListener('click', (function () {
-        var x1 = getCoordinate("x1");
-        var x2 = getCoordinate("x2");
-        var y1 = getCoordinate("y1");
-        var y2 = getCoordinate("y2");
-        var vertices = generator.generateVertices([x1, y1], [x2, y2], nFeatures.value);
+        var vertices;
+        if (usingModifiedScene) {
+            var endVertices = config.vertices[modSceneSelector.selectedButton];
+            vertices = [];
+            for (var i = 0; i < endVertices.length; i += 4) {
+                vertices = vertices.concat(generator.generateVertices([endVertices[i], endVertices[i + 1]],
+                    [endVertices[i + 2], endVertices[i + 3]], nFeatures.value));
+            }
+            console.log(vertices);
+        } else {
+            var x1 = getCoordinate("x1");
+            var x2 = getCoordinate("x2");
+            var y1 = getCoordinate("y1");
+            var y2 = getCoordinate("y2");
+            vertices = generator.generateVertices([x1, y1], [x2, y2], nFeatures.value);
+        }
         var matParams = [];
         if (matType === genScene.MaterialType.RoughMirror || matType === genScene.MaterialType.RoughDielectric) {
             matParams.push(roughness);
