@@ -131,15 +131,10 @@
         this.isConf = false;
 
         // Shader programs to reconstruct the hidden scene
-        this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-frag");
-        this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-frag");
         this.lapProgram = new tgl.Shader(Shaders, "bp-vert", "lap-frag");
         this.gaussProgram = new tgl.Shader(Shaders, "bp-vert", "gauss-frag");
         this.logProgram = new tgl.Shader(Shaders, "bp-vert", "log-frag");
         this.pfKernelProgram = new tgl.Shader(Shaders, "bp-vert", "pf-filter-frag");
-        // var pfConvFrag = this.replaceNumSpads("pf-conv-frag");
-        // Shaders["replacedPf"] = pfConvFrag;
-        // this.pfProgram = new tgl.Shader(Shaders, "bp-vert", "replacedPf");
         this.maxProgram = new tgl.Shader(Shaders, "max-vert", "max-frag");
         this.sumProgram = new tgl.Shader(Shaders, "bp-vert", "sum-frag");
         this.showProgram = new tgl.Shader(Shaders, "show-vert", "show-frag");
@@ -422,17 +417,13 @@
     Renderer.prototype.setCameraModel = function (id) {
         if (id == 0) {
             // Confocal camera
-            this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-frag");
-            this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-frag");
-            this.bpProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedBp");
-            this.bpConfProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedConfBp");
+            this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "replacedBp");
+            this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "replacedConfBp");
             this.isConvCamera = false;
         } else {
             // Transient camera or conventional camera
-            this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-transient-camera-frag");
-            this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-transient-camera-frag");
-            this.bpProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedTransientBp");
-            this.bpConfProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedConfTransientBp");
+            this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "replacedTransientBp");
+            this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "replacedConfTransientBp");
             this.isConvCamera = (id == 2);
         }
         if (this.finished())
@@ -625,15 +616,15 @@
             var bpSumFrag = this.replaceNumSpads("bp-sum-frag");
             Shaders["replacedSum"] = bpSumFrag;
             this.bpSumProgram = new tgl.Shader(Shaders, "bp-vert", "replacedSum");
-            var bpFrag2 = this.replaceNumSpads("bp-frag2");
-            Shaders["replacedBp"] = bpFrag2;
-            this.bpProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedBp");
-            bpFrag2 = this.replaceNumSpads("bp-transient-camera-frag2");
-            Shaders["replacedTransientBp"] = bpFrag2;
-            var bpConf = this.replaceNumSpads("bp-conf-frag2");
+            var bpFrag = this.replaceNumSpads("bp-frag");
+            Shaders["replacedBp"] = bpFrag;
+            this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "replacedBp");
+            bpFrag = this.replaceNumSpads("bp-transient-camera-frag");
+            Shaders["replacedTransientBp"] = bpFrag;
+            var bpConf = this.replaceNumSpads("bp-conf-frag");
             Shaders["replacedConfBp"] = bpConf;
-            this.bpConfProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedConfBp");
-            bpConf = this.replaceNumSpads("bp-conf-transient-camera-frag2");
+            this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "replacedConfBp");
+            bpConf = this.replaceNumSpads("bp-conf-transient-camera-frag");
             Shaders["replacedConfTransientBp"] = bpConf;
             var hVert = this.replaceNumSpads("h-vert");
             Shaders["replacedH"] = hVert;
@@ -829,124 +820,52 @@
 
     Renderer.prototype.computeBackprojection = function (inputTex, outputBuffer) {
         var gl = this.gl;
-        var w = this.numPixels[0] * this.numPixels[1] / this.numRows;
-        var h = this.numSpads * this.numRows;
         // this.quadVbo.bind();
-        if (this.isConvCamera) gl.enable(gl.BLEND);
-
 
         // Clear previous result
         gl.viewport(0, 0, this.numPixels[0], this.numPixels[1]);
         this.fbo.attachTexture(outputBuffer, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
+        if (this.isConvCamera) gl.enable(gl.BLEND);
 
         var instant = (this.isConvCamera) ? 0 : this.instant;
         var n = (this.isConvCamera) ? this.numIntervals : 1;
 
         var start = Date.now();
         for (var i = 0; i < n; i++) {
-
-            if (!TESTING) {
-                // Clear previous result
-                gl.viewport(0, 0, w, h);
-                this.fbo.attachTexture(this.intermediateBuffer, 0);
-                gl.clear(gl.COLOR_BUFFER_BIT);
-
-                // Backprojection divided by spad points
-                if (this.isConf) {
-                    // Confocal data
-                    this.bpConfProgram.bind();
-                    inputTex.bind(0);
-                    this.spadGridTex.bind(1);
-                    this.planeGridTex.bind(2);
-                    this.bpConfProgram2.uniformF("tmax", this.maxTime);
-                    this.bpConfProgram2.uniformF("instant", instant * this.deltaT);
-                    this.bpConfProgram2.uniformF("numSpads", this.numSpads);
-                    this.bpConfProgram2.uniformTexture("radiance", inputTex);
-                    this.bpConfProgram2.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-                    this.bpConfProgram2.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-                    this.bpConfProgram2.uniformTexture("wallGrid", this.spadGridTex);
-                    this.bpConfProgram2.uniformTexture("planeGrid", this.planeGridTex);
-                    this.quadVbo.draw(this.bpConfProgram, gl.TRIANGLE_FAN);
-                } else {
-                    // Non-confocal data
-                    this.bpProgram.bind();
-                    inputTex.bind(0);
-                    this.spadGridTex.bind(1);
-                    this.planeGridTex.bind(2);
-                    this.bpProgram.uniformF("tmax", this.maxTime);
-                    this.bpProgram.uniformF("instant", instant * this.deltaT);
-                    this.bpProgram.uniformF("numSpads", this.numSpads);
-                    this.bpProgram.uniformTexture("radiance", inputTex);
-                    this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-                    this.bpProgram.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
-                    this.bpProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-                    this.bpProgram.uniformTexture("spadGrid", this.spadGridTex);
-                    this.bpProgram.uniformTexture("planeGrid", this.planeGridTex);
-                    this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
-                }
-                // console.log(instant);
-                instant++;
-            }
-
-            if (DEBUG) {
-                var ibuff = this.intermediateBuffer.getArray(this.numPixels[0] * this.numPixels[1] * this.numSpads);
-                this.ibuff = [];
-                for (let i = 0; i < ibuff.length; i += 4) {
-                    this.ibuff.push(ibuff[i]);
-                }
-                this.fbo.bind();
-            }
-
-            gl.viewport(0, 0, this.numPixels[0], this.numPixels[1]);
-            this.fbo.attachTexture(outputBuffer, 0);
-
-            if (TESTING) {
-                if (this.isConf) {
-                    // Confocal data
-                    this.bpConfProgram2.bind();
-                    inputTex.bind(0);
-                    this.spadGridTex.bind(1);
-                    this.planeGridTex.bind(2);
-                    this.bpConfProgram2.uniformF("tmax", this.maxTime);
-                    this.bpConfProgram2.uniformF("instant", instant * this.deltaT);
-                    this.bpConfProgram2.uniformI("useAbsolute", this.isConvCamera);
-                    this.bpConfProgram2.uniformTexture("radiance", inputTex);
-                    this.bpConfProgram2.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-                    this.bpConfProgram2.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-                    this.bpConfProgram2.uniformTexture("wallGrid", this.spadGridTex);
-                    this.bpConfProgram2.uniformTexture("planeGrid", this.planeGridTex);
-                    this.quadVbo.draw(this.bpConfProgram2, gl.TRIANGLE_FAN);
-                } else {
-                    // Non-confocal data
-                    this.bpProgram2.bind();
-                    inputTex.bind(0);
-                    this.spadGridTex.bind(1);
-                    this.planeGridTex.bind(2);
-                    this.bpProgram2.uniformF("tmax", this.maxTime);
-                    this.bpProgram2.uniformF("instant", instant * this.deltaT);
-                    this.bpProgram2.uniformI("useAbsolute", this.isConvCamera);
-                    this.bpProgram2.uniformTexture("radiance", inputTex);
-                    this.bpProgram2.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-                    this.bpProgram2.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
-                    this.bpProgram2.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-                    this.bpProgram2.uniformTexture("spadGrid", this.spadGridTex);
-                    this.bpProgram2.uniformTexture("planeGrid", this.planeGridTex);
-                    this.quadVbo.draw(this.bpProgram2, gl.TRIANGLE_FAN);
-                }
-                instant++;
+            if (this.isConf) {
+                // Confocal data
+                this.bpConfProgram.bind();
+                inputTex.bind(0);
+                this.spadGridTex.bind(1);
+                this.planeGridTex.bind(2);
+                this.bpConfProgram.uniformF("tmax", this.maxTime);
+                this.bpConfProgram.uniformF("instant", instant * this.deltaT);
+                this.bpConfProgram.uniformI("useAbsolute", this.isConvCamera);
+                this.bpConfProgram.uniformTexture("radiance", inputTex);
+                this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+                this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+                this.bpConfProgram.uniformTexture("wallGrid", this.spadGridTex);
+                this.bpConfProgram.uniformTexture("planeGrid", this.planeGridTex);
+                this.quadVbo.draw(this.bpConfProgram, gl.TRIANGLE_FAN);
             } else {
-                // Sum all spad points' results
-                if (this.isConvCamera) gl.enable(gl.BLEND);
-                this.bpSumProgram.bind();
-                this.intermediateBuffer.bind(0);
-                this.bpSumProgram.uniformI("numRows", this.numRows);
-                this.bpSumProgram.uniformI("useAbsolute", this.isConvCamera);
-                this.bpSumProgram.uniform2F("numPixels", this.numPixels[0], this.numPixels[1]);
-                this.bpSumProgram.uniformTexture("radiance", this.intermediateBuffer);
-                this.quadVbo.draw(this.bpSumProgram, gl.TRIANGLE_FAN);
-                if (this.isConvCamera) gl.disable(gl.BLEND);
+                // Non-confocal data
+                this.bpProgram.bind();
+                inputTex.bind(0);
+                this.spadGridTex.bind(1);
+                this.planeGridTex.bind(2);
+                this.bpProgram.uniformF("tmax", this.maxTime);
+                this.bpProgram.uniformF("instant", instant * this.deltaT);
+                this.bpProgram.uniformI("useAbsolute", this.isConvCamera);
+                this.bpProgram.uniformTexture("radiance", inputTex);
+                this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+                this.bpProgram.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
+                this.bpProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+                this.bpProgram.uniformTexture("spadGrid", this.spadGridTex);
+                this.bpProgram.uniformTexture("planeGrid", this.planeGridTex);
+                this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
             }
+            instant++;
         }
         var finish = Date.now();
         if (this.isConvCamera) console.log(`${finish - start} ms`);
@@ -1147,13 +1066,6 @@
             this.numRows = h;
         }
         // Common buffers for NLOS reconstruction
-        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.NumSpads)
-            if (this.numPixels != undefined && this.numSpads != undefined) {
-                var w = this.numPixels[0] * this.numPixels[1] / this.numRows;
-                var h = this.numRows;
-                this.intermediateBuffer = new tgl.Texture(w, h * this.numSpads, 4, true, false, true, null);
-            } else
-                this.intermediateBuffer = null;
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels || modifiedAttr == ModifiedAttributes.FilterType) {
             if (this.numPixels != undefined) {
                 this.unfilteredBuffer = new tgl.Texture(this.numPixels[0], this.numPixels[1], 4, true, false, true, null);
@@ -1251,10 +1163,6 @@
                 this.gl.clear(this.gl.COLOR_BUFFER_BIT);
             }
             // Reconstruction buffers
-            if (this.intermediateBuffer != undefined && this.intermediateBuffer != null) {
-                this.fbo.attachTexture(this.intermediateBuffer, 0);
-                this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-            }
             if (this.unfilteredBuffer != undefined) {
                 this.fbo.attachTexture(this.unfilteredBuffer, 0);
                 this.gl.clear(this.gl.COLOR_BUFFER_BIT);

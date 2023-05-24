@@ -31,41 +31,6 @@ var Shaders = {
 
         'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
-        'uniform float numSpads;\n'                                                        +
-        'uniform float instant;\n'                                                         +
-        'uniform vec2 laserPos;\n'                                                         +
-        'uniform vec2 spadPos;\n'                                                          +
-        'uniform sampler2D wallGrid; // laser and spad grid\n\n'                           +
-
-        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
-        '        // positions of the considered pixels, on a row\n\n'                      +
-
-        'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
-
-        'void main() {\n'                                                                  +
-        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 1.0 - fract(mPos.y * numSp' +
-                                                                          'ads))).xy;\n'   +
-        '    vec2 wallPos = texture2D(wallGrid, vec2(mPos.y, 0.5)).xy;\n\n'                +
-
-        '    float dlp = distance(wallPos, laserPos); // distance laser device to capture' +
-                                                               'd (illuminated) point\n'   +
-        '    float dsp = distance(wallPos, spadPos); // distance spad device to captured ' +
-                                                                               'point\n'   +
-        '    float ds  = distance(wallPos, pixelPos); // distance captured (illuminated) ' +
-                                                        'point to reconstructed point\n'   +
-        '    float dt = 2.0 * ds + dsp + dlp + instant;\n\n'                               +
-
-        '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(radiance, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'      +
-        '}\n',
-
-    'bp-conf-frag2':
-        '#include "preamble"\n\n'                                                          +
-
-        'uniform float tmax;\n\n'                                                          +
-
-        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
-
         'uniform int useAbsolute; // To accumulate for the conventional camera\n'          +
         'uniform float instant;\n'                                                         +
         'uniform vec2 laserPos;\n'                                                         +
@@ -113,41 +78,6 @@ var Shaders = {
 
         'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
-        'uniform float numSpads;\n'                                                        +
-        'uniform float instant;\n'                                                         +
-        'uniform vec2 laserPos;\n'                                                         +
-        'uniform vec2 spadPos;\n'                                                          +
-        'uniform sampler2D wallGrid; // laser and spad grid\n\n'                           +
-
-        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
-        '        // positions of the considered pixels, on a row\n\n'                      +
-
-        'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
-
-        'void main() {\n'                                                                  +
-        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 1.0 - fract(mPos.y * numSp' +
-                                                                          'ads))).xy;\n'   +
-        '    vec2 wallPos = texture2D(wallGrid, vec2(mPos.y, 0.5)).xy;\n\n'                +
-
-        '    float dlp = distance(wallPos, laserPos); // distance laser device to capture' +
-                                                               'd (illuminated) point\n'   +
-        '    float dsp = distance(wallPos, spadPos); // distance spad device to captured ' +
-                                                                               'point\n'   +
-        '    float ds  = distance(wallPos, pixelPos); // distance captured (illuminated) ' +
-                                                        'point to reconstructed point\n'   +
-        '    float dt = ds + dsp + dlp + instant;\n\n'                                     +
-
-        '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(radiance, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'      +
-        '}\n',
-
-    'bp-conf-transient-camera-frag2':
-        '#include "preamble"\n\n'                                                          +
-
-        'uniform float tmax;\n\n'                                                          +
-
-        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
-
         'uniform float instant;\n'                                                         +
         'uniform vec2 laserPos;\n'                                                         +
         'uniform vec2 spadPos;\n'                                                          +
@@ -185,40 +115,6 @@ var Shaders = {
         '}\n',
 
     'bp-frag':
-        '#include "preamble"\n\n'                                                          +
-
-        'uniform float tmax;\n\n'                                                          +
-
-        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
-
-        'uniform float numSpads;\n'                                                        +
-        'uniform float instant;\n'                                                         +
-        'uniform vec2 laserPos;\n'                                                         +
-        'uniform vec2 laserGrid; // could be more than one, actually\n'                    +
-        'uniform vec2 spadPos;\n'                                                          +
-        'uniform sampler2D spadGrid;\n\n'                                                  +
-
-        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
-        '        // positions of the considered pixels, on a row\n\n'                      +
-
-        'varying vec2 mPos; // Pixel coordinates [0,1]; x = time, y = spad\n\n'            +
-
-        'void main() {\n'                                                                  +
-        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 1.0 - fract(mPos.y * numSp' +
-                                                                          'ads))).xy;\n'   +
-        '    vec2 wallSpad = texture2D(spadGrid, vec2(mPos.y, 0.5)).xy;\n'                 +
-        '    float dlp = distance(laserGrid, laserPos);\n'                                 +
-        '    float dl  = distance(laserGrid, pixelPos);\n'                                 +
-        '    float dsp = distance(wallSpad, spadPos); // distance spad device to captured' +
-                                                                             ' points\n'   +
-        '    float ds  = distance(wallSpad, pixelPos);\n'                                  +
-        '    float dt = ds + dsp + dl + dlp + instant;\n\n'                                +
-
-        '    float t = dt / tmax;\n'                                                       +
-        '    gl_FragColor = texture2D(radiance, vec2(t, mPos.y)) * vec4(t <= 1.0);\n'      +
-        '}\n',
-
-    'bp-frag2':
         '#include "preamble"\n\n'                                                          +
 
         'uniform float tmax;\n\n'                                                          +
@@ -306,40 +202,6 @@ var Shaders = {
         '}\n',
 
     'bp-transient-camera-frag':
-        '#include "preamble"\n\n'                                                          +
-
-        'uniform float tmax;\n\n'                                                          +
-
-        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
-
-        'uniform float numSpads;\n'                                                        +
-        'uniform float instant;\n'                                                         +
-        'uniform vec2 laserPos;\n'                                                         +
-        'uniform vec2 laserGrid; // could be more than one, actually\n'                    +
-        'uniform vec2 spadPos;\n'                                                          +
-        'uniform sampler2D spadGrid;\n\n'                                                  +
-
-        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
-        '        // positions of the considered pixels, on a row\n\n'                      +
-
-        'varying vec2 mPos; // Pixel coordinates [0,1]; x = time, y = spad\n\n'            +
-
-        'void main() {\n'                                                                  +
-        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 1.0 - fract(mPos.y * numSp' +
-                                                                          'ads))).xy;\n'   +
-        '    vec2 wallSpad = texture2D(spadGrid, vec2(mPos.y, 0.5)).xy;\n'                 +
-        '    float dlp = distance(laserGrid, laserPos);\n'                                 +
-        '    float dsp = distance(wallSpad, spadPos); // distance spad device to captured' +
-                                                                             ' points\n'   +
-        '    float ds  = distance(wallSpad, pixelPos);\n'                                  +
-        '    float dt = ds + dsp + dlp + instant;\n\n'                                     +
-
-        '    float t = dt / tmax;\n'                                                       +
-        '    vec4 result = texture2D(radiance, vec2(t, mPos.y));\n'                        +
-        '    gl_FragColor = result * vec4(t <= 1.0);\n'                                    +
-        '}\n',
-
-    'bp-transient-camera-frag2':
         '#include "preamble"\n\n'                                                          +
 
         'uniform float tmax;\n\n'                                                          +

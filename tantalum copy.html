@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,7 @@
 
     <link rel="stylesheet" href="ui.css">
     <link rel="stylesheet" href="src/thirdparty/noUiSlider/nouislider.css">
-    
+
     <script type="text/javascript" src="src/thirdparty/canvasToBlob/canvasToBlob.js"></script>
     <script type="text/javascript" src="src/thirdparty/FileSaver/FileSaver.js"></script>
     <script type="text/javascript" src="src/spectrum.js"></script>
@@ -87,7 +88,9 @@
                 <div class="center-tight">
                     <div id="sigma-slider"></div>
                     <div id="wl-slider"></div>
-                    <div id="magnitude-selector"></div>
+                    <div id="magnitude-div">
+                        <div id="magnitude-selector"></div>
+                    </div>
                 </div>
             </div>
             <div class="col-2-12 col-left col-padding">
@@ -101,7 +104,7 @@
             <div class="col-2-12 col-left col-padding">
                 <h3 class="control-title">Add scene</h3>
                 <div class="button stretch-button active" id="add-button">Add scene</div>
-                
+
                 <!-- The Modal -->
                 <div id="myModal" class="modal">
                     <!-- Modal content -->
@@ -120,13 +123,17 @@
                                 <div id="roughness-slider"></div>
                                 <h3 class="control-title">Vertices</h3>
                                 <label for="x1">x1: </label>
-                                <input type="number" id="x1" placeholder="1.0" class="col-2-12 number-input" step="0.1" max="1.78" min="-1.78">
+                                <input type="number" id="x1" placeholder="1.0" class="col-2-12 number-input" step="0.1"
+                                    max="1.78" min="-1.78">
                                 <label for="y1">y1: </label>
-                                <input type="number" id="y1" placeholder="0.8" class="col-2-12 number-input" step="0.1" max="1.0" min="-1.0"><br/>
+                                <input type="number" id="y1" placeholder="0.8" class="col-2-12 number-input" step="0.1"
+                                    max="1.0" min="-1.0"><br />
                                 <label for="x2">x2: </label>
-                                <input type="number" id="x2" placeholder="-1.5" class="col-2-12 number-input" step="0.1" max="1.78" min="-1.78">
+                                <input type="number" id="x2" placeholder="-1.5" class="col-2-12 number-input" step="0.1"
+                                    max="1.78" min="-1.78">
                                 <label for="y2">y2: </label>
-                                <input type="number" id="y2" placeholder="0.8" class="col-2-12 number-input" step="0.1" max="1.0" min="-1.0">
+                                <input type="number" id="y2" placeholder="0.8" class="col-2-12 number-input" step="0.1"
+                                    max="1.0" min="-1.0">
                             </div>
                             <div class="col-3-12 col-padding col-left">
                                 <h3 class="control-title">Relay wall roughness</h3>
@@ -139,12 +146,12 @@
                         </div>
                         <br>
                         <div class="col-2-12 col-padding button stretch-button active" id="create-button">Add</div>
-                    </div>  
+                    </div>
                 </div>
             </div>
         </div>
         <div class="control-row clearfix">
-            
+
         </div>
         <div class="control-row clearfix">
             <div class="col-3-12 col-left col-padding">
@@ -158,4 +165,5 @@
         </div>
     </div>
 </body>
+
 </html>

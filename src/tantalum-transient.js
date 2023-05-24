@@ -113,13 +113,13 @@ Transient.prototype.colorBufferFloatTest = function (gl) {
 
 Transient.prototype.setupUI = function () {
     var config = {
-        "reconstruction_resolutions": [32, 64, 128, 256, 512, 1024],
+        "reconstruction_resolutions": [32, 64, 128, 256, 512, 1024, 2048, 4096],
         "scenes": [
             { 'shader': 'scene10', 'name': 'Line', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene9', 'name': 'Circle', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene11', 'name': 'Visibility test', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             // {'shader': 'scene12', 'name': 'Virtual mirror',   'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene14', 'name': 'Virtual mirror',   'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene14', 'name': 'Virtual mirror', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene16', 'name': 'Virtual mirror 2', 'posA': [0.64, 0.995], 'posB': [0.837, 0.75], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             // { 'shader': 'scene13', 'name': 'Virtual mirror 2', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene15', 'name': 'Virtual mirror rotated', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
@@ -233,7 +233,37 @@ Transient.prototype.setupUI = function () {
         renderer.setConfocal(Boolean(idx));
     });
     new tui.ButtonGroup("camera-selector", true, config.camera_models, function (idx) {
+        var prev = renderer.isConvCamera;
         renderer.setCameraModel(idx);
+
+        // Hide or show Amplitude/Phase selector depending on camera model if the filter is phasor fields
+        if (renderer.filterType === 'pf') {
+            var current = renderer.isConvCamera;
+            var usePhase = renderer.usePhase;
+
+            if (prev) {
+                // Show Amplitude/Phase selector
+                document.getElementById("magnitude-div").style.display = 'block';
+
+                // Hide tone mapper selector if showing phase
+                var display = (usePhase) ? 'none' : 'block';
+                if (usePhase) {
+                    renderer.setToneMapper('none');
+                } else {
+                    renderer.setToneMapper(config.tone_mapper_ids[tonemapSelector.selectedButton]);
+                }
+                document.getElementById("tonemap-div").style.display = display;
+            } else if (current) {
+                // Hide Amplitude/Phase selector
+                document.getElementById("magnitude-div").style.display = 'none';
+
+                // Show tone mapper selector if previously showing phase
+                if (usePhase) {
+                    document.getElementById("tonemap-div").style.display = 'block';
+                    renderer.setToneMapper(config.tone_mapper_ids[tonemapSelector.selectedButton]);
+                }
+            }
+        }
     });
     var tonemapSelector = new tui.ButtonGroup("tonemap-selector", true, config.tone_mapper_labels, function (idx) {
         renderer.setToneMapper(config.tone_mapper_ids[idx]);
