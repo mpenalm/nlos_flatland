@@ -425,12 +425,14 @@
             this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-frag");
             this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-frag");
             this.bpProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedBp");
+            this.bpConfProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedConfBp");
             this.isConvCamera = false;
         } else {
             // Transient camera or conventional camera
             this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "bp-transient-camera-frag");
             this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "bp-conf-transient-camera-frag");
             this.bpProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedTransientBp");
+            this.bpConfProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedConfTransientBp");
             this.isConvCamera = (id == 2);
         }
         if (this.finished())
@@ -473,7 +475,6 @@
             this.setSpadPositions(true/*, this.currentScene == SECOND_CORNER_SCENE*/);
             this.resetActiveBlock();
             this.reset();
-            console.log(this.spadBoundaries);
         }
     }
 
@@ -629,6 +630,11 @@
             this.bpProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedBp");
             bpFrag2 = this.replaceNumSpads("bp-transient-camera-frag2");
             Shaders["replacedTransientBp"] = bpFrag2;
+            var bpConf = this.replaceNumSpads("bp-conf-frag2");
+            Shaders["replacedConfBp"] = bpConf;
+            this.bpConfProgram2 = new tgl.Shader(Shaders, "bp-vert", "replacedConfBp");
+            bpConf = this.replaceNumSpads("bp-conf-transient-camera-frag2");
+            Shaders["replacedConfTransientBp"] = bpConf;
             var hVert = this.replaceNumSpads("h-vert");
             Shaders["replacedH"] = hVert;
             this.hProgram = new tgl.Shader(Shaders, "replacedH", "h-frag");
@@ -800,7 +806,7 @@
         /*if (idx == SECOND_CORNER_SCENE + 1) {
             this.setSpadPos([0.4, -0.8]);
         } else {*/
-            this.setSpadPos([0, -0.6]);
+        this.setSpadPos([0, -0.6]);
         // }
 
         /*if (this.currentScene == SECOND_CORNER_SCENE) {
@@ -816,7 +822,7 @@
             this.setSpadBoundaries(this.spadBoundaries[0], this.spadBoundaries[1]);
             this.setSpadPositions(true, true);
         } else*/
-            this.currentScene = idx;
+        this.currentScene = idx;
         this.rwallMaterial = rwallMaterial;
         this.reset();
     }
@@ -825,8 +831,8 @@
         var gl = this.gl;
         var w = this.numPixels[0] * this.numPixels[1] / this.numRows;
         var h = this.numSpads * this.numRows;
-        this.quadVbo.bind();
-        gl.disable(gl.BLEND);
+        // this.quadVbo.bind();
+        if (this.isConvCamera) gl.enable(gl.BLEND);
 
 
         // Clear previous result
@@ -853,14 +859,14 @@
                     inputTex.bind(0);
                     this.spadGridTex.bind(1);
                     this.planeGridTex.bind(2);
-                    this.bpConfProgram.uniformF("tmax", this.maxTime);
-                    this.bpConfProgram.uniformF("instant", instant * this.deltaT);
-                    this.bpConfProgram.uniformF("numSpads", this.numSpads);
-                    this.bpConfProgram.uniformTexture("radiance", inputTex);
-                    this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-                    this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-                    this.bpConfProgram.uniformTexture("wallGrid", this.spadGridTex);
-                    this.bpConfProgram.uniformTexture("planeGrid", this.planeGridTex);
+                    this.bpConfProgram2.uniformF("tmax", this.maxTime);
+                    this.bpConfProgram2.uniformF("instant", instant * this.deltaT);
+                    this.bpConfProgram2.uniformF("numSpads", this.numSpads);
+                    this.bpConfProgram2.uniformTexture("radiance", inputTex);
+                    this.bpConfProgram2.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+                    this.bpConfProgram2.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+                    this.bpConfProgram2.uniformTexture("wallGrid", this.spadGridTex);
+                    this.bpConfProgram2.uniformTexture("planeGrid", this.planeGridTex);
                     this.quadVbo.draw(this.bpConfProgram, gl.TRIANGLE_FAN);
                 } else {
                     // Non-confocal data
@@ -896,22 +902,39 @@
             this.fbo.attachTexture(outputBuffer, 0);
 
             if (TESTING) {
-                if (this.isConvCamera) gl.enable(gl.BLEND);
-                this.bpProgram2.bind();
-                inputTex.bind(0);
-                this.spadGridTex.bind(1);
-                this.planeGridTex.bind(2);
-                this.bpProgram2.uniformF("tmax", this.maxTime);
-                this.bpProgram2.uniformF("instant", this.instant * this.deltaT);
-                this.bpProgram2.uniformI("useAbsolute", this.isConvCamera);
-                this.bpProgram2.uniformTexture("radiance", inputTex);
-                this.bpProgram2.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-                this.bpProgram2.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
-                this.bpProgram2.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-                this.bpProgram2.uniformTexture("spadGrid", this.spadGridTex);
-                this.bpProgram2.uniformTexture("planeGrid", this.planeGridTex);
-                this.quadVbo.draw(this.bpProgram2, gl.TRIANGLE_FAN);
-                if (this.isConvCamera) gl.enable(gl.BLEND);
+                if (this.isConf) {
+                    // Confocal data
+                    this.bpConfProgram2.bind();
+                    inputTex.bind(0);
+                    this.spadGridTex.bind(1);
+                    this.planeGridTex.bind(2);
+                    this.bpConfProgram2.uniformF("tmax", this.maxTime);
+                    this.bpConfProgram2.uniformF("instant", instant * this.deltaT);
+                    this.bpConfProgram2.uniformI("useAbsolute", this.isConvCamera);
+                    this.bpConfProgram2.uniformTexture("radiance", inputTex);
+                    this.bpConfProgram2.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+                    this.bpConfProgram2.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+                    this.bpConfProgram2.uniformTexture("wallGrid", this.spadGridTex);
+                    this.bpConfProgram2.uniformTexture("planeGrid", this.planeGridTex);
+                    this.quadVbo.draw(this.bpConfProgram2, gl.TRIANGLE_FAN);
+                } else {
+                    // Non-confocal data
+                    this.bpProgram2.bind();
+                    inputTex.bind(0);
+                    this.spadGridTex.bind(1);
+                    this.planeGridTex.bind(2);
+                    this.bpProgram2.uniformF("tmax", this.maxTime);
+                    this.bpProgram2.uniformF("instant", instant * this.deltaT);
+                    this.bpProgram2.uniformI("useAbsolute", this.isConvCamera);
+                    this.bpProgram2.uniformTexture("radiance", inputTex);
+                    this.bpProgram2.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+                    this.bpProgram2.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
+                    this.bpProgram2.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+                    this.bpProgram2.uniformTexture("spadGrid", this.spadGridTex);
+                    this.bpProgram2.uniformTexture("planeGrid", this.planeGridTex);
+                    this.quadVbo.draw(this.bpProgram2, gl.TRIANGLE_FAN);
+                }
+                instant++;
             } else {
                 // Sum all spad points' results
                 if (this.isConvCamera) gl.enable(gl.BLEND);
@@ -927,6 +950,7 @@
         }
         var finish = Date.now();
         if (this.isConvCamera) console.log(`${finish - start} ms`);
+        gl.disable(gl.BLEND);
     }
 
     Renderer.prototype.findMax = function (inputTex, isComplex = false) {
@@ -956,7 +980,6 @@
             this.maxProgram.uniform2F("numPixels", numPixels[0], numPixels[1]);
             this.maxProgram.uniformI("useSameChannel", useSameChannel);
             this.maxProgram.uniformI("isComplex", useSameChannel && isComplex);
-            // this.maxProgram.uniformI("isComplex", useSameChannel && isComplex);
             // Only complex in the first pass, after that it's just modules
             // When using the conventional camera, we are using modules
             this.maxProgram.uniformTexture("tex", maxBuffers[current]);
@@ -1425,10 +1448,10 @@
                 this.spadBoundaries[1] / this.aspect, 0.0
             ]))
         } else {*/
-            vbo.copy(new Float32Array([
-                1.2 / this.aspect, this.spadBoundaries[0],
-                1.2 / this.aspect, this.spadBoundaries[1]
-            ]));
+        vbo.copy(new Float32Array([
+            1.2 / this.aspect, this.spadBoundaries[0],
+            1.2 / this.aspect, this.spadBoundaries[1]
+        ]));
         //}
         return vbo;
     }
@@ -1688,7 +1711,6 @@
 
         this.fbo.bind();
         this.fbo.drawBuffers(1);
-        gl.enable(gl.BLEND);
         this.quadVbo.bind();
 
         if (this.filterType === 'pf') {
@@ -1705,18 +1727,11 @@
             // else filterType === 'none', and this.filteredBuffer == this.unfilteredBuffer
         }
 
-        var maxValueTex;
-        if (!TESTING)
-            maxValueTex = this.findMax(this.filteredBuffer, this.filterType === 'pf' && this.isConvCamera);
-        else
-            maxValueTex = this.findMax(this.filteredBuffer, false);
+        var maxValueTex = this.findMax(this.filteredBuffer, this.filterType === 'pf' && !this.isConvCamera);
 
         if (DEBUG) {
             var h = this.capturedBuffer.getArray(this.h.length);
             for (let i = 0; i < this.h.length; i++) {
-                // if (h[4 * i + 3] > 1)
-                // this.h[i] = h[4 * i] / (h[4 * i + 3] - 1);
-                // else
                 this.h[i] = h[4 * i];
             }
             var f = this.filteredBuffer.getArray(this.numPixels[0] * this.numPixels[1]);
@@ -1726,9 +1741,6 @@
             }
             // getArray unbinds current framebuffer
             this.fbo.bind();
-            // Clear captured signal
-            // this.fbo.attachTexture(this.capturedBuffer, 0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
         }
         // Clear captured signal
         // this.fbo.attachTexture(this.capturedBuffer, 0);
@@ -1763,6 +1775,7 @@
         this.quadVbo.bind();
         this.quadVbo.draw(this.showProgram, gl.TRIANGLE_FAN);
 
+        gl.enable(gl.BLEND);
         this.geometryProgram.bind();
         this.geometryProgram.uniform4F("uColor", 0.0, 0.0, 1.0, 1.0);
         this.sceneVBOs[this.currentScene].bind();

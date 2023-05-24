@@ -113,7 +113,7 @@ Transient.prototype.colorBufferFloatTest = function (gl) {
 
 Transient.prototype.setupUI = function () {
     var config = {
-        "reconstruction_resolutions": [32, 64, 128, 256],
+        "reconstruction_resolutions": [32, 64, 128, 256, 512, 1024],
         "scenes": [
             { 'shader': 'scene10', 'name': 'Line', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene9', 'name': 'Circle', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },

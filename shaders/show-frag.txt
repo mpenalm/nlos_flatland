@@ -19,7 +19,4 @@ void main() {
     xCoord += float(usePhase == 1 && radianceVec.x != 0.0) * (radianceTex + PI) / (2.0 * PI);
     xCoord += float(usePhase == 1 && radianceVec.x == 0.0) * (PI / 2.0 * sign(radianceVec.y) + PI) / (2.0 * PI);
     gl_FragColor = texture2D(colormap, vec2(xCoord, 0.5));
-
-    //vec2 maxMin = texture2D(maxValue, vec2(0.5)).xy;
-    //gl_FragColor = vec4((radianceVec - maxMin.y) / (maxMin.x - maxMin.y), 0.0, 1.0);
 }
