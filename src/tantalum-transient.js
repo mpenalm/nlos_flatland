@@ -423,25 +423,48 @@ Transient.prototype.setupUI = function () {
     }
     var nFeatures = new NumFeatures(1);
     var featureSizeSlider = new tui.Slider("feature-size", 1, 250, true, function (nf) {
-        var x1 = getCoordinate("x1");
-        var x2 = getCoordinate("x2");
-        var y1 = getCoordinate("y1");
-        var y2 = getCoordinate("y2");
-        var d = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-        this.setLabel((d * 100 / nf).toFixed(4) + " cm");
         nFeatures.setNFeatures(nf);
+        var d;
+        if (usingModifiedScene) {
+            if (modSceneSelector.selectedButton < 3) {
+                // Line, Visibility test, and Virtual mirror
+                d = 0.4;
+            } else {
+                // Virtual mirror rotated
+                d = Math.sqrt(0.17);
+            }
+        } else {
+            var x1 = getCoordinate("x1");
+            var x2 = getCoordinate("x2");
+            var y1 = getCoordinate("y1");
+            var y2 = getCoordinate("y2");
+            d = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+        }
+        this.setLabel((d * 100 / nf).toFixed(4) + " cm");
     });
     featureSizeSlider.setValue(1);
     document.getElementById("x1").onchange = function () { updateFeatureSize() };
     document.getElementById("x2").onchange = function () { updateFeatureSize() };
     document.getElementById("y1").onchange = function () { updateFeatureSize() };
     document.getElementById("y2").onchange = function () { updateFeatureSize() };
-    function updateFeatureSize() {
-        var x1 = getCoordinate("x1");
-        var x2 = getCoordinate("x2");
-        var y1 = getCoordinate("y1");
-        var y2 = getCoordinate("y2");
-        var d = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+    function updateFeatureSize(sceneIdx = -1) {
+        if (usingModifiedScene) {
+            var d;
+            var selectedScene = (sceneIdx == -1) ? modSceneSelector.selectedButton : sceneIdx;
+            if (selectedScene < 3) {
+                // Line, Visibility test, and Virtual mirror
+                d = 0.4;
+            } else {
+                // Virtual mirror rotated
+                d = Math.sqrt(0.17);
+            }
+        } else {
+            var x1 = getCoordinate("x1");
+            var x2 = getCoordinate("x2");
+            var y1 = getCoordinate("y1");
+            var y2 = getCoordinate("y2");
+            d = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+        }
         var nf = featureSizeSlider.value;
         featureSizeSlider.setLabel((d * 100 / nf).toFixed(4) + " cm");
     }
@@ -473,6 +496,7 @@ Transient.prototype.setupUI = function () {
             document.getElementById("scene-div").style.display = 'block';
             usingModifiedScene = true;
         }
+        updateFeatureSize();
     });
 
     sceneShaders = [];
@@ -483,7 +507,9 @@ Transient.prototype.setupUI = function () {
             sceneNames.push(config.scenes[i].name);
         }
     }
-    var modSceneSelector = new tui.ButtonGroup("mod-scene-selector", true, sceneNames, function () { });
+    var modSceneSelector = new tui.ButtonGroup("mod-scene-selector", true, sceneNames, function (idx) { 
+        updateFeatureSize(idx);
+    });
 
     function getCoordinate(label) {
         var element = document.getElementById(label);
