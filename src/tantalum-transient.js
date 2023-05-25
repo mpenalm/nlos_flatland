@@ -306,8 +306,12 @@ Transient.prototype.setupUI = function () {
         spadPositionsSlider.label.textContent = "[" + low + "," + high + "]";
     });
 
+    var spreadSelector = new tui.ButtonGroup("spread-selector", true, ["Point", "Cone", "Beam", "Laser", "Area"],
+            renderer.setSpreadType.bind(renderer));
+
     function selectScene(idx) {
         renderer.changeScene(idx, config.scenes[idx].wallMat);
+        spreadSelector.select(config.scenes[idx].spread);
         if (!renderer.isConf)
             renderer.setNormalizedEmitterPos(config.scenes[idx].posA, config.scenes[idx].posB);
     }
