@@ -101,22 +101,26 @@
     }
 
     SceneGenerator.prototype.generateIntersect = function (vertices, matType) {
-        if (vertices.length > 0 && vertices.length < 4) {
-            alert('Insufficient number of vertices');
-            return '';
-        }
+        vertices.forEach(vertexList => {
+            if (vertexList.length > 0 && vertexList.length < 4) {
+                alert('Insufficient number of vertices');
+                return '';
+            }
+        });
 
         var text = '';
-        var i = 0;
-        while (i + 3 < vertices.length) {
-            v = [];
-            for (var j = 0; j < 4; j++) {
-                v.push(toPrint(vertices[i + j]));
+        vertices.forEach(vertexList => {
+            var i = 0;
+            while (i + 3 < vertexList.length) {
+                v = [];
+                for (var j = 0; j < 4; j++) {
+                    v.push(toPrint(vertexList[i + j]));
+                }
+                text += 'lineIntersect(ray, vec2(' + v[0] + ', ' + v[1] + '), ' +
+                    'vec2(' + v[2] + ', ' + v[3] + '), ' + matType.toFixed(1) + ', isect);\n';
+                i += 2;
             }
-            text += 'lineIntersect(ray, vec2(' + v[0] + ', ' + v[1] + '), ' +
-                'vec2(' + v[2] + ', ' + v[3] + '), ' + matType.toFixed(1) + ', isect);\n';
-            i += 2;
-        }
+        });
         text = text.slice(0, -1);
         return this.baseShader.replace(this.pattern, text);
     }
@@ -211,7 +215,8 @@
                 res.push(y[i % 2]);
             }
         } else {
-            y = linspace(start[1], end[1], nFeatures+1);
+            featureSize = (end[1] - start[1]) / nFeatures;
+            y = linspace(start[1], end[1], nFeatures + 1);
             if (vertical) {
                 x = [Math.min(0.999, start[0] - Math.abs(featureSize) / 2), Math.min(0.999, start[0] + Math.abs(featureSize) / 2)];
                 for (var i = 0; i <= nFeatures; i++) {

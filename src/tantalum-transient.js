@@ -141,7 +141,7 @@ Transient.prototype.setupUI = function () {
             // Visibility test
             [0.0, 0.2, 0.0, -0.2,
                 0.0, 0.2, 0.2, 0.54641,
-                -0.2, 0.54641, 0.0, -0.2],
+                -0.2, -0.54641, 0.0, -0.2],
             // Virtual mirror
             [0.4, 0.2, 0.4, -0.2],
             // Virtual mirror rotated
@@ -496,22 +496,25 @@ Transient.prototype.setupUI = function () {
     }
 
     document.getElementById('create-button').addEventListener('click', (function () {
-        var vertices;
+        var verticesList;
         if (usingModifiedScene) {
             var endVertices = config.vertices[modSceneSelector.selectedButton];
-            vertices = [];
+            verticesList = [];
             for (var i = 0; i < endVertices.length; i += 4) {
-                vertices = vertices.concat(generator.generateVertices([endVertices[i], endVertices[i + 1]],
+                verticesList.push(generator.generateVertices([endVertices[i], endVertices[i + 1]],
                     [endVertices[i + 2], endVertices[i + 3]], nFeatures.value));
             }
-            console.log(vertices);
         } else {
             var x1 = getCoordinate("x1");
             var x2 = getCoordinate("x2");
             var y1 = getCoordinate("y1");
             var y2 = getCoordinate("y2");
-            vertices = generator.generateVertices([x1, y1], [x2, y2], nFeatures.value);
+            verticesList = [generator.generateVertices([x1, y1], [x2, y2], nFeatures.value)];
         }
+        var vertices = [];
+        verticesList.forEach(vertexList => {
+            vertices = vertices.concat(vertexList);
+        });
         var matParams = [];
         if (matType === genScene.MaterialType.RoughMirror || matType === genScene.MaterialType.RoughDielectric) {
             matParams.push(roughness);
@@ -522,10 +525,10 @@ Transient.prototype.setupUI = function () {
         if (wallMatType === genScene.MaterialType.RoughMirror || wallMatType === genScene.MaterialType.RoughDielectric) {
             wallMatParams = [wallRoughness];
         }
-        var ids = generator.generate(vertices, matType, matParams, wallMatType, wallMatParams);
+        var ids = generator.generate(verticesList, matType, matParams, wallMatType, wallMatParams);
         config.scenes.push({ 'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': wallMatType });
         sceneSelector.addButton(config.scenes[config.scenes.length - 1].name);
-        renderer.addScene(ids[0], vertices);
+        renderer.addScene(ids[0], verticesList);
         modal.style.display = "none";
         showSliderHandles();
         sceneSelector.select(config.scenes.length - 1);

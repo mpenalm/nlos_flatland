@@ -551,18 +551,23 @@
 
         // Add vertex buffer to show the geometry
         this.sceneVBOs.push(new tgl.VertexBuffer());
-        this.sceneVBOs[this.sceneVBOs.length - 1].addAttribute("Position", 2, this.gl.FLOAT, false)
-        var numSegments = (vertices.length / 2 - 1);
+        this.sceneVBOs[this.sceneVBOs.length - 1].addAttribute("Position", 2, this.gl.FLOAT, false);
+        var numSegments = 0;
+        vertices.forEach(vertexList => {
+            numSegments += (vertexList.length / 2 - 1);
+        });
         this.sceneVBOs[this.sceneVBOs.length - 1].init(numSegments * 2 + 2);
         var vboData = new Float32Array((numSegments * 2 + 2) * 2);
         addRelayWallVertices(vboData, this.aspect);
         var j = 4;
-        for (var i = 0; i < numSegments; i++) {
-            vboData[j] = vertices[2 * i] / this.aspect; j++;
-            vboData[j] = vertices[2 * i + 1]; j++;
-            vboData[j] = vertices[2 * i + 2] / this.aspect; j++;
-            vboData[j] = vertices[2 * i + 3]; j++;
-        }
+        vertices.forEach(vertexList => {
+            for (var i = 0; i < vertexList.length / 2 - 1; i++) {
+                vboData[j] = vertexList[2 * i] / this.aspect; j++;
+                vboData[j] = vertexList[2 * i + 1]; j++;
+                vboData[j] = vertexList[2 * i + 2] / this.aspect; j++;
+                vboData[j] = vertexList[2 * i + 3]; j++;
+            }
+        });
         this.sceneVBOs[this.sceneVBOs.length - 1].copy(vboData);
     }
 
