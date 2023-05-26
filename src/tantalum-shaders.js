@@ -463,38 +463,6 @@ var Shaders = {
         '    ), matId, isect);\n'                                                           +
         '}\n',
 
-    'gauss-frag':
-        '// https://fiveko.com/gaussian-filter-in-opengl-webgl/\n\n'                       +
-
-        '#include "preamble"\n\n'                                                          +
-
-        '// our texture\n'                                                                 +
-        'uniform sampler2D u_image;\n\n'                                                   +
-
-        '#define KERNEL_SIZE 15\n'                                                         +
-        'uniform vec2 u_textureSize;\n'                                                    +
-        'uniform int u_direction;\n'                                                       +
-        'uniform float u_kernel[KERNEL_SIZE];\n\n'                                         +
-
-        'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
-
-        'void main() {\n'                                                                  +
-        '	// vec2 textCoord = gl_FragCoord.xy / u_textureSize;\n'                          +
-        '	vec2 onePixel = ((u_direction == 0) ? vec2(1.0, 0.0) : vec2(0.0, 1.0)) / u_text' +
-                                                                            'ureSize;\n'   +
-        '	vec4 meanColor = vec4(0);\n'                                                     +
-        '	int ms = KERNEL_SIZE / 2;\n'                                                     +
-        '	for (int i = 0; i < KERNEL_SIZE; i++) {\n'                                       +
-        '		// meanColor += texture2D(u_image, textCoord  + onePixel*vec2(i - ms))*u_kerne' +
-                                                                               'l[i];\n'   +
-        '		vec2 coord = mPos + onePixel*vec2(i - ms);\n'                                   +
-        '		bool inx = coord.x > 0.0 && coord.x < 1.0;\n'                                   +
-        '		bool iny = coord.y > 0.0 && coord.y < 1.0;\n'                                   +
-        '		meanColor += texture2D(u_image, coord)*u_kernel[i] * vec4(inx && iny);\n'       +
-        '	}\n'                                                                             +
-        '	gl_FragColor = meanColor;\n'                                                     +
-        '}\n',
-
     'geometry-frag':
         '#include "preamble"\n\n'      +
 

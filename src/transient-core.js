@@ -54,26 +54,6 @@
         return v + 1;
     }
 
-    function makeGaussKernel(sigma) {
-        const GAUSSKERN = 6.0;
-        var dim = parseInt(Math.max(3.0, GAUSSKERN * sigma));
-        var sqrtSigmaPi2 = Math.sqrt(Math.PI * 2.0) * sigma;
-        var s2 = 2.0 * sigma * sigma;
-        var sum = 0.0;
-
-        var kernel = new Float32Array(dim - !(dim & 1)); // Make it odd number
-        const half = parseInt(kernel.length / 2);
-        for (var j = 0, i = -half; j < kernel.length; i++, j++) {
-            kernel[j] = Math.exp(-(i * i) / (s2)) / sqrtSigmaPi2;
-            sum += kernel[j];
-        }
-        // Normalize the gaussian kernel to prevent image darkening/brightening
-        for (var i = 0; i < dim; i++) {
-            kernel[i] /= sum;
-        }
-        return kernel;
-    }
-
     var SpadData = function (pos, radius, deltaT, maxTime) {
         this.pos = pos;
         this.radius = radius;
@@ -101,8 +81,7 @@
         this.passProgram = new tgl.Shader(Shaders, "compose-vert", "pass-frag");
         this.initProgram = new tgl.Shader(Shaders, "init-vert", "init-frag");
         this.rayProgram = new tgl.Shader(Shaders, "ray-vert", "ray-frag");
-        this.hConfProgram = new tgl.Shader(Shaders, "h-conf-vert", "h-frag");
-        // this.hProgram         = new tgl.Shader(Shaders,       "h-vert",       "h-frag"); // added in setSpadPositions
+        this.hConfProgram = new tgl.Shader(Shaders, "h-conf-vert", "h-frag"); // hProgram added in setSpadPositions
         this.geometryProgram = new tgl.Shader(Shaders, "geometry-vert", "geometry-frag");
         this.tracePrograms = [];
         for (var i = 0; i < scenes.length; ++i)
@@ -124,7 +103,6 @@
 
         // Shader programs to reconstruct the hidden scene
         this.lapProgram = new tgl.Shader(Shaders, "bp-vert", "lap-frag");
-        this.gaussProgram = new tgl.Shader(Shaders, "bp-vert", "gauss-frag");
         this.logProgram = new tgl.Shader(Shaders, "bp-vert", "log-frag");
         this.pfKernelProgram = new tgl.Shader(Shaders, "bp-vert", "pf-filter-frag");
         this.maxProgram = new tgl.Shader(Shaders, "max-vert", "max-frag");
@@ -171,9 +149,6 @@
         this.lapKernel[0] = this.lapKernel[1] = this.lapKernel[2] = this.lapKernel[3] = -1.0;
         this.lapKernel[4] = 8.0;
         this.lapKernel[5] = this.lapKernel[6] = this.lapKernel[7] = this.lapKernel[8] = -1.0;
-
-        // Gaussian filter
-        this.gaussKernel = makeGaussKernel(2.5);
 
         // LoG filter
         var dim = 45;
@@ -972,30 +947,6 @@
         this.quadVbo.draw(this.lapProgram, gl.TRIANGLE_FAN);
     }
 
-    Renderer.prototype.filterGauss = function () {
-        var gl = this.gl;
-
-        this.fbo.attachTexture(this.halfFiltered, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-
-        // Filter the reconstruction with Gaussian
-        // First columns
-        this.gaussProgram.bind();
-        this.unfilteredBuffer.bind(0);
-        this.gaussProgram.uniformI("u_direction", 1);
-        this.gaussProgram.uniform2F("u_textureSize", this.numPixels[0], this.numPixels[1]);
-        this.gaussProgram.uniformFV("u_kernel", this.gaussKernel);
-        this.gaussProgram.uniformTexture("u_image", this.unfilteredBuffer);
-        this.quadVbo.draw(this.gaussProgram, gl.TRIANGLE_FAN);
-        // Then rows
-        this.fbo.attachTexture(this.filteredBuffer, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        this.halfFiltered.bind(0);
-        this.gaussProgram.uniformI("u_direction", 0);
-        this.gaussProgram.uniformTexture("u_image", this.halfFiltered);
-        this.quadVbo.draw(this.gaussProgram, gl.TRIANGLE_FAN);
-    }
-
     Renderer.prototype.filterLoG = function () {
         var gl = this.gl;
 
@@ -1090,10 +1041,6 @@
                     this.hFilt = new Float32Array(2 * this.h.length);
                 }
             }
-        // Gauss buffer
-        if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumPixels)
-            if (this.numPixels != undefined)
-                this.halfFiltered = new tgl.Texture(this.numPixels[0], this.numPixels[1], 4, true, false, true, null);
         // PF buffers
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
             if (this.numIntervals != undefined && this.numSpads != undefined) {
@@ -1634,9 +1581,7 @@
             this.computeBackprojection(this.interFiltBuffer, this.filteredBuffer);
         } else {
             this.computeBackprojection(this.capturedBuffer, this.unfilteredBuffer);
-            if (this.filterType === 'gauss')
-                this.filterGauss();
-            else if (this.filterType === 'log')
+            if (this.filterType === 'log')
                 this.filterLoG();
             else if (this.filterType === 'lap')
                 this.filterLap();
@@ -1680,7 +1625,6 @@
         this.showProgram.uniformF("Aspect", this.aspect);
         this.showProgram.uniformI("numSpads", this.numSpads);
         this.showProgram.uniformI("isComplex", this.filterType === 'pf' && !this.isConvCamera);
-        // this.showProgram.uniformI("isComplex", this.filterType === 'pf');
         this.showProgram.uniformI("usePhase", usePhase);
         if (usePhase)
             this.showProgram.uniformTexture("colormap", this.colormapSeismicTex);

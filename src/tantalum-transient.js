@@ -130,7 +130,7 @@ Transient.prototype.setupUI = function () {
         "capture_methods": ["Non-confocal", "Confocal"],
         "camera_models": ["Confocal", "Transient", "Conventional"],
         "spad_num": [16, 32, 64, 128],
-        "filters": ["None", "Laplacian", "Gaussian", "Laplacian of Gaussian", "Phasor Fields"],
+        "filters": ["None", "Laplacian", "Laplacian of Gaussian", "Phasor Fields"],
         "tone_mapper_labels": ["None", "Logarithmic", "Square root"],
         "tone_mapper_ids": ["none", "log(1.0+", "sqrt("],
         "magnitudes": ["Amplitude", "Phase"],
@@ -173,8 +173,6 @@ Transient.prototype.setupUI = function () {
         if (words.length == 1) {
             if (filt[0] == 'l')
                 filt = "lap";
-            else if (filt[0] == 'g')
-                filt = "gauss";
         } else {
             filt = "";
             words.forEach(w => {
@@ -220,18 +218,19 @@ Transient.prototype.setupUI = function () {
         document.getElementById("tonemap-div").style.display = display;
     });
 
-    document.getElementById("filter-parameter").style.visibility = "hidden";
+    document.getElementById("filter-parameter").style.display = 'none';
 
     (new tui.ButtonGroup("filter-selector", true, config.filters, function (idx) {
         renderer.setFilterType(filterTypes[idx]);
-        if (idx < 4) {
-            document.getElementById("filter-parameter").style.visibility = "hidden";
+        if (idx < 3) {
+            document.getElementById("filter-parameter").style.display = 'none';
+            document.getElementById("conventional-addition").style.display = 'none';
         } else {
-            document.getElementById("filter-parameter").style.visibility = "visible";
+            document.getElementById("filter-parameter").style.display = 'block';
+            document.getElementById("conventional-addition").style.display = (renderer.isConvCamera) ? 'block' : 'none';
             wlSlider.show(filterTypes[idx] === 'pf');
-            // magSelector.show(filterTypes[idx] === 'pf');
         }
-    })).select(4);
+    })).select(3);
 
     resolutionLabels = [];
     for (var i = 0; i < config.reconstruction_resolutions.length; ++i)
