@@ -250,6 +250,20 @@ Transient.prototype.setupUI = function () {
         else
             document.getElementById("spread-type").style.display = 'block';
     });
+
+    document.getElementById("xa").onchange = function () { updateLightSourcePos() };
+    document.getElementById("ya").onchange = function () { updateLightSourcePos() };
+    document.getElementById("xb").onchange = function () { updateLightSourcePos() };
+    document.getElementById("yb").onchange = function () { updateLightSourcePos() };
+    function updateLightSourcePos() {
+        var xa = getCoordinate("xa");
+        var xb = getCoordinate("xb");
+        var ya = getCoordinate("ya");
+        var yb = getCoordinate("yb");
+        renderer.setEmitterPos(renderer.scene2canvas([xa, ya]), renderer.scene2canvas([xb, yb]));
+    }
+
+
     new tui.ButtonGroup("addition-selector", false, config.addition_modes, function (idx) {
         renderer.setAddModules(!idx);
     });

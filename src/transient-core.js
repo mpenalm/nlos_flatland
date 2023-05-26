@@ -74,15 +74,6 @@
         return kernel;
     }
 
-    function scene2canvas(pos, aspect, width, height) {
-        var result = [0, 0];
-        result[0] = pos[0] / (2 * aspect) + 0.5;
-        result[1] = 0.5 - pos[1] / 2;
-        result[0] *= width;
-        result[1] *= height;
-        return result;
-    }
-
     var SpadData = function (pos, radius, deltaT, maxTime) {
         this.pos = pos;
         this.radius = radius;
@@ -204,6 +195,15 @@
         this.usePhase = false;
         this.addModules = true;
         this.createSceneVBOs();
+    }
+    
+    Renderer.prototype.scene2canvas = function(pos, aspect, width, height) {
+        var result = [0, 0];
+        result[0] = pos[0] / (2 * this.aspect) + 0.5;
+        result[1] = 0.5 - pos[1] / 2;
+        result[0] *= this.width;
+        result[1] *= this.height;
+        return result;
     }
 
     Renderer.prototype.createSceneVBOs = function () {
@@ -511,11 +511,11 @@
             this.isConf = isConf;
             if (!isConf) {
                 this.laserGrid = [1.2, (this.spadBoundaries[0] + this.spadBoundaries[1]) / 2];
-                this.setEmitterPos(this.emitterPos, scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
+                this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
             } else {
                 this.spreadType = tcore.Renderer.SPREAD_LASER;
                 this.laserGrid = [this.spadPoints[2 * this.confCounter], this.spadPoints[2 * this.confCounter + 1]];
-                this.setEmitterPos(this.emitterPos, scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
+                this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
             }
             this.createNLOSBuffers(ModifiedAttributes.Confocality);
         }
@@ -620,7 +620,6 @@
 
             // Recompile shaders only if necessary
             if (changeNumSpads) {
-                console.log("Recompiling numSpads-dependent shaders");
                 var bpSumFrag = this.replaceNumSpads("bp-sum-frag");
                 Shaders["replacedSum"] = bpSumFrag;
                 this.bpSumProgram = new tgl.Shader(Shaders, "bp-vert", "replacedSum");
@@ -1148,7 +1147,7 @@
         this.confCounter = 0;
         if (this.isConf) {
             this.laserGrid = [this.spadPoints[0], this.spadPoints[1]];
-            this.setEmitterPos(this.emitterPos, scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
+            this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
         }
         if (this.h != undefined) {
             for (var i = 0; i < this.h.length; i++) {
@@ -1220,7 +1219,8 @@
     }
 
     Renderer.prototype.setEmitterPos = function (posA, posB, reset = true) {
-        this.emitterPos = this.spreadType == tcore.Renderer.SPREAD_POINT ? posB : posA;
+        // this.emitterPos = this.spreadType == tcore.Renderer.SPREAD_POINT ? posB : posA;
+        this.emitterPos = posA;
         this.emitterAngle = this.spreadType == tcore.Renderer.SPREAD_POINT ? 0.0 : Math.atan2(posB[1] - posA[1], posB[0] - posA[0]);
         this.computeSpread();
 
@@ -1399,7 +1399,7 @@
                 if (this.confCounter >= this.numSpads)
                     return true;
                 this.laserGrid = [this.spadPoints[2 * this.confCounter], this.spadPoints[2 * this.confCounter + 1]];
-                this.setEmitterPos(this.emitterPos, scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
+                this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
                 this.partialReset();
             }
             return false;
