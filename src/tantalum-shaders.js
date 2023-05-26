@@ -78,7 +78,6 @@ var Shaders = {
 
         'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
-        'uniform float lightIsLaser; // 1.0 for true, 0.0 for false\n'                     +
         'uniform float instant;\n'                                                         +
         'uniform vec2 laserPos;\n'                                                         +
         'uniform vec2 spadPos;\n'                                                          +
@@ -105,7 +104,7 @@ var Shaders = {
                                                                           'red points\n'   +
         '        float ds  = distance(wallPos, pixelPos); // distance captured (illuminat' +
                                                     'ed) point to reconstructed point\n'   +
-        '        float dt = ds + dsp + dlp * lightIsLaser + instant;\n\n'                  +
+        '        float dt = ds + dsp + dlp + instant;\n\n'                                 +
 
         '        float t = dt / tmax;\n'                                                   +
         '        radianceAccum += texture2D(radiance, vec2(t, xSpad)).xy * vec2(t <= 1.0)' +

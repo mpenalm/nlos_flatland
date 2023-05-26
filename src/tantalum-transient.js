@@ -146,7 +146,8 @@ Transient.prototype.setupUI = function () {
             [0.4, 0.2, 0.4, -0.2],
             // Virtual mirror rotated
             [0.5, 0.2, 0.4, -0.2],
-        ]
+        ],
+        "addition_modes": ["Absolute space", "Complex space"]
     };
 
     var sceneShaders = [], sceneNames = [];
@@ -242,13 +243,21 @@ Transient.prototype.setupUI = function () {
     });
     recResolutionSelector.select(2);
     new tui.ButtonGroup("capture-selector", true, config.capture_methods, function (idx) {
-        renderer.setConfocal(Boolean(idx));
+        var isConf = Boolean(idx);
+        renderer.setConfocal(isConf);
+        if (isConf)
+            document.getElementById("spread-type").style.display = 'none';
+        else
+            document.getElementById("spread-type").style.display = 'block';
+    });
+    new tui.ButtonGroup("addition-selector", false, config.addition_modes, function (idx) {
+        renderer.setAddModules(!idx);
     });
     new tui.ButtonGroup("camera-selector", true, config.camera_models, function (idx) {
         var prev = renderer.isConvCamera;
         renderer.setCameraModel(idx);
 
-        // Hide or show Amplitude/Phase selector depending on camera model if the filter is phasor fields
+        // Hide or show Amplitude/Phase and Module/Complex selectors depending on camera model if the filter is phasor fields
         if (renderer.filterType === 'pf') {
             var current = renderer.isConvCamera;
             var usePhase = renderer.usePhase;
@@ -265,6 +274,9 @@ Transient.prototype.setupUI = function () {
                     renderer.setToneMapper(config.tone_mapper_ids[tonemapSelector.selectedButton]);
                 }
                 document.getElementById("tonemap-div").style.display = display;
+
+                // Hide Module/Complex addition selector
+                document.getElementById("conventional-addition").style.display = 'none';
             } else if (current) {
                 // Hide Amplitude/Phase selector
                 document.getElementById("magnitude-div").style.display = 'none';
@@ -274,6 +286,9 @@ Transient.prototype.setupUI = function () {
                     document.getElementById("tonemap-div").style.display = 'block';
                     renderer.setToneMapper(config.tone_mapper_ids[tonemapSelector.selectedButton]);
                 }
+
+                // Show Module/Complex addition selector
+                document.getElementById("conventional-addition").style.display = 'block';
             }
         }
     });
@@ -307,7 +322,7 @@ Transient.prototype.setupUI = function () {
     });
 
     var spreadSelector = new tui.ButtonGroup("spread-selector", true, ["Point", "Cone", "Beam", "Laser", "Area"],
-            renderer.setSpreadType.bind(renderer));
+        renderer.setSpreadType.bind(renderer));
 
     function selectScene(idx) {
         renderer.changeScene(idx, config.scenes[idx].wallMat);
@@ -511,7 +526,7 @@ Transient.prototype.setupUI = function () {
             sceneNames.push(config.scenes[i].name);
         }
     }
-    var modSceneSelector = new tui.ButtonGroup("mod-scene-selector", true, sceneNames, function (idx) { 
+    var modSceneSelector = new tui.ButtonGroup("mod-scene-selector", true, sceneNames, function (idx) {
         updateFeatureSize(idx);
     });
 

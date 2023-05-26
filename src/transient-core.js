@@ -201,6 +201,7 @@
         this.instant = 0;
         this.playing = false;
         this.usePhase = false;
+        this.addModules = true;
         this.createSceneVBOs();
     }
 
@@ -430,6 +431,12 @@
             this.redraw();
     }
 
+    Renderer.prototype.setAddModules = function (addModules) {
+        this.addModules = addModules;
+        if (this.finished())
+            this.redraw();
+    }
+
     Renderer.prototype.replaceNumSpads = function (shaderName) {
         var pattern = new RegExp('{numSpads}');
         var shaderSource = Shaders[shaderName];
@@ -514,6 +521,7 @@
                 this.laserGrid = [1.2, (this.spadBoundaries[0] + this.spadBoundaries[1]) / 2];
                 this.setEmitterPos(this.emitterPos, scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
             } else {
+                this.spreadType = tcore.Renderer.SPREAD_LASER;
                 this.laserGrid = [this.spadPoints[2 * this.confCounter], this.spadPoints[2 * this.confCounter + 1]];
                 this.setEmitterPos(this.emitterPos, scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
             }
@@ -594,7 +602,6 @@
                     this.spadPoints.push(h);
                 }
             }
-            // console.log(this.spadPoints);
 
             var spadGridData = new Float32Array(this.numSpads * 4);
             for (var i = 0; i < this.numSpads; i++) {
@@ -846,8 +853,7 @@
                 this.planeGridTex.bind(2);
                 this.bpConfProgram.uniformF("tmax", this.maxTime);
                 this.bpConfProgram.uniformF("instant", instant * this.deltaT);
-                this.bpConfProgram.uniformF("lightIsLaser", this.spreadType == tcore.Renderer.SPREAD_LASER);
-                this.bpConfProgram.uniformI("useAbsolute", this.isConvCamera);
+                this.bpConfProgram.uniformI("useAbsolute", this.isConvCamera && this.addModules);
                 this.bpConfProgram.uniformTexture("radiance", inputTex);
                 this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
                 this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
@@ -863,7 +869,7 @@
                 this.bpProgram.uniformF("tmax", this.maxTime);
                 this.bpProgram.uniformF("instant", instant * this.deltaT);
                 this.bpProgram.uniformF("lightIsLaser", this.spreadType == tcore.Renderer.SPREAD_LASER);
-                this.bpProgram.uniformI("useAbsolute", this.isConvCamera);
+                this.bpProgram.uniformI("useAbsolute", this.isConvCamera && this.addModules);
                 this.bpProgram.uniformTexture("radiance", inputTex);
                 this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
                 this.bpProgram.uniform2F("laserGrid", this.laserGrid[0], this.laserGrid[1]);
