@@ -78,6 +78,7 @@ var Shaders = {
 
         'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
+        'uniform float lightIsLaser; // 1.0 for true, 0.0 for false\n'                     +
         'uniform float instant;\n'                                                         +
         'uniform vec2 laserPos;\n'                                                         +
         'uniform vec2 spadPos;\n'                                                          +
@@ -104,7 +105,7 @@ var Shaders = {
                                                                           'red points\n'   +
         '        float ds  = distance(wallPos, pixelPos); // distance captured (illuminat' +
                                                     'ed) point to reconstructed point\n'   +
-        '        float dt = ds + dsp + dlp + instant;\n\n'                                 +
+        '        float dt = ds + dsp + dlp * lightIsLaser + instant;\n\n'                  +
 
         '        float t = dt / tmax;\n'                                                   +
         '        radianceAccum += texture2D(radiance, vec2(t, xSpad)).xy * vec2(t <= 1.0)' +
@@ -209,6 +210,7 @@ var Shaders = {
         'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
         'uniform int useAbsolute; // To accumulate for the conventional camera\n'          +
+        'uniform float lightIsLaser; // 1.0 for true, 0.0 for false\n'                     +
         'uniform float instant;\n'                                                         +
         'uniform vec2 laserPos;\n'                                                         +
         'uniform vec2 laserGrid; // could be more than one, actually\n'                    +
@@ -234,7 +236,7 @@ var Shaders = {
         '        float dsp = distance(wallSpad, spadPos); // distance spad device to capt' +
                                                                          'ured points\n'   +
         '        float ds  = distance(wallSpad, pixelPos);\n'                              +
-        '        float dt = ds + dsp + dlp + instant;\n\n'                                 +
+        '        float dt = ds + dsp + dlp * lightIsLaser + instant;\n\n'                  +
 
         '        float t = dt / tmax;\n'                                                   +
         '        radianceAccum += texture2D(radiance, vec2(t, xSpad)).xy * vec2(t <= 1.0)' +

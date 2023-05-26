@@ -5,6 +5,7 @@ uniform float tmax;
 uniform sampler2D radiance; // x time, y spad
 
 uniform int useAbsolute; // To accumulate for the conventional camera
+uniform float lightIsLaser; // 1.0 for true, 0.0 for false
 uniform float instant;
 uniform vec2 laserPos;
 uniform vec2 laserGrid; // could be more than one, actually
@@ -29,7 +30,7 @@ void main() {
         float dlp = distance(laserGrid, laserPos);
         float dsp = distance(wallSpad, spadPos); // distance spad device to captured points
         float ds  = distance(wallSpad, pixelPos);
-        float dt = ds + dsp + dlp + instant;
+        float dt = ds + dsp + dlp * lightIsLaser + instant;
 
         float t = dt / tmax;
         radianceAccum += texture2D(radiance, vec2(t, xSpad)).xy * vec2(t <= 1.0);

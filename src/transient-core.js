@@ -846,6 +846,7 @@
                 this.planeGridTex.bind(2);
                 this.bpConfProgram.uniformF("tmax", this.maxTime);
                 this.bpConfProgram.uniformF("instant", instant * this.deltaT);
+                this.bpConfProgram.uniformF("lightIsLaser", this.spreadType == tcore.Renderer.SPREAD_LASER);
                 this.bpConfProgram.uniformI("useAbsolute", this.isConvCamera);
                 this.bpConfProgram.uniformTexture("radiance", inputTex);
                 this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
@@ -861,6 +862,7 @@
                 this.planeGridTex.bind(2);
                 this.bpProgram.uniformF("tmax", this.maxTime);
                 this.bpProgram.uniformF("instant", instant * this.deltaT);
+                this.bpProgram.uniformF("lightIsLaser", this.spreadType == tcore.Renderer.SPREAD_LASER);
                 this.bpProgram.uniformI("useAbsolute", this.isConvCamera);
                 this.bpProgram.uniformTexture("radiance", inputTex);
                 this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
