@@ -32,6 +32,7 @@ var Shaders = {
         'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
         'uniform int useAbsolute; // To accumulate for the conventional camera\n'          +
+        'uniform float isConfocalModel; // 1.0 for true, 0.0 for false\n'                  +
         'uniform float instant;\n'                                                         +
         'uniform vec2 laserPos;\n'                                                         +
         'uniform vec2 spadPos;\n'                                                          +
@@ -58,7 +59,7 @@ var Shaders = {
                                                                           'red points\n'   +
         '        float ds  = distance(wallPos, pixelPos); // distance captured (illuminat' +
                                                     'ed) point to reconstructed point\n'   +
-        '        float dt = 2.0 * ds + dsp + dlp + instant;\n\n'                           +
+        '        float dt = (1.0 + isConfocalModel) * ds + dsp + dlp + instant;\n\n'       +
 
         '        float t = dt / tmax;\n'                                                   +
         '        radianceAccum += texture2D(radiance, vec2(t, xSpad)).xy * vec2(t <= 1.0)' +
@@ -71,49 +72,6 @@ var Shaders = {
         '            radianceAccum.y * float(1 - useAbsolute), 0.0, 1.0);\n'               +
         '}\n',
 
-    'bp-conf-transient-camera-frag':
-        '#include "preamble"\n\n'                                                          +
-
-        'uniform float tmax;\n\n'                                                          +
-
-        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
-
-        'uniform float instant;\n'                                                         +
-        'uniform vec2 laserPos;\n'                                                         +
-        'uniform vec2 spadPos;\n'                                                          +
-        'uniform sampler2D wallGrid; // laser and spad grid\n\n'                           +
-
-        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
-        '        // positions of the considered pixels, on a row\n\n'                      +
-
-        'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
-
-        'const int numSpads = {numSpads};\n\n'                                             +
-
-        'void main() {\n'                                                                  +
-        '    float spadDist = 1.0 / float(numSpads);\n'                                    +
-        '    float xSpad = spadDist / 2.0;\n\n'                                            +
-
-        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 1.0 - mPos.y)).xy;\n'       +
-        '    vec2 radianceAccum = vec2(0.0);\n'                                            +
-        '    for (int i = 0; i < numSpads; i++) {\n'                                       +
-        '        vec2 wallPos = texture2D(wallGrid, vec2(xSpad, 0.5)).xy;\n'               +
-        '        float dlp = distance(wallPos, laserPos); // distance laser device to cap' +
-                                                           'tured (illuminated) point\n'   +
-        '        float dsp = distance(wallPos, spadPos); // distance spad device to captu' +
-                                                                          'red points\n'   +
-        '        float ds  = distance(wallPos, pixelPos); // distance captured (illuminat' +
-                                                    'ed) point to reconstructed point\n'   +
-        '        float dt = ds + dsp + dlp + instant;\n\n'                                 +
-
-        '        float t = dt / tmax;\n'                                                   +
-        '        radianceAccum += texture2D(radiance, vec2(t, xSpad)).xy * vec2(t <= 1.0)' +
-                                                                                   ';\n'   +
-        '        xSpad += spadDist;\n'                                                     +
-        '    }\n'                                                                          +
-        '    gl_FragColor = vec4(radianceAccum, 0.0, 1.0);\n'                              +
-        '}\n',
-
     'bp-frag':
         '#include "preamble"\n\n'                                                          +
 
@@ -121,6 +79,9 @@ var Shaders = {
 
         'uniform sampler2D radiance; // x time, y spad\n\n'                                +
 
+        'uniform int useAbsolute; // To accumulate for the conventional camera\n'          +
+        'uniform float lightIsLaser; // 1.0 for true, 0.0 for false\n'                     +
+        'uniform float isConfocalModel; // 1.0 for true, 0.0 for false\n'                  +
         'uniform float instant;\n'                                                         +
         'uniform vec2 laserPos;\n'                                                         +
         'uniform vec2 laserGrid; // could be more than one, actually\n'                    +
@@ -147,14 +108,17 @@ var Shaders = {
         '        float dsp = distance(wallSpad, spadPos); // distance spad device to capt' +
                                                                          'ured points\n'   +
         '        float ds  = distance(wallSpad, pixelPos);\n'                              +
-        '        float dt = ds + dsp + dl + dlp + instant;\n\n'                            +
+        '        float dt = ds + dsp + dl * isConfocalModel + dlp * lightIsLaser + instan' +
+                                                                                  't;\n\n' +
 
         '        float t = dt / tmax;\n'                                                   +
         '        radianceAccum += texture2D(radiance, vec2(t, xSpad)).xy * vec2(t <= 1.0)' +
                                                                                    ';\n'   +
         '        xSpad += spadDist;\n'                                                     +
         '    }\n'                                                                          +
-        '    gl_FragColor = vec4(radianceAccum, 0.0, 1.0);\n'                              +
+        '    gl_FragColor = vec4(length(radianceAccum) * float(useAbsolute) + radianceAcc' +
+                                                     'um.x * float(1 - useAbsolute), \n'   +
+        '            radianceAccum.y * float(1 - useAbsolute), 0.0, 1.0);\n'               +
         '}\n',
 
     'bp-sum-frag':
@@ -199,53 +163,6 @@ var Shaders = {
         '    } else {\n'                                                                   +
         '        gl_FragColor = vec4(radianceAccum, 0.0, 1.0);\n'                          +
         '    }\n'                                                                          +
-        '}\n',
-
-    'bp-transient-camera-frag':
-        '#include "preamble"\n\n'                                                          +
-
-        'uniform float tmax;\n\n'                                                          +
-
-        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
-
-        'uniform int useAbsolute; // To accumulate for the conventional camera\n'          +
-        'uniform float lightIsLaser; // 1.0 for true, 0.0 for false\n'                     +
-        'uniform float instant;\n'                                                         +
-        'uniform vec2 laserPos;\n'                                                         +
-        'uniform vec2 laserGrid; // could be more than one, actually\n'                    +
-        'uniform vec2 spadPos;\n'                                                          +
-        'uniform sampler2D spadGrid;\n\n'                                                  +
-
-        'uniform sampler2D planeGrid; // Plane to reconstruct\n'                           +
-        '        // positions of the considered pixels, on a row\n\n'                      +
-
-        'varying vec2 mPos; // Pixel coordinates [0,1]; x = time, y = spad\n\n'            +
-
-        'const int numSpads = {numSpads};\n\n'                                             +
-
-        'void main() {\n'                                                                  +
-        '    float spadDist = 1.0 / float(numSpads);\n'                                    +
-        '    float xSpad = spadDist / 2.0;\n\n'                                            +
-
-        '    vec2 pixelPos = texture2D(planeGrid, vec2(mPos.x, 1.0 - mPos.y)).xy;\n'       +
-        '    vec2 radianceAccum = vec2(0.0);\n'                                            +
-        '    for (int i = 0; i < numSpads; i++) {\n'                                       +
-        '        vec2 wallSpad = texture2D(spadGrid, vec2(xSpad, 0.5)).xy;\n'              +
-        '        float dlp = distance(laserGrid, laserPos);\n'                             +
-        '        float dsp = distance(wallSpad, spadPos); // distance spad device to capt' +
-                                                                         'ured points\n'   +
-        '        float ds  = distance(wallSpad, pixelPos);\n'                              +
-        '        float dt = ds + dsp + dlp * lightIsLaser + instant;\n\n'                  +
-
-        '        float t = dt / tmax;\n'                                                   +
-        '        radianceAccum += texture2D(radiance, vec2(t, xSpad)).xy * vec2(t <= 1.0)' +
-                                                                                   ';\n'   +
-        '        xSpad += spadDist;\n'                                                     +
-        '    }\n\n'                                                                        +
-
-        '    gl_FragColor = vec4(length(radianceAccum) * float(useAbsolute) + radianceAcc' +
-                                                     'um.x * float(1 - useAbsolute), \n'   +
-        '            radianceAccum.y * float(1 - useAbsolute), 0.0, 1.0);\n'               +
         '}\n',
 
     'bp-vert':

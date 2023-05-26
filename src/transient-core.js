@@ -129,6 +129,7 @@
         this.setSpadPos([0, -0.6]);
         this.bboxCorners = [-1.78, 1.0, 1.78, -1.0]; // upper left, bottom right
         this.isConf = false;
+        this.isVirtualConf = true;
 
         // Shader programs to reconstruct the hidden scene
         this.lapProgram = new tgl.Shader(Shaders, "bp-vert", "lap-frag");
@@ -416,17 +417,8 @@
     }
 
     Renderer.prototype.setCameraModel = function (id) {
-        if (id == 0) {
-            // Confocal camera
-            this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "replacedBp");
-            this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "replacedConfBp");
-            this.isConvCamera = false;
-        } else {
-            // Transient camera or conventional camera
-            this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "replacedTransientBp");
-            this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "replacedConfTransientBp");
-            this.isConvCamera = (id == 2);
-        }
+        this.isVirtualConf = (id == 0);
+        this.isConvCamera = (id == 2);
         if (this.finished())
             this.redraw();
     }
@@ -580,7 +572,8 @@
     }
 
     Renderer.prototype.setSpadPositions = function (changedBounds = false, horizontal = false) {
-        var changePos = (this.spadHeights === undefined || this.spadHeights.length != this.numSpads || changedBounds);
+        var changeNumSpads = (this.spadHeights === undefined || this.spadHeights.length != this.numSpads);
+        var changePos = (changeNumSpads || changedBounds);
 
         if (changePos && this.spadBoundaries != undefined && this.numSpads != undefined) {
             this.spadHeights = intermediatePositions(this.spadBoundaries[1], this.spadBoundaries[0], this.numSpads);
@@ -625,22 +618,22 @@
             }
             this.spadNormalsTex = new tgl.Texture(this.numSpads, 1, 4, true, false, true, this.spadNormalsData);
 
-            var bpSumFrag = this.replaceNumSpads("bp-sum-frag");
-            Shaders["replacedSum"] = bpSumFrag;
-            this.bpSumProgram = new tgl.Shader(Shaders, "bp-vert", "replacedSum");
-            var bpFrag = this.replaceNumSpads("bp-frag");
-            Shaders["replacedBp"] = bpFrag;
-            this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "replacedBp");
-            bpFrag = this.replaceNumSpads("bp-transient-camera-frag");
-            Shaders["replacedTransientBp"] = bpFrag;
-            var bpConf = this.replaceNumSpads("bp-conf-frag");
-            Shaders["replacedConfBp"] = bpConf;
-            this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "replacedConfBp");
-            bpConf = this.replaceNumSpads("bp-conf-transient-camera-frag");
-            Shaders["replacedConfTransientBp"] = bpConf;
-            var hVert = this.replaceNumSpads("h-vert");
-            Shaders["replacedH"] = hVert;
-            this.hProgram = new tgl.Shader(Shaders, "replacedH", "h-frag");
+            // Recompile shaders only if necessary
+            if (changeNumSpads) {
+                console.log("Recompiling numSpads-dependent shaders");
+                var bpSumFrag = this.replaceNumSpads("bp-sum-frag");
+                Shaders["replacedSum"] = bpSumFrag;
+                this.bpSumProgram = new tgl.Shader(Shaders, "bp-vert", "replacedSum");
+                var bpFrag = this.replaceNumSpads("bp-frag");
+                Shaders["replacedBp"] = bpFrag;
+                this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "replacedBp");
+                var bpConf = this.replaceNumSpads("bp-conf-frag");
+                Shaders["replacedConfBp"] = bpConf;
+                this.bpConfProgram = new tgl.Shader(Shaders, "bp-vert", "replacedConfBp");
+                var hVert = this.replaceNumSpads("h-vert");
+                Shaders["replacedH"] = hVert;
+                this.hProgram = new tgl.Shader(Shaders, "replacedH", "h-frag");
+            }
         }
     }
 
@@ -853,6 +846,7 @@
                 this.planeGridTex.bind(2);
                 this.bpConfProgram.uniformF("tmax", this.maxTime);
                 this.bpConfProgram.uniformF("instant", instant * this.deltaT);
+                this.bpConfProgram.uniformF("isConfocalModel", this.isVirtualConf);
                 this.bpConfProgram.uniformI("useAbsolute", this.isConvCamera && this.addModules);
                 this.bpConfProgram.uniformTexture("radiance", inputTex);
                 this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
@@ -869,6 +863,7 @@
                 this.bpProgram.uniformF("tmax", this.maxTime);
                 this.bpProgram.uniformF("instant", instant * this.deltaT);
                 this.bpProgram.uniformF("lightIsLaser", this.spreadType == tcore.Renderer.SPREAD_LASER);
+                this.bpProgram.uniformF("isConfocalModel", this.isVirtualConf);
                 this.bpProgram.uniformI("useAbsolute", this.isConvCamera && this.addModules);
                 this.bpProgram.uniformTexture("radiance", inputTex);
                 this.bpProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);

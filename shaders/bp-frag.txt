@@ -4,6 +4,9 @@ uniform float tmax;
 
 uniform sampler2D radiance; // x time, y spad
 
+uniform int useAbsolute; // To accumulate for the conventional camera
+uniform float lightIsLaser; // 1.0 for true, 0.0 for false
+uniform float isConfocalModel; // 1.0 for true, 0.0 for false
 uniform float instant;
 uniform vec2 laserPos;
 uniform vec2 laserGrid; // could be more than one, actually
@@ -29,11 +32,12 @@ void main() {
         float dl  = distance(laserGrid, pixelPos);
         float dsp = distance(wallSpad, spadPos); // distance spad device to captured points
         float ds  = distance(wallSpad, pixelPos);
-        float dt = ds + dsp + dl + dlp + instant;
+        float dt = ds + dsp + dl * isConfocalModel + dlp * lightIsLaser + instant;
 
         float t = dt / tmax;
         radianceAccum += texture2D(radiance, vec2(t, xSpad)).xy * vec2(t <= 1.0);
         xSpad += spadDist;
     }
-    gl_FragColor = vec4(radianceAccum, 0.0, 1.0);
+    gl_FragColor = vec4(length(radianceAccum) * float(useAbsolute) + radianceAccum.x * float(1 - useAbsolute), 
+            radianceAccum.y * float(1 - useAbsolute), 0.0, 1.0);
 }

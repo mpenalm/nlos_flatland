@@ -5,6 +5,7 @@ uniform float tmax;
 uniform sampler2D radiance; // x time, y spad
 
 uniform int useAbsolute; // To accumulate for the conventional camera
+uniform float isConfocalModel; // 1.0 for true, 0.0 for false
 uniform float instant;
 uniform vec2 laserPos;
 uniform vec2 spadPos;
@@ -28,7 +29,7 @@ void main() {
         float dlp = distance(wallPos, laserPos); // distance laser device to captured (illuminated) point
         float dsp = distance(wallPos, spadPos); // distance spad device to captured points
         float ds  = distance(wallPos, pixelPos); // distance captured (illuminated) point to reconstructed point
-        float dt = 2.0 * ds + dsp + dlp + instant;
+        float dt = (1.0 + isConfocalModel) * ds + dsp + dlp + instant;
 
         float t = dt / tmax;
         radianceAccum += texture2D(radiance, vec2(t, xSpad)).xy * vec2(t <= 1.0);
