@@ -5,6 +5,7 @@ uniform sampler2D timeTex;
 
 uniform float deltaT;
 uniform float wl;
+uniform float sigma;
 uniform int numIntervals;
 
 varying vec2 mPos;
@@ -12,7 +13,6 @@ varying vec2 mPos;
 void main() {
     float t = texture2D(timeTex, vec2(mPos.x, 0.5)).x;
     float tmax = deltaT * float(numIntervals);
-    float sigma = wl;
 
     //float pf = exp(-(t-tmax/2.0) * (t-tmax/2.0) / (2*sigma*sigma)) *
     //    exp(2i * pi / wl * t);

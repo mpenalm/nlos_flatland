@@ -20,6 +20,7 @@
     <script type="text/javascript" src="src/tantalum-gl.js"></script>
     <script type="text/javascript" src="src/tantalum-transient.js"></script>
     <script type="text/javascript" src="src/transient-core.js"></script>
+    <script type="text/javascript" src="src/pf-gl.js"></script>
     <script type="text/javascript" src="src/generate-scene.js"></script>
     <script type="text/javascript" src="src/thirdparty/noUiSlider/nouislider.js"></script>
 </head>
@@ -91,11 +92,12 @@
                 <div id="filter-parameter">
                     <h3 class="control-title">Filter parameters</h3>
                     <div class="center-tight">
-                        <div id="sigma-slider"></div>
                         <div id="wl-slider"></div>
+                        <div id="sigma-slider"></div>
                         <div id="magnitude-div">
                             <div id="magnitude-selector"></div>
                         </div>
+                        <canvas id="filter-canvas" style="border: none;" width="425" height="256"></canvas>
                     </div>
                 </div>
                 <div id="spread-type">

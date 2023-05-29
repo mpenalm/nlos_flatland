@@ -2,6 +2,7 @@ var Transient = function () {
     this.canvas = document.getElementById("transient-canvas");
     this.overlay = document.getElementById("transient-overlay");
     this.controls = document.getElementById("transient-controls");
+    this.filterCanvas = document.getElementById("filter-canvas");
 
     this.boundRenderLoop = this.renderLoop.bind(this);
 
@@ -156,7 +157,7 @@ Transient.prototype.setupUI = function () {
         sceneNames.push(config.scenes[i].name);
     }
 
-    this.renderer = new transientcore.Renderer(this.gl, (this.canvas.width - 10) / 2, this.canvas.height, sceneShaders);
+    this.renderer = new transientcore.Renderer(this.gl, (this.canvas.width - 10) / 2, this.canvas.height, sceneShaders, this.filterCanvas);
     this.generator = new genScene.SceneGenerator();
 
     /* Let's try and make member variables in JS a little less verbose... */
@@ -197,6 +198,13 @@ Transient.prototype.setupUI = function () {
     }
     var instantSlider = null;
     changeInstantSlider();
+
+    var sigmaSlider = new tui.Slider("sigma-slider", 1, 150, true, function (sigma) {
+        this.setLabel("sigma = " + sigma/10 + " cm");
+        sigma = sigma / 1000;
+        renderer.setSigma(sigma);
+    })
+    sigmaSlider.setValue(20);
 
     var wlSlider = new tui.Slider("wl-slider", 1, 15, true, function (wl) {
         this.setLabel("wl = " + wl + " cm");

@@ -997,14 +997,14 @@ var Shaders = {
 
         'uniform float deltaT;\n'                                                       +
         'uniform float wl;\n'                                                           +
+        'uniform float sigma;\n'                                                        +
         'uniform int numIntervals;\n\n'                                                 +
 
         'varying vec2 mPos;\n\n'                                                        +
 
         'void main() {\n'                                                               +
         '    float t = texture2D(timeTex, vec2(mPos.x, 0.5)).x;\n'                      +
-        '    float tmax = deltaT * float(numIntervals);\n'                              +
-        '    float sigma = wl;\n\n'                                                     +
+        '    float tmax = deltaT * float(numIntervals);\n\n'                            +
 
         '    //float pf = exp(-(t-tmax/2.0) * (t-tmax/2.0) / (2*sigma*sigma)) *\n'      +
         '    //    exp(2i * pi / wl * t);\n\n'                                          +
@@ -1017,6 +1017,28 @@ var Shaders = {
         '    vec2 pf = realPart * baseImag;\n\n'                                        +
 
         '    gl_FragColor = vec4(pf, 0.0, 0.0);\n'                                      +
+        '}\n',
+
+    'plot-frag':
+        '#include "preamble"\n\n'                                     +
+
+        '//uniform sampler2D function;\n\n'                           +
+
+        '//uniform float width;\n\n'                                  +
+
+        'varying vec2 mPos;\n\n'                                      +
+
+        'void main() {\n'                                             +
+        '    /*gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n'            +
+        '    float x = mPos.x / 4.0 + 0.375;\n'                       +
+        '    float y = (mPos.y - 0.5) * 2.0;\n'                       +
+        '    vec2 value = texture2D(function, vec2(x, mPos.y)).xy;\n' +
+        '    if (abs(y - value.x) < width) {\n'                       +
+        '        gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);\n'          +
+        '    } else if (abs(y - value.y) < width) {\n'                +
+        '        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n'          +
+        '    }*/\n'                                                   +
+        '    gl_FragColor = vec4(1.0);\n'                             +
         '}\n',
 
     'preamble':

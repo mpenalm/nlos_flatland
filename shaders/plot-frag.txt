@@ -1,0 +1,20 @@
+#include "preamble"
+
+//uniform sampler2D function;
+
+//uniform float width;
+
+varying vec2 mPos;
+
+void main() {
+    /*gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    float x = mPos.x / 4.0 + 0.375;
+    float y = (mPos.y - 0.5) * 2.0;
+    vec2 value = texture2D(function, vec2(x, mPos.y)).xy;
+    if (abs(y - value.x) < width) {
+        gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+    } else if (abs(y - value.y) < width) {
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    }*/
+    gl_FragColor = vec4(1.0);
+}

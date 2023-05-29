@@ -61,8 +61,11 @@
         this.maxTime = maxTime;
     }
 
-    var Renderer = function (gl, width, height, scenes) {
+    var Renderer = function (gl, width, height, scenes, filterCanvas) {
         this.gl = gl;
+        this.filterCanvas = filterCanvas;
+        this.glFilter = this.filterCanvas.getContext("webgl") || this.filterCanvas.getContext("experimental-webgl");
+        pgl.init(this.glFilter)
         this.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
         this.quadVbo = this.createQuadVbo();
         this.quadVbo2 = this.createQuadVbo2();
@@ -108,6 +111,7 @@
         this.maxProgram = new tgl.Shader(Shaders, "max-vert", "max-frag");
         this.sumProgram = new tgl.Shader(Shaders, "bp-vert", "sum-frag");
         this.showProgram = new tgl.Shader(Shaders, "show-vert", "show-frag");
+        this.plotProgram = new pgl.Shader(Shaders, "show-vert", "plot-frag");
 
         this.spectrumTable = wavelengthToRgbTable();
         this.spectrum = new tgl.Texture(this.spectrumTable.length / 4, 1, 4, true, true, true, this.spectrumTable);
@@ -122,6 +126,8 @@
         this.rayStates = [new tcore.RayState(this.raySize), new tcore.RayState(this.raySize)];
 
         this.createVBOs();
+        this.glFilter.clearColor(0.0, 0.0, 0.0, 1.0);
+        this.glFilter.blendFunc(gl.ONE, gl.ONE);
 
         this.createNLOSBuffers(ModifiedAttributes.All);
 
@@ -161,6 +167,7 @@
         this.timeVector = new Float32Array(linspace(0.0, this.numIntervals * this.deltaT, this.numIntervals));
         this.timeVectorTex = new tgl.Texture(this.numIntervals, 1, 1, true, false, true, this.timeVector);
         this.wl = 0.02;
+        this.sigma = 0.02;
 
         this.filterType = 'none';
         this.computePFFilter();
@@ -611,6 +618,13 @@
         }
     }
 
+    Renderer.prototype.setSigma = function (sigma) {
+        this.sigma = sigma;
+        this.computePFFilter();
+        if (this.finished())
+           this.redraw();
+    }
+
     Renderer.prototype.setWavelength = function (wl) {
         this.wl = wl;
         this.computePFFilter();
@@ -979,12 +993,34 @@
         this.pfKernelProgram.uniformI("numIntervals", this.numIntervals);
         this.pfKernelProgram.uniformF("deltaT", this.deltaT);
         this.pfKernelProgram.uniformF("wl", this.wl);
+        this.pfKernelProgram.uniformF("sigma", this.sigma);
         this.pfKernelProgram.uniformTexture("timeTex", this.timeVectorTex);
         this.quadVbo.bind();
         this.quadVbo.draw(this.pfKernelProgram, gl.TRIANGLE_FAN);
 
         this.pfFilterValues = this.filterBuffer.getArray(this.numIntervals);
         this.fbo.unbind();
+
+        gl = this.glFilter;
+        var values = [];
+        var j = 0;
+        for (var i = Math.floor(7*this.numIntervals/16); i < Math.floor(9*this.numIntervals/16); i++) {
+            values[2*j] = (j + 0.5) / this.numIntervals * 16 - 1;
+            values[2*j+1] = this.pfFilterValues[4*i];
+            j++;
+        }
+
+        var vbo = new pgl.VertexBuffer();
+        vbo.addAttribute("Position", 2, gl.FLOAT, false);
+        vbo.init(values.length / 2);
+        vbo.copy(new Float32Array(values));
+
+        gl.viewport(0, 0, this.filterCanvas.width, this.filterCanvas.height);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        this.plotProgram.bind();
+        vbo.bind();
+        vbo.draw(this.plotProgram, gl.LINES);
     }
 
     Renderer.prototype.filterPF = function () {
