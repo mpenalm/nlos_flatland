@@ -1027,7 +1027,7 @@
 
         this.plotProgram.bind();
         vbo.bind();
-        vbo.draw(this.plotProgram, gl.LINES);
+        vbo.draw(this.plotProgram, gl.LINE_STRIP);
     }
 
     Renderer.prototype.filterPF = function () {
