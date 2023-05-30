@@ -141,8 +141,8 @@ Transient.prototype.setupUI = function () {
             [0.0, 0.2, 0.0, -0.2],
             // Visibility test
             [0.0, 0.2, 0.0, -0.2,
-                0.0, 0.2, 0.2, 0.54641,
-                -0.2, -0.54641, 0.0, -0.2],
+                0.2, 0.54641, 0.0, 0.2,
+                0.0, -0.2, -0.2, -0.54641],
             // Virtual mirror
             [0.4, 0.2, 0.4, -0.2],
             // Virtual mirror rotated
@@ -514,7 +514,7 @@ Transient.prototype.setupUI = function () {
         this.setLabel(alpha / 100);
         roughness = alpha / 100;
     });
-    roughnessSlider.setValue(1);
+    roughnessSlider.setValue(10);
 
     var wallRoughness = 0.5;
     var wallRoughnessSlider = new tui.Slider("rwall-roughness", 1, 200, true, function (alpha) {

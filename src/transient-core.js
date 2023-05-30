@@ -240,14 +240,14 @@
         vboData[5] = 0.2;
         vboData[6] = 0.0;
         vboData[7] = -0.2;
-        vboData[8] = 0.0;
-        vboData[9] = 0.2;
-        vboData[10] = 0.2 / this.aspect;
-        vboData[11] = 0.54641;
-        vboData[12] = -0.2 / this.aspect;
-        vboData[13] = -0.54641;
-        vboData[14] = 0.0;
-        vboData[15] = -0.2;
+        vboData[8] = 0.2 / this.aspect;
+        vboData[9] = 0.54641;
+        vboData[10] = 0.0;
+        vboData[11] = 0.2;
+        vboData[12] = 0.0;
+        vboData[13] = -0.2;
+        vboData[14] = -0.2 / this.aspect;
+        vboData[15] = -0.54641;
         this.sceneVBOs[i].copy(vboData);
 
         // Virtual mirror
