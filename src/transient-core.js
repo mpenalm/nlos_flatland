@@ -600,6 +600,13 @@
             }
             this.spadNormalsTex = new tgl.Texture(this.numSpads, 1, 4, true, false, true, this.spadNormalsData);
 
+            var dist = Math.abs(this.spadHeights[1] - this.spadHeights[0]);
+            if (this.spadRadius > dist / 2) {
+                this.spadRadius = dist / 2;
+            } else if (dist / 2 >= 0.0035) {
+                this.spadRadius = 0.0035;
+            }
+
             // Recompile shaders only if necessary
             if (changeNumSpads) {
                 var bpSumFrag = this.replaceNumSpads("bp-sum-frag");
