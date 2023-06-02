@@ -103,6 +103,7 @@
         this.bboxCorners = [-1.78, 1.0, 1.78, -1.0]; // upper left, bottom right
         this.isConf = false;
         this.isVirtualConf = true;
+        this.isConvCamera = false;
 
         // Shader programs to reconstruct the hidden scene
         this.lapProgram = new tgl.Shader(Shaders, "bp-vert", "lap-frag");

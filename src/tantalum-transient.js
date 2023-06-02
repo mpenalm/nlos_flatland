@@ -112,6 +112,16 @@ Transient.prototype.colorBufferFloatTest = function (gl) {
     }
 }
 
+function getCoordinate(label) {
+    var element = document.getElementById(label);
+    var val = element.value;
+    if (!val) val = element.placeholder;
+    val = parseFloat(val);
+    var min = parseFloat(element.min);
+    var max = parseFloat(element.max);
+    return Math.min(max, Math.max(min, val));
+}
+
 Transient.prototype.setupUI = function () {
     var config = {
         "reconstruction_resolutions": [32, 64, 128, 256, 512, 1024, 2048, 4096],
@@ -148,8 +158,11 @@ Transient.prototype.setupUI = function () {
             // Virtual mirror rotated
             [0.5, 0.2, 0.4, -0.2],
         ],
-        "addition_modes": ["Absolute space", "Complex space"]
+        "addition_modes": ["Absolute space", "Complex space"],
+        "resolution_labels": [],
+        "spread_types": ["Point", "Cone", "Beam", "Laser", "Area"]
     };
+    this.config = config;
 
     var sceneShaders = [], sceneNames = [];
     for (var i = 0; i < config.scenes.length; ++i) {
@@ -183,6 +196,10 @@ Transient.prototype.setupUI = function () {
         filterTypes.push(filt);
     });
 
+    for (var i = 0; i < filterTypes.length; i++) {
+        config.filters[filterTypes[i]] = config.filters[i];
+    }
+
     function changeInstantSlider() {
         if (instantSlider == null || instantSlider.maxValue != renderer.numIntervals - 1) {
             instantSlider = new tui.Slider("instant-selector", 0, renderer.numIntervals - 1, true, function (instant) {
@@ -200,7 +217,7 @@ Transient.prototype.setupUI = function () {
     changeInstantSlider();
 
     var sigmaSlider = new tui.Slider("sigma-slider", 1, 150, true, function (sigma) {
-        this.setLabel("sigma = " + sigma/10 + " cm");
+        this.setLabel("sigma = " + sigma / 10 + " cm");
         sigma = sigma / 1000;
         renderer.setSigma(sigma);
     })
@@ -240,11 +257,10 @@ Transient.prototype.setupUI = function () {
         }
     })).select(3);
 
-    resolutionLabels = [];
     for (var i = 0; i < config.reconstruction_resolutions.length; ++i)
-        resolutionLabels.push(parseInt(config.reconstruction_resolutions[i] * renderer.aspect) + "x" + config.reconstruction_resolutions[i]);
+        config.resolution_labels.push(parseInt(config.reconstruction_resolutions[i] * renderer.aspect) + "x" + config.reconstruction_resolutions[i]);
 
-    var recResolutionSelector = new tui.ButtonGroup("reconstruction-resolution-selector", false, resolutionLabels, function (idx) {
+    var recResolutionSelector = new tui.ButtonGroup("reconstruction-resolution-selector", false, config.resolution_labels, function (idx) {
         var height = config.reconstruction_resolutions[idx];
         renderer.changeReconstructionResolution(height);
     });
@@ -342,8 +358,7 @@ Transient.prototype.setupUI = function () {
         spadPositionsSlider.label.textContent = "[" + low + "," + high + "]";
     });
 
-    var spreadSelector = new tui.ButtonGroup("spread-selector", true, ["Point", "Cone", "Beam", "Laser", "Area"],
-        renderer.setSpreadType.bind(renderer));
+    var spreadSelector = new tui.ButtonGroup("spread-selector", true, config.spread_types, renderer.setSpreadType.bind(renderer));
 
     function selectScene(idx) {
         renderer.changeScene(idx, config.scenes[idx].wallMat);
@@ -539,27 +554,15 @@ Transient.prototype.setupUI = function () {
         updateFeatureSize();
     });
 
-    sceneShaders = [];
     sceneNames = [];
     for (var i = 0; i < config.scenes.length; ++i) {
         if (i != 1 && i != 4 && i < 6) {
-            sceneShaders.push(config.scenes[i].shader);
             sceneNames.push(config.scenes[i].name);
         }
     }
     var modSceneSelector = new tui.ButtonGroup("mod-scene-selector", true, sceneNames, function (idx) {
         updateFeatureSize(idx);
     });
-
-    function getCoordinate(label) {
-        var element = document.getElementById(label);
-        var val = element.value;
-        if (!val) val = element.placeholder;
-        val = parseFloat(val);
-        var min = parseFloat(element.min);
-        var max = parseFloat(element.max);
-        return Math.min(max, Math.max(min, val));
-    }
 
     document.getElementById('create-button').addEventListener('click', (function () {
         var verticesList;
@@ -592,7 +595,13 @@ Transient.prototype.setupUI = function () {
             wallMatParams = [wallRoughness];
         }
         var ids = generator.generate(verticesList, matType, matParams, wallMatType, wallMatParams);
-        config.scenes.push({ 'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': wallMatType });
+        config.scenes.push({
+            'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': wallMatType,
+            'modifications': {
+                'feature_size': featureSizeSlider.label.innerHTML,
+                'base_scene': (usingModifiedScene) ? sceneNames[modSceneSelector.selectedButton] : 'Custom'
+            }
+        });
         sceneSelector.addButton(config.scenes[config.scenes.length - 1].name);
         renderer.addScene(ids[0], verticesList);
         modal.style.display = "none";
@@ -688,6 +697,7 @@ Transient.prototype.renderLoop = function (timestamp) {
         var fileName = "Transient";
         if (this.savedImages > 0)
             fileName += (this.savedImages + 1);
+        this.saveParameters(fileName + ".txt");
         fileName += ".png";
 
         this.canvas.toBlob(function (blob) { saveAs(blob, fileName); });
@@ -700,4 +710,42 @@ Transient.prototype.renderLoop = function (timestamp) {
     this.progressBar.setLabel(Math.min(this.renderer.totalRaysTraced(), this.renderer.maxRayCount()) +
         "/" + this.renderer.maxRayCount() + " rays traced; Progress: " +
         this.progressBar.getProgressPercentage() + "%");
+}
+
+Transient.prototype.saveParameters = function (fileName) {
+    console.log(fileName);
+    var renderer = this.renderer;
+    var config = this.config;
+    // Scene parameters
+    var modifications = config.scenes[renderer.currentScene].modifications;
+    if (modifications) {
+        console.log(modifications.base_scene + (modifications.base_scene != 'Custom') ? ' modified' : '');
+        console.log(modifications.feature_size);
+    } else {
+        console.log(config.scenes[renderer.currentScene].name);
+    }
+    console.log(config.spread_types[renderer.spreadType]);
+    console.log(renderer.laserPos);
+    console.log([getCoordinate("xb"), getCoordinate("yb")]);
+
+    // Capture parameters
+    console.log(renderer.numSpads);
+    console.log(config.capture_methods[Number(renderer.isConf)]);
+    console.log(renderer.spadBoundaries);
+    console.log(renderer.deltaT);
+    console.log(renderer.maxTime);
+    console.log([renderer.minPathLength, renderer.maxPathLength - 1]);
+    console.log(document.getElementById("sample-count").getElementsByClassName("slider-label")[0].innerHTML);
+
+    // Reconstruction parameters
+    console.log(renderer.numPixels[0] + 'x' + renderer.numPixels[1]);
+    console.log(config.camera_models[(renderer.isVirtualConf) ? 0 : 1 + Number(renderer.isConvCamera)]);
+    if (renderer.isConvCamera) {
+        console.log(config.addition_modes[Number(!renderer.addModules)]);
+    } else {
+        console.log(renderer.instant);
+    }
+    console.log(config.filters[renderer.filterType]);
+    console.log('wl = ' + renderer.wl + ' cm');
+    console.log('sigma = ' + renderer.sigma + ' cm');
 }
