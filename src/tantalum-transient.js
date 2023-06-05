@@ -478,7 +478,7 @@ Transient.prototype.setupUI = function () {
     }
     var nFeatures = new NumFeatures(1);
     var featureSizeSlider = new tui.Slider("feature-size", 1, 250, true, function (nf) {
-        nFeatures.setNFeatures(nf);
+        nFeatures.setNFeatures(251 - nf);
         var d;
         if (usingModifiedScene) {
             if (modSceneSelector.selectedButton < 3) {
@@ -495,9 +495,9 @@ Transient.prototype.setupUI = function () {
             var y2 = getCoordinate("y2");
             d = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
         }
-        this.setLabel((d * 100 / nf).toFixed(4) + " cm");
+        this.setLabel((d * 100 / (251 - nf)).toFixed(4) + " cm");
     });
-    featureSizeSlider.setValue(1);
+    featureSizeSlider.setValue(250);
     document.getElementById("x1").onchange = function () { updateFeatureSize() };
     document.getElementById("x2").onchange = function () { updateFeatureSize() };
     document.getElementById("y1").onchange = function () { updateFeatureSize() };
@@ -520,7 +520,7 @@ Transient.prototype.setupUI = function () {
             var y2 = getCoordinate("y2");
             d = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
         }
-        var nf = featureSizeSlider.value;
+        var nf = 251 - featureSizeSlider.value;
         featureSizeSlider.setLabel((d * 100 / nf).toFixed(4) + " cm");
     }
 
@@ -599,7 +599,15 @@ Transient.prototype.setupUI = function () {
             'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': wallMatType,
             'modifications': {
                 'feature_size': featureSizeSlider.label.innerHTML,
-                'base_scene': (usingModifiedScene) ? sceneNames[modSceneSelector.selectedButton] : 'Custom'
+                'base_scene': (usingModifiedScene) ? sceneNames[modSceneSelector.selectedButton] : 'Custom',
+                'mat_type': matType,
+                'mat_params': matParams,
+                'wall_mat_type': wallMatType,
+                'wall_mat_params': wallMatParams,
+                'x1': x1,
+                'x2': x2,
+                'y1': y1,
+                'y2': y2
             }
         });
         sceneSelector.addButton(config.scenes[config.scenes.length - 1].name);
@@ -697,7 +705,7 @@ Transient.prototype.renderLoop = function (timestamp) {
         var fileName = "Transient";
         if (this.savedImages > 0)
             fileName += (this.savedImages + 1);
-        this.saveParameters(fileName + ".txt");
+        this.saveParameters(fileName + ".json");
         fileName += ".png";
 
         this.canvas.toBlob(function (blob) { saveAs(blob, fileName); });
@@ -713,39 +721,80 @@ Transient.prototype.renderLoop = function (timestamp) {
 }
 
 Transient.prototype.saveParameters = function (fileName) {
-    console.log(fileName);
     var renderer = this.renderer;
     var config = this.config;
+    var text = '{\n';
+
     // Scene parameters
     var modifications = config.scenes[renderer.currentScene].modifications;
+    text += `"scene": {\n`
     if (modifications) {
-        console.log(modifications.base_scene + (modifications.base_scene != 'Custom') ? ' modified' : '');
-        console.log(modifications.feature_size);
+        text += `\t"name": "${modifications.base_scene + ((modifications.base_scene != 'Custom') ? ' modified' : '')}",\n`;
+        if (modifications.base_scene == 'Custom') {
+            text += `\t"x1": ${modifications.x1},
+    "y1": ${modifications.y1},
+    "x2": ${modifications.x2},
+    "y2": ${modifications.y2},
+`;
+        }
+        text += `\t"hidden_mat": "${config.material_types[modifications.mat_type - 2]}",\n`;
+        if (modifications.mat_type === genScene.MaterialType.RoughDielectric || modifications.mat_type === genScene.MaterialType.RoughMirror) {
+            text += `\t"hidden_roughness": ${modifications.mat_params[0]},\n`;
+        }
+        text += `\t"wall_mat": "${config.material_types[modifications.wall_mat_type - 2]}",\n`;
+        if (modifications.wall_mat_type === genScene.MaterialType.RoughDielectric || modifications.wall_mat_type === genScene.MaterialType.RoughMirror) {
+            text += `\t"wall_roughness": ${modifications.wall_mat_params[0]},\n`;
+        }
+        text += `\t"feature_size": "${modifications.feature_size}"\n`;
     } else {
-        console.log(config.scenes[renderer.currentScene].name);
+        text += `\t"name": "${config.scenes[renderer.currentScene].name}"\n`;
     }
-    console.log(config.spread_types[renderer.spreadType]);
-    console.log(renderer.laserPos);
-    console.log([getCoordinate("xb"), getCoordinate("yb")]);
+    text += `},\n"light_source": {\n`;
+    text += `\t"spread": "${config.spread_types[renderer.spreadType]}",\n`;
+    text += `\t"origin": [${renderer.laserPos[0]}, ${renderer.laserPos[1]}],\n`;
+    text += `\t"look_at": [${renderer.laserFocus[0]}, ${renderer.laserFocus[1]}]\n},`
 
     // Capture parameters
-    console.log(renderer.numSpads);
-    console.log(config.capture_methods[Number(renderer.isConf)]);
-    console.log(renderer.spadBoundaries);
-    console.log(renderer.deltaT);
-    console.log(renderer.maxTime);
-    console.log([renderer.minPathLength, renderer.maxPathLength - 1]);
-    console.log(document.getElementById("sample-count").getElementsByClassName("slider-label")[0].innerHTML);
+    text += `
+"capture": {
+    "method": "${config.capture_methods[Number(renderer.isConf)]}",
+    "num_spads": ${renderer.numSpads},
+    "spad_boundaries": [${renderer.spadBoundaries[0]}, ${renderer.spadBoundaries[1]}],
+    "delta_t": ${renderer.deltaT},
+    "max_time": ${renderer.maxTime},
+    "bounces_saved": [${renderer.minPathLength}, ${renderer.maxPathLength - 1}],
+    "sample_count": "${document.getElementById("sample-count").getElementsByClassName("slider-label")[0].innerHTML}"
+},`;
 
     // Reconstruction parameters
-    console.log(renderer.numPixels[0] + 'x' + renderer.numPixels[1]);
-    console.log(config.camera_models[(renderer.isVirtualConf) ? 0 : 1 + Number(renderer.isConvCamera)]);
+    text += `
+"reconstruction": {
+    "resolution": "${renderer.numPixels[0]}x${renderer.numPixels[1]}",
+    "camera_model": {
+        "type": "${config.camera_models[(renderer.isVirtualConf) ? 0 : 1 + Number(renderer.isConvCamera)]}"`;
     if (renderer.isConvCamera) {
-        console.log(config.addition_modes[Number(!renderer.addModules)]);
+        text += `,
+        "add_mode": "${config.addition_modes[Number(!renderer.addModules)]}"
+    },`;
     } else {
-        console.log(renderer.instant);
+        text += `
+    },
+    "instant": ${renderer.instant},`
     }
-    console.log(config.filters[renderer.filterType]);
-    console.log('wl = ' + renderer.wl + ' cm');
-    console.log('sigma = ' + renderer.sigma + ' cm');
+    text += `
+    "filter": {
+        "type": "${config.filters[renderer.filterType]}"`;
+    if (renderer.filterType === 'pf') {
+        text += `,
+        "wl": "${renderer.wl} cm",
+        "sigma": "${renderer.sigma} cm"`;
+    }
+    text += `
+    }
+}
+}`;
+
+    console.log(text);
+    var blob = new Blob([text], {type: "text/json;charset=utf-8"});
+    saveAs(blob, fileName);
 }

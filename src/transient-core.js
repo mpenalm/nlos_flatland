@@ -1216,8 +1216,8 @@
         this.computeSpread();
 
         this.laserPos = [((this.emitterPos[0] / this.width) * 2.0 - 1.0) * this.aspect, 1.0 - (this.emitterPos[1] / this.height) * 2.0];
-        var laserFocus = [((posB[0] / this.width) * 2.0 - 1.0) * this.aspect, 1.0 - (posB[1] / this.height) * 2.0];
-        var dir = [laserFocus[0] - this.laserPos[0], laserFocus[1] - this.laserPos[1]];
+        this.laserFocus = [((posB[0] / this.width) * 2.0 - 1.0) * this.aspect, 1.0 - (posB[1] / this.height) * 2.0];
+        var dir = [this.laserFocus[0] - this.laserPos[0], this.laserFocus[1] - this.laserPos[1]];
         var mod = dir.norm();
         if (mod == 0) {
             dir = [1, 0];
