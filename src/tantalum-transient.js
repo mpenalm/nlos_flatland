@@ -217,14 +217,14 @@ Transient.prototype.setupUI = function () {
     changeInstantSlider();
 
     var sigmaSlider = new tui.Slider("sigma-slider", 1, 150, true, function (sigma) {
-        this.setLabel("sigma = " + sigma / 10 + " cm");
+        this.setLabel(`sigma = ${sigma / 10} cm`);
         sigma = sigma / 1000;
         renderer.setSigma(sigma);
     })
     sigmaSlider.setValue(20);
 
     var wlSlider = new tui.Slider("wl-slider", 1, 15, true, function (wl) {
-        this.setLabel("wl = " + wl + " cm");
+        this.setLabel(`wl = ${wl} cm`);
         wl = wl / 100;
         renderer.setWavelength(wl);
     });
@@ -786,15 +786,14 @@ Transient.prototype.saveParameters = function (fileName) {
         "type": "${config.filters[renderer.filterType]}"`;
     if (renderer.filterType === 'pf') {
         text += `,
-        "wl": "${renderer.wl} cm",
-        "sigma": "${renderer.sigma} cm"`;
+        "wl": "${renderer.wl * 100} cm",
+        "sigma": "${renderer.sigma * 100} cm"`;
     }
     text += `
     }
 }
 }`;
 
-    console.log(text);
     var blob = new Blob([text], {type: "text/json;charset=utf-8"});
     saveAs(blob, fileName);
 }
