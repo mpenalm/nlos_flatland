@@ -179,8 +179,8 @@
         this.addModules = true;
         this.createSceneVBOs();
     }
-    
-    Renderer.prototype.scene2canvas = function(pos, aspect, width, height) {
+
+    Renderer.prototype.scene2canvas = function (pos) {
         var result = [0, 0];
         result[0] = pos[0] / (2 * this.aspect) + 0.5;
         result[1] = 0.5 - pos[1] / 2;
@@ -494,11 +494,11 @@
             this.isConf = isConf;
             if (!isConf) {
                 this.laserGrid = [1.2, (this.spadBoundaries[0] + this.spadBoundaries[1]) / 2];
-                this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
+                this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid), false);
             } else {
                 this.spreadType = tcore.Renderer.SPREAD_LASER;
                 this.laserGrid = [this.spadPoints[2 * this.confCounter], this.spadPoints[2 * this.confCounter + 1]];
-                this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
+                this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid), false);
             }
             this.createNLOSBuffers(ModifiedAttributes.Confocality);
         }
@@ -630,7 +630,7 @@
         this.sigma = sigma;
         this.computePFFilter();
         if (this.finished())
-           this.redraw();
+            this.redraw();
     }
 
     Renderer.prototype.setWavelength = function (wl) {
@@ -1012,9 +1012,9 @@
         gl = this.glFilter;
         var values = [];
         var j = 0;
-        for (var i = Math.floor(7*this.numIntervals/16); i < Math.floor(9*this.numIntervals/16); i++) {
-            values[2*j] = (j + 0.5) / this.numIntervals * 16 - 1;
-            values[2*j+1] = this.pfFilterValues[4*i];
+        for (var i = Math.floor(7 * this.numIntervals / 16); i < Math.floor(9 * this.numIntervals / 16); i++) {
+            values[2 * j] = (j + 0.5) / this.numIntervals * 16 - 1;
+            values[2 * j + 1] = this.pfFilterValues[4 * i];
             j++;
         }
 
@@ -1138,7 +1138,7 @@
         this.confCounter = 0;
         if (this.isConf) {
             this.laserGrid = [this.spadPoints[0], this.spadPoints[1]];
-            this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
+            this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid), false);
         }
         if (this.h != undefined) {
             for (var i = 0; i < this.h.length; i++) {
@@ -1390,7 +1390,7 @@
                 if (this.confCounter >= this.numSpads)
                     return true;
                 this.laserGrid = [this.spadPoints[2 * this.confCounter], this.spadPoints[2 * this.confCounter + 1]];
-                this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid, this.aspect, this.width, this.height), false);
+                this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid), false);
                 this.partialReset();
             }
             return false;
@@ -1766,6 +1766,10 @@
         }
         // Restore previous viewport
         gl.viewport(0, 0, this.width, this.height);
+    }
+
+    Renderer.prototype.getReconstructionValues = function () {
+        return this.filteredBuffer.getArray(this.numPixels[0] * this.numPixels[1]);
     }
 
     exports.Renderer = Renderer;

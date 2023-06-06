@@ -706,6 +706,7 @@ Transient.prototype.renderLoop = function (timestamp) {
         if (this.savedImages > 0)
             fileName += (this.savedImages + 1);
         this.saveParameters(fileName + ".json");
+        this.saveRaw(fileName + ".csv");
         fileName += ".png";
 
         this.canvas.toBlob(function (blob) { saveAs(blob, fileName); });
@@ -721,6 +722,7 @@ Transient.prototype.renderLoop = function (timestamp) {
 }
 
 Transient.prototype.saveParameters = function (fileName) {
+    console.log(fileName);
     var renderer = this.renderer;
     var config = this.config;
     var text = '{\n';
@@ -779,7 +781,8 @@ Transient.prototype.saveParameters = function (fileName) {
     } else {
         text += `
     },
-    "instant": ${renderer.instant},`
+    "instant": ${renderer.instant},
+    "time": "${renderer.instant * renderer.deltaT} m",`
     }
     text += `
     "filter": {
@@ -794,6 +797,27 @@ Transient.prototype.saveParameters = function (fileName) {
 }
 }`;
 
-    var blob = new Blob([text], {type: "text/json;charset=utf-8"});
+    var blob = new Blob([text], { type: "text/json;charset=utf-8" });
     saveAs(blob, fileName);
+}
+
+Transient.prototype.saveRaw = function (fileName) {
+    console.log(fileName);
+    var values = this.renderer.getReconstructionValues();
+    var text = ``;
+    var k = 0;
+    for (var j = 0; j < this.renderer.numPixels[1]; j++) {
+        for (var i = 0; i < this.renderer.numPixels[0]; i++) {
+            k = (this.renderer.numPixels[0] * j + i) * 4;
+            if (values[k + 1] < 0) {
+                text += `${values[k]}${values[k + 1]}i,`;
+            } else if (values[k + 1] > 0) {
+                text += `${values[k]}+${values[k + 1]}i,`;
+            } else {
+                text += `${values[k]},`;
+            }
+        }
+        text += `\n`;
+    }
+    console.log(text);
 }
