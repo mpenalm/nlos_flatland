@@ -705,8 +705,14 @@ Transient.prototype.renderLoop = function (timestamp) {
         var fileName = "Transient";
         if (this.savedImages > 0)
             fileName += (this.savedImages + 1);
-        this.saveParameters(fileName + ".json");
-        this.saveRaw(fileName + ".csv");
+
+        var downloadFiles = async (fileName) => {
+            this.saveParameters(fileName + ".json");
+            await new Promise(r => setTimeout(r, 1000)); // Avoid downloading only the second file but twice on Chrome
+            this.saveRaw(fileName + ".csv");
+        }
+        downloadFiles(fileName);
+
         fileName += ".png";
 
         this.canvas.toBlob(function (blob) { saveAs(blob, fileName); });
@@ -819,5 +825,7 @@ Transient.prototype.saveRaw = function (fileName) {
         }
         text += `\n`;
     }
-    console.log(text);
+
+    var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+    saveAs(blob, fileName);
 }
