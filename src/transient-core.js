@@ -1442,7 +1442,7 @@
         this.sceneVBOs[this.currentScene].bind();
         this.sceneVBOs[this.currentScene].draw(this.geometryProgram, this.gl.LINES);
 
-        this.geometryProgram.uniform4F("uColor", 0.3765, 0.9412, 0.5255, 1.0);
+        this.geometryProgram.uniform4F("uColor", 0.0, 1.0, 1.0, 1.0);
         this.sbVbo.bind();
         this.sbVbo.draw(this.geometryProgram, this.gl.LINES);
         this.gl.disable(this.gl.BLEND);
@@ -1685,7 +1685,7 @@
         this.sceneVBOs[this.currentScene].bind();
         this.sceneVBOs[this.currentScene].draw(this.geometryProgram, this.gl.LINES);
 
-        this.geometryProgram.uniform4F("uColor", 0.3765, 0.9412, 0.5255, 1.0);
+        this.geometryProgram.uniform4F("uColor", 0.0, 1.0, 1.0, 1.0);
         this.sbVbo.bind();
         this.sbVbo.draw(this.geometryProgram, this.gl.LINES);
         gl.disable(gl.BLEND);
