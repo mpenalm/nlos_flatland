@@ -810,6 +810,18 @@ Transient.prototype.saveParameters = function (fileName) {
 Transient.prototype.saveRaw = function (fileName) {
     console.log(fileName);
     var values = this.renderer.getReconstructionValues();
+    // var arr = new Float32Array(values.length / 2);
+    // var k = 0;
+    // for (var j = 0; j < this.renderer.numPixels[1]; j++) {
+    //     for (var i = 0; i < this.renderer.numPixels[0]; i++) {
+    //         k = (this.renderer.numPixels[0] * j + i) * 4;
+    //         arr[k / 2] = values[k];
+    //         arr[k / 2 + 1] = values[k + 1];
+    //     }
+    // }
+    // hdf5.FS.writeFile(fileName + ".hdf5", arr.buffer);
+    // console.log(f);
+
     var text = ``;
     var k = 0;
     for (var j = 0; j < this.renderer.numPixels[1]; j++) {
