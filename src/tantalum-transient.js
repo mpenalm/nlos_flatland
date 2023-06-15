@@ -133,7 +133,7 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene14', 'name': 'Virtual mirror', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene16', 'name': 'Virtual mirror 2', 'posA': [0.64, 0.995], 'posB': [0.837, 0.75], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             // { 'shader': 'scene13', 'name': 'Virtual mirror 2', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene15', 'name': 'Virtual mirror rotated', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene15', 'name': 'Rotated segment', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             // { 'shader': 'scene17', 'name': 'Non-working second corner', 'posA': [0.218, 0.1], 'posB': [0.359, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene18', 'name': 'Second corner', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene19', 'name': 'Second corner target', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse }
@@ -155,7 +155,7 @@ Transient.prototype.setupUI = function () {
                 0.0, -0.2, -0.2, -0.54641],
             // Virtual mirror
             [0.4, 0.2, 0.4, -0.2],
-            // Virtual mirror rotated
+            // Rotated segment
             [0.5, 0.2, 0.4, -0.2],
         ],
         "addition_modes": ["Absolute space", "Complex space"],
@@ -485,7 +485,7 @@ Transient.prototype.setupUI = function () {
                 // Line, Visibility test, and Virtual mirror
                 d = 0.4;
             } else {
-                // Virtual mirror rotated
+                // Rotated segment
                 d = Math.sqrt(0.17);
             }
         } else {
@@ -510,7 +510,7 @@ Transient.prototype.setupUI = function () {
                 // Line, Visibility test, and Virtual mirror
                 d = 0.4;
             } else {
-                // Virtual mirror rotated
+                // Rotated segment
                 d = Math.sqrt(0.17);
             }
         } else {
