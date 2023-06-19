@@ -243,6 +243,11 @@ Transient.prototype.setupUI = function () {
         document.getElementById("tonemap-div").style.display = display;
     });
 
+    new tui.ButtonGroup("geometry-visibility-selector", false, ['Show', 'Hide'], function (idx) {
+        var showGeometry = !Boolean(idx);
+        renderer.setShowGeometry(showGeometry);
+    });
+
     document.getElementById("filter-parameter").style.display = 'none';
 
     (new tui.ButtonGroup("filter-selector", true, config.filters, function (idx) {
