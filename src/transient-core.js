@@ -234,6 +234,31 @@
         vboData[19] = 0.25 + 0.4;
         this.sceneVBOs[i].copy(vboData);
 
+        // Box
+        i++;
+        this.sceneVBOs.push(new tgl.VertexBuffer());
+        this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
+        this.sceneVBOs[i].init(10);
+        var vboData = new Float32Array(10 * 2);
+        addRelayWallVertices(vboData, this.aspect);
+        vboData[4] = 0.0;
+        vboData[5] = 0.2;
+        vboData[6] = 0.0;
+        vboData[7] = -0.2;
+        vboData[8] = 0.0;
+        vboData[9] = -0.2;
+        vboData[10] = -0.2 / this.aspect;
+        vboData[11] = -0.2;
+        vboData[12] = -0.2 / this.aspect;
+        vboData[13] = -0.2;
+        vboData[14] = -0.2 / this.aspect;
+        vboData[15] = 0.2;
+        vboData[16] = -0.2 / this.aspect;
+        vboData[17] = 0.2;
+        vboData[18] = 0.0;
+        vboData[19] = 0.2;
+        this.sceneVBOs[i].copy(vboData);
+
         // Visibility test
         i++;
         this.sceneVBOs.push(new tgl.VertexBuffer());

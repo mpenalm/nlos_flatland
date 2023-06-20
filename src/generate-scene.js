@@ -3,7 +3,7 @@
     var SceneGenerator = function () {
         this.pattern = new RegExp('// fill');
         this.relayWallPattern = new RegExp(RELAY_WALL_COMMENT);
-        this.sceneNumber = 20;
+        this.sceneNumber = 21;
         this.baseShader = Shaders['scene-base'];
         this.created = 0;
     }
@@ -82,16 +82,21 @@
 
         var text;
         if (matType == MaterialType.RoughDielectric) {
-            text = 'float wiDotN;\n' +
-                'vec2 res = ' + functionCall + params + ');\n' +
-                'if (wiDotN < 0.0)\n' +
-                '\ttMult = ior;\n' +
-                'return res;';
+            text = `float wiDotN;
+        vec2 res = ${functionCall}${params});
+        if (wiDotN < 0.0)
+            tMult = ior;
+        return res;`;
         } else {
-            text = 'return ' + functionCall + params + ');';
+            text = `return ${functionCall}${params});`;
         }
         if (matType == MaterialType.Dielectric || matType == MaterialType.RoughDielectric) {
-            text = 'float ior = 1.3;\n' + text;
+            text = `float ior = 1.3;
+        if (wiLocal.y < 0.0) {
+            // The ray comes from inside the dielectric material - it will take longer times
+            tMult = ior;
+        }
+        ${text}`;
         } else if (matType == MaterialType.Diffuse) {
             // for Diffuse, matParams[0] is albedo (always gray for now)
             text = 'throughput *= vec3(' + toPrint(matParams[0]) + ');\n' + text;
@@ -218,7 +223,7 @@
             featureSize = (end[1] - start[1]) / nFeatures;
             y = linspace(start[1], end[1], nFeatures + 1);
             if (vertical) {
-                x = [Math.min(0.999, start[0] - Math.abs(featureSize) / 2), Math.min(0.999, start[0] + Math.abs(featureSize) / 2)];
+                x = [Math.min(1.0, start[0] + Math.abs(featureSize) / 2), Math.min(1.0, start[0] - Math.abs(featureSize) / 2)];
                 for (var i = 0; i <= nFeatures; i++) {
                     res.push(x[i % 2]);
                     res.push(y[i]);

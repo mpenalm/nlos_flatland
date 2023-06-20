@@ -122,12 +122,32 @@ function getCoordinate(label) {
     return Math.min(max, Math.max(min, val));
 }
 
+/*
+ * Create a box with a side [(x1,y1),(x2,y2)], and the new perpendicular sides having a length of width
+ */
+function closeBox(x1, y1, x2, y2, width) {
+    // Perpendicular direction to the given segment
+    var xDir = y2 - y1;
+    var yDir = -(x2 - x1);
+    // Normalize the vector and make it width-lengthed
+    var length = Math.sqrt(xDir * xDir + yDir * yDir);
+    xDir /= length / width;
+    yDir /= length / width;
+
+    var x3 = x2 + xDir;
+    var y3 = y2 + yDir;
+    var x4 = x1 + xDir;
+    var y4 = y1 + yDir;
+    return [x1, y1, x2, y2, x3, y3, x4, y4];
+}
+
 Transient.prototype.setupUI = function () {
     var config = {
         "reconstruction_resolutions": [32, 64, 128, 256, 512, 1024, 2048, 4096],
         "scenes": [
             { 'shader': 'scene10', 'name': 'Line', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene9', 'name': 'Circle', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene20', 'name': 'Box', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene11', 'name': 'Visibility test', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             // {'shader': 'scene12', 'name': 'Virtual mirror',   'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene14', 'name': 'Virtual mirror', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
@@ -149,6 +169,11 @@ Transient.prototype.setupUI = function () {
         "vertices": [
             // Line
             [0.0, 0.2, 0.0, -0.2],
+            // Box
+            [0.0, 0.2, 0.0, -0.2,
+                0.0, -0.2, -0.2, -0.2,
+                -0.2, -0.2, -0.2, 0.2,
+                -0.2, 0.2, 0.0, 0.2],
             // Visibility test
             [0.0, 0.2, 0.0, -0.2,
                 0.2, 0.54641, 0.0, 0.2,
@@ -486,8 +511,8 @@ Transient.prototype.setupUI = function () {
         nFeatures.setNFeatures(251 - nf);
         var d;
         if (usingModifiedScene) {
-            if (modSceneSelector.selectedButton < 3) {
-                // Line, Visibility test, and Virtual mirror
+            if (modSceneSelector.selectedButton < 4) {
+                // Line, Box, Visibility test, and Virtual mirror
                 d = 0.4;
             } else {
                 // Rotated segment
@@ -511,8 +536,8 @@ Transient.prototype.setupUI = function () {
         if (usingModifiedScene) {
             var d;
             var selectedScene = (sceneIdx == -1) ? modSceneSelector.selectedButton : sceneIdx;
-            if (selectedScene < 3) {
-                // Line, Visibility test, and Virtual mirror
+            if (selectedScene < 4) {
+                // Line, Box, Visibility test, and Virtual mirror
                 d = 0.4;
             } else {
                 // Rotated segment
@@ -546,7 +571,7 @@ Transient.prototype.setupUI = function () {
     document.getElementById("segment-div").style.display = 'block';
     document.getElementById("scene-div").style.display = 'none';
     var usingModifiedScene = false;
-    new tui.ButtonGroup("type-of-scene", true, ["Single segment", "Predefined scene"], function (idx) {
+    new tui.ButtonGroup("type-of-scene", true, ["Single segment/Box", "Predefined scene"], function (idx) {
         if (idx == 0) {
             document.getElementById("segment-div").style.display = 'block';
             document.getElementById("scene-div").style.display = 'none';
@@ -570,20 +595,48 @@ Transient.prototype.setupUI = function () {
     });
 
     document.getElementById('create-button').addEventListener('click', (function () {
-        var verticesList;
+        var verticesList = [];
         if (usingModifiedScene) {
             var endVertices = config.vertices[modSceneSelector.selectedButton];
-            verticesList = [];
-            for (var i = 0; i < endVertices.length; i += 4) {
-                verticesList.push(generator.generateVertices([endVertices[i], endVertices[i + 1]],
-                    [endVertices[i + 2], endVertices[i + 3]], nFeatures.value));
+            if (modSceneSelector.selectedButton == 1) {
+                // Box
+                verticesList.push(generator.generateVertices([endVertices[0], endVertices[1]],
+                    [endVertices[2], endVertices[3]], nFeatures.value));
+
+                var v1 = [verticesList[0][0], verticesList[0][1]];
+                var v2 = [verticesList[0][verticesList[0].length - 2], verticesList[0][verticesList[0].length - 1]];
+                var listAux = generator.generateVertices([endVertices[8], endVertices[9]],
+                    [endVertices[10], endVertices[11]], nFeatures.value);
+                v2.push(listAux[0], listAux[1]);
+                v1.push(listAux[listAux.length - 2], listAux[listAux.length - 1]);
+                verticesList.push(v2, listAux, v1);
+            } else {
+                for (var i = 0; i < endVertices.length; i += 4) {
+                    verticesList.push(generator.generateVertices([endVertices[i], endVertices[i + 1]],
+                        [endVertices[i + 2], endVertices[i + 3]], nFeatures.value));
+                }
             }
         } else {
             var x1 = getCoordinate("x1");
             var x2 = getCoordinate("x2");
             var y1 = getCoordinate("y1");
             var y2 = getCoordinate("y2");
-            verticesList = [generator.generateVertices([x1, y1], [x2, y2], nFeatures.value)];
+            var boxWidth = getCoordinate("box-width");
+            if (boxWidth <= 1e-5) {
+                // Use a segment
+                verticesList = [generator.generateVertices([x1, y1], [x2, y2], nFeatures.value)];
+            } else {
+                // Use a box
+                var vertices = closeBox(x1, y1, x2, y2, boxWidth);
+                verticesList.push(generator.generateVertices([x1, y1], [x2, y2], nFeatures.value));
+                var v1 = [verticesList[0][0], verticesList[0][1]];
+                var v2 = [verticesList[0][verticesList[0].length - 2], verticesList[0][verticesList[0].length - 1]];
+                var listAux = generator.generateVertices([vertices[4], vertices[5]],
+                    [vertices[6], vertices[7]], nFeatures.value);
+                v2.push(listAux[0], listAux[1]);
+                v1.push(listAux[listAux.length - 2], listAux[listAux.length - 1]);
+                verticesList.push(v2, listAux, v1);
+            }
         }
         var vertices = [];
         verticesList.forEach(vertexList => {
@@ -612,7 +665,8 @@ Transient.prototype.setupUI = function () {
                 'x1': x1,
                 'x2': x2,
                 'y1': y1,
-                'y2': y2
+                'y2': y2,
+                'width': boxWidth
             }
         });
         sceneSelector.addButton(config.scenes[config.scenes.length - 1].name);
@@ -748,6 +802,7 @@ Transient.prototype.saveParameters = function (fileName) {
     "y1": ${modifications.y1},
     "x2": ${modifications.x2},
     "y2": ${modifications.y2},
+    "box-width": ${modifications.width},
 `;
         }
         text += `\t"hidden_mat": "${config.material_types[modifications.mat_type - 2]}",\n`;
@@ -805,7 +860,8 @@ Transient.prototype.saveParameters = function (fileName) {
     }
     text += `
     }
-}
+},
+"superimpose_geometry": "${this.showGeometry}"
 }`;
 
     var blob = new Blob([text], { type: "text/json;charset=utf-8" });

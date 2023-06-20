@@ -1217,12 +1217,6 @@ var Shaders = {
         '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 3.0, isect);\n'                +
         '    lineIntersect(ray, vec2( 1.2, -1.0), vec2( 1.2,   1.0), 0.0, isect);\n'       +
         '    lineIntersect(ray, vec2(0.0, 0.2), vec2(0.0, -0.2), 0.0, isect);\n'           +
-        '    //lineIntersect(ray, vec2(0.0, 0.2), vec2(0.0, -0.2), 1.0, isect); // This o' +
-                                                                    'ne seems to work\n'   +
-        '    //lineIntersect(ray, vec2(-1.5, 0.8), vec2(1.0, 0.8), 1.0, isect); // This r' +
-                                                               'esembles a dielectric\n'   +
-        '    //lineIntersect(ray, vec2(-0.5, -0.6), vec2(0.0, -0.8), 1.0, isect); // This' +
-                                                                     ' one works fine\n'   +
         '}\n\n'                                                                            +
 
         'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
@@ -1618,6 +1612,42 @@ var Shaders = {
                                                                        'ughput, 0.2);\n'   +
         '    } else if (isect.mat == 5.0) { return sampleRoughMirror(state, wiLocal, thro' +
                                                                        'ughput, 0.5);\n'   +
+        '    } else {\n'                                                                   +
+        '        throughput *= vec3(0.5);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    }\n'                                                                          +
+        '}\n',
+
+    'scene20':
+        '#include "trace-frag"\n\n'                                                        +
+
+        '#include "bsdf"\n'                                                                +
+        '#include "intersect"\n\n'                                                         +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 3.0, isect);\n'                +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, 1.0), 0.0, isect);\n'           +
+        '    bboxIntersect(ray, vec2(-0.1, 0.0), vec2(0.1, 0.2), 0.0, isect);\n'           +
+        '}\n\n'                                                                            +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
+                                             'out vec3 throughput, out float tMult) {\n'   +
+        '    tMult = 1.0;\n'                                                               +
+        '    if (isect.mat == 1.0) {\n'                                                    +
+        '        return sampleRoughMirror(state, wiLocal, throughput, 0.5);\n'             +
+        '        float ior = sqrt(sellmeierIor(vec3(1.0396, 0.2318, 1.0105), vec3(0.0060,' +
+                                                         ' 0.0200, 103.56), lambda));\n'   +
+        '        if (wiLocal.y < 0.0) {\n'                                                 +
+        '            // The ray comes from inside the dielectric material - it will take ' +
+                                                                        'longer times\n'   +
+        '            tMult = ior;\n'                                                       +
+        '        }\n'                                                                      +
+        '        return sampleDielectric(state, wiLocal, ior);\n'                          +
+        '    } else if (isect.mat == 2.0) {\n'                                             +
+        '        return sampleMirror(wiLocal);\n'                                          +
+        '    } else if (isect.mat == 3.0) {\n'                                             +
+        '        throughput *= vec3(0.0);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
         '    } else {\n'                                                                   +
         '        throughput *= vec3(0.5);\n'                                               +
         '        return sampleDiffuse(state, wiLocal);\n'                                  +
