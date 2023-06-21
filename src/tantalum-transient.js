@@ -648,6 +648,10 @@ Transient.prototype.setupUI = function () {
         } else if (matType === genScene.MaterialType.Diffuse) {
             matParams.push(0.5);
         }
+        if (matType === genScene.MaterialType.Dielectric || matType === genScene.MaterialType.RoughDielectric) {
+            var ior = getCoordinate("ior");
+            matParams.push(ior);
+        }
         var wallMatParams = [0.5];
         if (wallMatType === genScene.MaterialType.RoughMirror || wallMatType === genScene.MaterialType.RoughDielectric) {
             wallMatParams = [wallRoughness];
@@ -787,7 +791,6 @@ Transient.prototype.renderLoop = function (timestamp) {
 }
 
 Transient.prototype.saveParameters = function (fileName) {
-    console.log(fileName);
     var renderer = this.renderer;
     var config = this.config;
     var text = '{\n';
@@ -808,6 +811,9 @@ Transient.prototype.saveParameters = function (fileName) {
         text += `\t"hidden_mat": "${config.material_types[modifications.mat_type - 2]}",\n`;
         if (modifications.mat_type === genScene.MaterialType.RoughDielectric || modifications.mat_type === genScene.MaterialType.RoughMirror) {
             text += `\t"hidden_roughness": ${modifications.mat_params[0]},\n`;
+        }
+        if (modifications.mat_type === genScene.MaterialType.Dielectric || modifications.mat_type === genScene.MaterialType.RoughDielectric) {
+            text += `\t"hidden_ior": ${modifications.mat_params[0]},\n`;
         }
         text += `\t"wall_mat": "${config.material_types[modifications.wall_mat_type - 2]}",\n`;
         if (modifications.wall_mat_type === genScene.MaterialType.RoughDielectric || modifications.wall_mat_type === genScene.MaterialType.RoughMirror) {
@@ -869,7 +875,6 @@ Transient.prototype.saveParameters = function (fileName) {
 }
 
 Transient.prototype.saveRaw = function (fileName) {
-    console.log(fileName);
     var values = this.renderer.getReconstructionValues();
     // var arr = new Float32Array(values.length / 2);
     // var k = 0;

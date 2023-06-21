@@ -91,7 +91,8 @@
             text = `return ${functionCall}${params});`;
         }
         if (matType == MaterialType.Dielectric || matType == MaterialType.RoughDielectric) {
-            text = `float ior = 1.3;
+            var ior = (matParams.length > 0) ? matParams[0] : 1.3;
+            text = `float ior = ${toPrint(ior)};
         if (wiLocal.y < 0.0) {
             // The ray comes from inside the dielectric material - it will take longer times
             tMult = ior;
