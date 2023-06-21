@@ -608,7 +608,7 @@ Transient.prototype.setupUI = function () {
                 var listAux = generator.generateVertices([endVertices[8], endVertices[9]],
                     [endVertices[10], endVertices[11]], nFeatures.value);
                 v2.push(listAux[0], listAux[1]);
-                v1.push(listAux[listAux.length - 2], listAux[listAux.length - 1]);
+                v1 = [listAux[listAux.length - 2], listAux[listAux.length - 1], v1[0], v1[1]];
                 verticesList.push(v2, listAux, v1);
             } else {
                 for (var i = 0; i < endVertices.length; i += 4) {
@@ -634,7 +634,7 @@ Transient.prototype.setupUI = function () {
                 var listAux = generator.generateVertices([vertices[4], vertices[5]],
                     [vertices[6], vertices[7]], nFeatures.value);
                 v2.push(listAux[0], listAux[1]);
-                v1.push(listAux[listAux.length - 2], listAux[listAux.length - 1]);
+                v1 = [listAux[listAux.length - 2], listAux[listAux.length - 1], v1[0], v1[1]];
                 verticesList.push(v2, listAux, v1);
             }
         }
