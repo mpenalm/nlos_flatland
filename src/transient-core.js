@@ -382,6 +382,49 @@
         vboData[6] = -0.8 / this.aspect;
         vboData[7] = 0.6;
         this.sceneVBOs[i].copy(vboData);
+
+        // Two boxes
+        i++;
+        this.sceneVBOs.push(new tgl.VertexBuffer());
+        this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
+        this.sceneVBOs[i].init(18);
+        vboData = new Float32Array(18 * 2);
+        addRelayWallVertices(vboData, this.aspect);
+        // First box
+        vboData[4] = 0.125 / this.aspect;
+        vboData[5] = 0.1;
+        vboData[6] = 0.125 / this.aspect;
+        vboData[7] = 0.4;
+        vboData[8] = 0.125 / this.aspect;
+        vboData[9] = 0.4;
+        vboData[10] = 0.25 / this.aspect;
+        vboData[11] = 0.4;
+        vboData[12] = 0.25 / this.aspect;
+        vboData[13] = 0.4;
+        vboData[14] = 0.25 / this.aspect;
+        vboData[15] = 0.1;
+        vboData[16] = 0.25 / this.aspect;
+        vboData[17] = 0.1;
+        vboData[18] = 0.125 / this.aspect;
+        vboData[19] = 0.1;
+        // Second box
+        vboData[20] = -0.325 / this.aspect;
+        vboData[21] = -0.25;
+        vboData[22] = -0.25 / this.aspect;
+        vboData[23] = -0.5;
+        vboData[24] = -0.25 / this.aspect;
+        vboData[25] = -0.5;
+        vboData[26] = -0.325 / this.aspect;
+        vboData[27] = -0.75;
+        vboData[28] = -0.325 / this.aspect;
+        vboData[29] = -0.75;
+        vboData[30] = -0.575 / this.aspect;
+        vboData[31] = -0.325;
+        vboData[32] = -0.575 / this.aspect;
+        vboData[33] = -0.325;
+        vboData[34] = -0.325 / this.aspect;
+        vboData[35] = -0.25;
+        this.sceneVBOs[i].copy(vboData);
     }
 
     function addRelayWallVertices(vboData, aspect) {
@@ -1809,6 +1852,15 @@
 
     Renderer.prototype.getReconstructionValues = function () {
         return this.filteredBuffer.getArray(this.numPixels[0] * this.numPixels[1]);
+    }
+
+    Renderer.prototype.getTransientValues = function () {
+        var h = this.capturedBuffer.getArray(this.numSpads * this.numIntervals);
+        var result = [];
+        for (let i = 0; i < h.length; i += 4) {
+            result.push(h[i]);
+        }
+        return result;
     }
 
     exports.Renderer = Renderer;

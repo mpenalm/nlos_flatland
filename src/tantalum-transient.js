@@ -156,7 +156,8 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene15', 'name': 'Rotated segment', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             // { 'shader': 'scene17', 'name': 'Non-working second corner', 'posA': [0.218, 0.1], 'posB': [0.359, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene18', 'name': 'Second corner', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene19', 'name': 'Second corner target', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse }
+            { 'shader': 'scene19', 'name': 'Second corner target', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene21', 'name': 'Two boxes', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse }
         ],
         "capture_methods": ["Non-confocal", "Confocal"],
         "camera_models": ["Confocal", "Transient", "Conventional"],
@@ -182,6 +183,19 @@ Transient.prototype.setupUI = function () {
             [0.4, 0.2, 0.4, -0.2],
             // Rotated segment
             [0.5, 0.2, 0.4, -0.2],
+            // Two boxes
+            [
+                // First box
+                0.125, 0.1, 0.125, 0.4,
+                0.125, 0.4, 0.25, 0.4,
+                0.25, 0.4, 0.25, 0.1,
+                0.25, 0.1, 0.125, 0.1,
+                // Second box
+                -0.325, -0.25, -0.25, -0.5,
+                -0.25, -0.5, -0.325, -0.75,
+                -0.325, -0.75, -0.575, -0.325,
+                -0.575, -0.325, -0.325, -0.25
+            ],
         ],
         "addition_modes": ["Absolute space", "Complex space"],
         "resolution_labels": [],
@@ -228,12 +242,16 @@ Transient.prototype.setupUI = function () {
     function changeInstantSlider() {
         if (instantSlider == null || instantSlider.maxValue != renderer.numIntervals - 1) {
             instantSlider = new tui.Slider("instant-selector", 0, renderer.numIntervals - 1, true, function (instant) {
-                this.setLabel("L = " + (renderer.deltaT * instant).toFixed(3) + " m");
+                var m = renderer.deltaT * instant;
+                var ns = meters2seconds(m) * 1e9;
+                this.setLabel(`t = ${ns.toFixed(3)} ns (L = ${m.toFixed(3)} m)`);
                 renderer.setInstant(instant);
             });
             instantSlider.setValue(0);
             instantSlider.updateLabel = function () {
-                this.setLabel("L = " + (renderer.deltaT * this.value).toFixed(3) + " m")
+                var m = renderer.deltaT * this.value;
+                var ns = meters2seconds(m) * 1e9;
+                this.setLabel(`t = ${ns.toFixed(3)} ns (L = ${m.toFixed(3)} m)`);
             }
             renderer.addInstantSlider(instantSlider);
         }
@@ -437,14 +455,21 @@ Transient.prototype.setupUI = function () {
 
     var tmaxSlider = new tui.Slider("tmax", 10, renderer.maxTextureSize, true, function (numIntervals) {
         var tmax = renderer.deltaT * numIntervals;
-        this.setLabel(tmax.toFixed(3) + " m");
+        var ns = meters2seconds(tmax) * 1e9;
+        this.setLabel(`${ns.toFixed(3)} ns (${tmax.toFixed(3)} m)`);
         renderer.setMaxTime(tmax);
         changeInstantSlider();
     });
 
+    function meters2seconds(m) {
+        return m / 299792458;
+    }
+
     var deltaTSlider = new tui.Slider("delta-t", 1, 250, true, function (mm) {
-        this.setLabel(mm + " mm");
-        renderer.setDeltaT(mm / 1000);
+        var m = mm / 1000;
+        var ps = meters2seconds(m) * 1e12;
+        this.setLabel(`${ps.toFixed(3)} ps (${mm} mm)`);
+        renderer.setDeltaT(m);
         tmaxSlider.setValue(renderer.numIntervals, false);
     });
     deltaTSlider.setValue(3);
@@ -514,9 +539,12 @@ Transient.prototype.setupUI = function () {
             if (modSceneSelector.selectedButton < 4) {
                 // Line, Box, Visibility test, and Virtual mirror
                 d = 0.4;
-            } else {
+            } else if (modSceneSelector.selectedButton == 4) {
                 // Rotated segment
                 d = Math.sqrt(0.17);
+            } else {
+                // Two boxes
+                d = 0.5;
             }
         } else {
             var x1 = getCoordinate("x1");
@@ -539,9 +567,12 @@ Transient.prototype.setupUI = function () {
             if (selectedScene < 4) {
                 // Line, Box, Visibility test, and Virtual mirror
                 d = 0.4;
-            } else {
+            } else if (selectedScene == 4) {
                 // Rotated segment
                 d = Math.sqrt(0.17);
+            } else {
+                // Two boxes
+                d = 0.5;
             }
         } else {
             var x1 = getCoordinate("x1");
@@ -586,7 +617,7 @@ Transient.prototype.setupUI = function () {
 
     sceneNames = [];
     for (var i = 0; i < config.scenes.length; ++i) {
-        if (i != 1 && i != 4 && i < 6) {
+        if ((i != 1 && i != 5 && i < 7) || (i == 9)) {
             sceneNames.push(config.scenes[i].name);
         }
     }
@@ -782,6 +813,8 @@ Transient.prototype.renderLoop = function (timestamp) {
 
         this.savedImages++;
         this.saveImageData = false;
+
+        // console.log(this.renderer.getTransientValues());
     }
 
     this.progressBar.setProgress(this.renderer.progress());
