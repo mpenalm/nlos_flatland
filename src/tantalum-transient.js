@@ -900,7 +900,7 @@ Transient.prototype.saveParameters = function (fileName) {
     text += `
     }
 },
-"superimpose_geometry": "${this.showGeometry}"
+"superimpose_geometry": ${renderer.showGeometry}
 }`;
 
     var blob = new Blob([text], { type: "text/json;charset=utf-8" });
