@@ -425,6 +425,27 @@
         vboData[34] = -0.325 / this.aspect;
         vboData[35] = -0.25;
         this.sceneVBOs[i].copy(vboData);
+
+        // Triangle
+        i++;
+        this.sceneVBOs.push(new tgl.VertexBuffer());
+        this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
+        this.sceneVBOs[i].init(8);
+        vboData = new Float32Array(8 * 2);
+        addRelayWallVertices(vboData, this.aspect);
+        vboData[4] = 0.0;
+        vboData[5] = 0.4;
+        vboData[6] = 0.2 / this.aspect;
+        vboData[7] = 0.0;
+        vboData[8] = 0.2 / this.aspect;
+        vboData[9] = 0.0;
+        vboData[10] = 0.0;
+        vboData[11] = -0.4;
+        vboData[12] = 0.0;
+        vboData[13] = -0.4;
+        vboData[14] = 0.0;
+        vboData[15] = 0.4;
+        this.sceneVBOs[i].copy(vboData);
     }
 
     function addRelayWallVertices(vboData, aspect) {

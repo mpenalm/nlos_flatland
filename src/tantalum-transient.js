@@ -157,7 +157,8 @@ Transient.prototype.setupUI = function () {
             // { 'shader': 'scene17', 'name': 'Non-working second corner', 'posA': [0.218, 0.1], 'posB': [0.359, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene18', 'name': 'Second corner', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene19', 'name': 'Second corner target', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene21', 'name': 'Two boxes', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse }
+            { 'shader': 'scene21', 'name': 'Two boxes', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene22', 'name': 'Triangle', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse }
         ],
         "capture_methods": ["Non-confocal", "Confocal"],
         "camera_models": ["Confocal", "Transient", "Conventional"],
@@ -196,6 +197,10 @@ Transient.prototype.setupUI = function () {
                 -0.325, -0.75, -0.575, -0.325,
                 -0.575, -0.325, -0.325, -0.25
             ],
+            // Triangle
+            [0.0, 0.4, 0.2, 0.0,
+                0.2, 0.0, 0.0, -0.4,
+                0.0, -0.4, 0.0, 0.4],
         ],
         "addition_modes": ["Absolute space", "Complex space"],
         "resolution_labels": [],
@@ -542,9 +547,12 @@ Transient.prototype.setupUI = function () {
             } else if (modSceneSelector.selectedButton == 4) {
                 // Rotated segment
                 d = Math.sqrt(0.17);
-            } else {
+            } else if (modSceneSelector.selectedButton == 5) {
                 // Two boxes
                 d = 0.5;
+            } else {
+                // Triangle
+                d = Math.sqrt(0.2);
             }
         } else {
             var x1 = getCoordinate("x1");
@@ -570,9 +578,12 @@ Transient.prototype.setupUI = function () {
             } else if (selectedScene == 4) {
                 // Rotated segment
                 d = Math.sqrt(0.17);
-            } else {
+            } else if (modSceneSelector.selectedButton == 5) {
                 // Two boxes
                 d = 0.5;
+            } else {
+                // Triangle
+                d = Math.sqrt(0.2);
             }
         } else {
             var x1 = getCoordinate("x1");
@@ -617,7 +628,7 @@ Transient.prototype.setupUI = function () {
 
     sceneNames = [];
     for (var i = 0; i < config.scenes.length; ++i) {
-        if ((i != 1 && i != 5 && i < 7) || (i == 9)) {
+        if ((i != 1 && i != 5 && i < 7) || (i >= 9)) {
             sceneNames.push(config.scenes[i].name);
         }
     }
