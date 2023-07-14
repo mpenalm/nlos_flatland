@@ -265,14 +265,14 @@ Transient.prototype.setupUI = function () {
     changeInstantSlider();
 
     var sigmaSlider = new tui.Slider("sigma-slider", 1, 150, true, function (sigma) {
-        this.setLabel(`sigma = ${sigma / 10} cm`);
+        this.setLabel(`Standard deviation: ${sigma / 10} cm`);
         sigma = sigma / 1000;
         renderer.setSigma(sigma);
     })
     sigmaSlider.setValue(20);
 
     var wlSlider = new tui.Slider("wl-slider", 1, 15, true, function (wl) {
-        this.setLabel(`wl = ${wl} cm`);
+        this.setLabel(`Wavelength: ${wl} cm`);
         wl = wl / 100;
         renderer.setWavelength(wl);
     });
@@ -291,8 +291,8 @@ Transient.prototype.setupUI = function () {
         document.getElementById("tonemap-div").style.display = display;
     });
 
-    new tui.ButtonGroup("geometry-visibility-selector", false, ['Show', 'Hide'], function (idx) {
-        var showGeometry = !Boolean(idx);
+    new tui.ButtonGroup("geometry-visibility-selector", false, ['Hide', 'Show'], function (idx) {
+        var showGeometry = Boolean(idx);
         renderer.setShowGeometry(showGeometry);
     });
 
@@ -403,12 +403,12 @@ Transient.prototype.setupUI = function () {
     spadPositionsSlider.label.className = "slider-label";
     var parent = spadPositionsSlider.parentNode;
     parent.insertBefore(spadPositionsSlider.label, spadPositionsSlider.nextSibling);
-    spadPositionsSlider.label.textContent = "[-0.5, 0.5]";
+    spadPositionsSlider.label.textContent = "[-0.5, 0.5] m";
     spadPositionsSlider.noUiSlider.on('update', function (values) {
         var low = parseFloat(values[0]);
         var high = parseFloat(values[1]);
         renderer.setSpadBoundaries(low, high);
-        spadPositionsSlider.label.textContent = "[" + low + "," + high + "]";
+        spadPositionsSlider.label.textContent = `[${low},${high}]`;
     });
 
     var spreadSelector = new tui.ButtonGroup("spread-selector", true, config.spread_types, renderer.setSpreadType.bind(renderer));

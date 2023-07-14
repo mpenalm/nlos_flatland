@@ -180,7 +180,7 @@
         this.playing = false;
         this.usePhase = false;
         this.addModules = true;
-        this.showGeometry = true;
+        this.showGeometry = false;
         this.createSceneVBOs();
     }
 
