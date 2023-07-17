@@ -213,25 +213,20 @@
         i++;
         this.sceneVBOs.push(new tgl.VertexBuffer());
         this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
-        this.sceneVBOs[i].init(10);
-        vboData = new Float32Array(10 * 2);
+        var N = 32; // Draw using 32 segments
+        this.sceneVBOs[i].init(2 + N * 2);
+        vboData = new Float32Array((2 + N * 2) * 2);
         addRelayWallVertices(vboData, this.aspect);
-        vboData[4] = -0.95 / this.aspect;
-        vboData[5] = 0.25 + 0.4;
-        vboData[6] = (-0.95 - 0.4) / this.aspect;
-        vboData[7] = 0.25;
-        vboData[8] = (-0.95 - 0.4) / this.aspect;
-        vboData[9] = 0.25;
-        vboData[10] = -0.95 / this.aspect;
-        vboData[11] = 0.25 - 0.4;
-        vboData[12] = -0.95 / this.aspect;
-        vboData[13] = 0.25 - 0.4;
-        vboData[14] = (-0.95 + 0.4) / this.aspect;
-        vboData[15] = 0.25;
-        vboData[16] = (-0.95 + 0.4) / this.aspect;
-        vboData[17] = 0.25;
-        vboData[18] = -0.95 / this.aspect;
-        vboData[19] = 0.25 + 0.4;
+        // center (-0.95, 0.25)
+        // radius 0.4
+        var angle = 0;
+        for (var j = 0; j < N; j++) {
+            vboData[4 + 4 * j] = (-0.95 + 0.4 * Math.cos(angle)) / this.aspect;
+            vboData[5 + 4 * j] = 0.25 + 0.4 * Math.sin(angle);
+            angle += 2 * Math.PI / N;
+            vboData[6 + 4 * j] = (-0.95 + 0.4 * Math.cos(angle)) / this.aspect;
+            vboData[7 + 4 * j] = 0.25 + 0.4 * Math.sin(angle);
+        }
         this.sceneVBOs[i].copy(vboData);
 
         // Box
