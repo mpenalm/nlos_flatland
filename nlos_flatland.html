@@ -27,6 +27,7 @@
 </head>
 
 <body onload="t = new Transient();">
+<!-- <body onload="new Transient();"> -->
     <div class="tantalum-render2" id="transient-content">
         <canvas id="transient-canvas" width="1650" height="461"></canvas>
         <div id="transient-overlay" class="render-loading">Loading...</div>
@@ -97,6 +98,7 @@
                         <div id="sigma-slider"></div>
                         <div id="magnitude-div">
                             <div id="magnitude-selector"></div>
+                            <br>
                         </div>
                         <canvas id="filter-canvas" style="border: none;" width="425" height="256"></canvas>
                     </div>
@@ -138,77 +140,76 @@
             <div class="col-2-12 col-left col-padding">
                 <h3 class="control-title">Add scene</h3>
                 <div class="button stretch-button active" id="add-button">Add scene</div>
+            </div>
 
-                <!-- The Modal -->
-                <div id="myModal" class="modal">
-                    <!-- Modal content -->
-                    <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <p>Select the new scene parameters</p>
-                        <div class="control-row clearfix">
-                            <div class="col-2-12 col-padding col-left">
-                                <h3 class="control-title">Material type</h3>
-                                <div id="material-types"></div>
-                                <h3 class="control-title">Type of scene</h3>
-                                <div id="type-of-scene"></div>
-                            </div>
-                            <div class="col-3-12 col-padding col-left">
-                                <h3 class="control-title">Feature size</h3>
-                                <div id="feature-size"></div>
-                                <h3 class="control-title">Object roughness</h3>
-                                <div id="roughness-slider"></div>
-                                <h3 class="control-title">Object's index of refraction</h3>
-                                <input type="number" id="ior" placeholder="1.3" class="col-2-12 number-input" step="0.1"
-                                    max="20.0" min="1.0">
-                                <div id="segment-div">
-                                    <h3 class="control-title">Vertices</h3>
-                                    <label for="x1">x1: </label>
-                                    <input type="number" id="x1" placeholder="0.0" class="col-2-12 number-input"
-                                        step="0.1" max="1.78" min="-1.78">
-                                    <label for="y1">y1: </label>
-                                    <input type="number" id="y1" placeholder="0.8" class="col-2-12 number-input"
-                                        step="0.1" max="1.0" min="-1.0"><br />
-                                    <label for="x2">x2: </label>
-                                    <input type="number" id="x2" placeholder="-1.5" class="col-2-12 number-input"
-                                        step="0.1" max="1.78" min="-1.78">
-                                    <label for="y2">y2: </label>
-                                    <input type="number" id="y2" placeholder="0.8" class="col-2-12 number-input"
-                                        step="0.1" max="1.0" min="-1.0"><br />
-                                    <label for="box-width">Box width: </label>
-                                    <input type="number" id="box-width" placeholder="0.0" class="col-2-12 number-input"
-                                        step="0.1" max="1.0" min="0.0">
-                                </div>
-                                <div id="scene-div">
-                                    <h3 class="control-title">Scene to modify</h3>
-                                    <div id="mod-scene-selector"></div>
-                                </div>
-                            </div>
-                            <div class="col-3-12 col-padding col-left">
-                                <h3 class="control-title">Relay wall roughness</h3>
-                                <div id="rwall-roughness"></div>
-                            </div>
-                            <div class="col-2-12 col-padding col-left">
-                                <h3 class="control-title">Material type of the relay wall</h3>
-                                <div id="rwall-mat-types"></div>
-                            </div>
-                        </div>
-                        <br>
-                        <div class="col-2-12 col-padding button stretch-button active" id="create-button">Add</div>
-                    </div>
+            <div class="control-row clearfix">
+                <div class="col-3-12 col-left col-padding">
+                    <h3 class="control-title">Light Path Length</h3>
+                    <div class="slider-styled" id="path-length"></div>
+                </div>
+                <div class="col-8-12 col-left col-padding">
+                    <h3 class="control-title">Sample Count</h3>
+                    <div id="sample-count"></div>
                 </div>
             </div>
         </div>
-        <div class="control-row clearfix">
 
-        </div>
-        <div class="control-row clearfix">
-            <div class="col-3-12 col-left col-padding">
-                <h3 class="control-title">Light Path Length</h3>
-                <div class="slider-styled" id="path-length"></div>
-            </div>
-            <div class="col-8-12 col-left col-padding">
-                <h3 class="control-title">Sample Count</h3>
-                <div id="sample-count"></div>
+
+        <!-- The Modal -->
+        <div id="myModal" class="modal">
+            <!-- Modal content -->
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <p>Select the new scene parameters</p>
+                <div class="control-row clearfix">
+                    <div class="col-2-12 col-padding col-left">
+                        <h3 class="control-title">Material type</h3>
+                        <div id="material-types"></div>
+                        <h3 class="control-title">Type of scene</h3>
+                        <div id="type-of-scene"></div>
+                    </div>
+                    <div class="col-3-12 col-padding col-left">
+                        <h3 class="control-title">Feature size</h3>
+                        <div id="feature-size"></div>
+                        <h3 class="control-title">Object roughness</h3>
+                        <div id="roughness-slider"></div>
+                        <h3 class="control-title">Object's index of refraction</h3>
+                        <input type="number" id="ior" placeholder="1.3" class="col-2-12 number-input" step="0.1"
+                            max="20.0" min="1.0">
+                        <div id="segment-div">
+                            <h3 class="control-title">Vertices (m)</h3>
+                            <label for="x1">x1: </label>
+                            <input type="number" id="x1" placeholder="0.0" class="col-2-12 number-input" step="0.1"
+                                max="1.78" min="-1.78">
+                            <label for="y1">y1: </label>
+                            <input type="number" id="y1" placeholder="0.8" class="col-2-12 number-input" step="0.1"
+                                max="1.0" min="-1.0"><br />
+                            <label for="x2">x2: </label>
+                            <input type="number" id="x2" placeholder="-1.5" class="col-2-12 number-input" step="0.1"
+                                max="1.78" min="-1.78">
+                            <label for="y2">y2: </label>
+                            <input type="number" id="y2" placeholder="0.8" class="col-2-12 number-input" step="0.1"
+                                max="1.0" min="-1.0"><br /><br>
+                            <label for="box-width">Box width (m): </label>
+                            <input type="number" id="box-width" placeholder="0.0" class="col-2-12 number-input"
+                                step="0.1" max="1.0" min="0.0">
+                        </div>
+                        <div id="scene-div">
+                            <h3 class="control-title">Scene to modify</h3>
+                            <div id="mod-scene-selector"></div>
+                        </div>
+                    </div>
+                    <div class="col-3-12 col-padding col-left">
+                        <h3 class="control-title">Relay wall roughness</h3>
+                        <div id="rwall-roughness"></div>
+                    </div>
+                    <div class="col-2-12 col-padding col-left">
+                        <h3 class="control-title">Material type of the relay wall</h3>
+                        <div id="rwall-mat-types"></div>
+                    </div>
+                </div>
+                <br>
+                <div class="col-2-12 col-padding button stretch-button active" id="create-button">Add</div>
             </div>
         </div>
     </div>
