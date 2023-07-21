@@ -1222,7 +1222,7 @@
         this.msPerFrame = 1000 / 100;
         this.currentCall = 0;
         this.nlosElapsedTimes = [];
-        this.setSpadPos([0, -0.6]);
+        // this.setSpadPos([0, -0.6]);
         this.confCounter = 0;
         if (this.isConf) {
             this.laserGrid = [this.spadPoints[0], this.spadPoints[1]];
@@ -1317,6 +1317,10 @@
         if (this.laserGrid.length == 0) {
             console.log("The light is not reaching the relay wall");
             this.laserGrid = [1.78, 0];
+        }
+
+        if (this.spreadType === tcore.Renderer.SPREAD_LASER) {
+            this.setSpadPos(this.laserPos);
         }
 
         if (reset)
