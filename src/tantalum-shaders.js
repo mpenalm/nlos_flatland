@@ -1142,6 +1142,38 @@ var Shaders = {
         '    mPos = TexCoord;\n'                                               +
         '}\n',
 
+    'rwall-frag':
+        '#include "preamble"\n\n'                                                          +
+
+        'uniform float numSpads;\n'                                                        +
+        'uniform float spadRadius;\n'                                                      +
+        'uniform float aspect;\n'                                                          +
+        'uniform vec2 firstSpad;\n'                                                        +
+        'uniform vec2 lastSpad;\n'                                                         +
+        'uniform vec4 uColor;\n\n'                                                         +
+
+        'varying vec2 mPos;\n\n'                                                           +
+
+        'void main() {\n'                                                                  +
+        '    gl_FragColor = vec4(0.0);\n'                                                  +
+        '    vec2 coord;\n'                                                                +
+        '    coord.x = (mPos.x * 2.0 - 1.0) * aspect;\n'                                   +
+        '    coord.y = mPos.y * 2.0 - 1.0;\n'                                              +
+        '    float top = firstSpad.y + spadRadius;\n'                                      +
+        '    float bottom = lastSpad.y - spadRadius;\n'                                    +
+        '    float left = min(firstSpad.x, lastSpad.x) - spadRadius;\n'                    +
+        '    float right = max(firstSpad.x, lastSpad.x) + spadRadius;\n'                   +
+        '    if ((coord.x >= left) && (coord.y <= top) &&\n'                               +
+        '            (coord.x <= right) && (coord.y >= bottom)) {\n'                       +
+        '        vec2 scanSize = firstSpad - lastSpad;\n'                                  +
+        '        vec2 normCoord = (coord - lastSpad) / scanSize;\n'                        +
+        '        if (distance(coord, lastSpad + scanSize / (numSpads - 1.0) * floor(normC' +
+                                          'oord.y * numSpads + 0.5)) <= spadRadius) {\n'   +
+        '            gl_FragColor = uColor;\n'                                             +
+        '        }\n'                                                                      +
+        '    }\n'                                                                          +
+        '}\n',
+
     'scene-base':
         '#include "trace-frag"\n\n'                                                        +
 

@@ -86,6 +86,7 @@
         this.rayProgram = new tgl.Shader(Shaders, "ray-vert", "ray-frag");
         this.hConfProgram = new tgl.Shader(Shaders, "h-conf-vert", "h-frag"); // hProgram added in setSpadPositions
         this.geometryProgram = new tgl.Shader(Shaders, "geometry-vert", "geometry-frag");
+        this.rwallProgram = new tgl.Shader(Shaders, "bp-vert", "rwall-frag");
         this.tracePrograms = [];
         for (var i = 0; i < scenes.length; ++i)
             this.tracePrograms.push(new tgl.Shader(Shaders, "trace-vert", scenes[i]));
@@ -1536,9 +1537,20 @@
             this.sceneVBOs[this.currentScene].draw(this.geometryProgram, this.gl.LINES);
         }
 
-        this.geometryProgram.uniform4F("uColor", 0.0, 1.0, 1.0, 1.0);
-        this.sbVbo.bind();
-        this.sbVbo.draw(this.geometryProgram, this.gl.LINES);
+        // this.geometryProgram.uniform4F("uColor", 0.0, 1.0, 1.0, 1.0);
+        // this.sbVbo.bind();
+        // this.sbVbo.draw(this.geometryProgram, this.gl.LINES);
+
+        // this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+        this.rwallProgram.bind();
+        this.rwallProgram.uniformF("numSpads", this.numSpads);
+        this.rwallProgram.uniformF("spadRadius", this.spadRadius); // TODO: it sometimes goes down to zero and doesn't grow back
+        this.rwallProgram.uniformF("aspect", this.aspect);
+        this.rwallProgram.uniform2F("firstSpad", this.spadPoints[0], this.spadPoints[1]);
+        this.rwallProgram.uniform2F("lastSpad", this.spadPoints[2*this.numSpads-2], this.spadPoints[2*this.numSpads-1]);
+        this.rwallProgram.uniform4F("uColor", 0.0, 1.0, 1.0, 1.0);
+        this.quadVbo.bind();
+        this.quadVbo.draw(this.rwallProgram, this.gl.TRIANGLE_FAN);
         this.gl.disable(this.gl.BLEND);
     }
 
