@@ -1537,14 +1537,11 @@
             this.sceneVBOs[this.currentScene].draw(this.geometryProgram, this.gl.LINES);
         }
 
-        // this.geometryProgram.uniform4F("uColor", 0.0, 1.0, 1.0, 1.0);
-        // this.sbVbo.bind();
-        // this.sbVbo.draw(this.geometryProgram, this.gl.LINES);
-
-        // this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         this.rwallProgram.bind();
         this.rwallProgram.uniformF("numSpads", this.numSpads);
-        this.rwallProgram.uniformF("spadRadius", this.spadRadius); // TODO: it sometimes goes down to zero and doesn't grow back
+        // TODO: this.spadRadius sometimes goes down to zero and doesn't grow back
+        // TODO: allow the user to define the radius
+        this.rwallProgram.uniformF("spadRadius", 0.007); // It's not this.spadRadius because it is small and difficult to see
         this.rwallProgram.uniformF("aspect", this.aspect);
         this.rwallProgram.uniform2F("firstSpad", this.spadPoints[0], this.spadPoints[1]);
         this.rwallProgram.uniform2F("lastSpad", this.spadPoints[2*this.numSpads-2], this.spadPoints[2*this.numSpads-1]);
@@ -1799,9 +1796,17 @@
             this.sceneVBOs[this.currentScene].draw(this.geometryProgram, this.gl.LINES);
         }
 
-        this.geometryProgram.uniform4F("uColor", 0.0, 1.0, 1.0, 1.0);
-        this.sbVbo.bind();
-        this.sbVbo.draw(this.geometryProgram, this.gl.LINES);
+        this.rwallProgram.bind();
+        this.rwallProgram.uniformF("numSpads", this.numSpads);
+        // TODO: this.spadRadius sometimes goes down to zero and doesn't grow back
+        // TODO: allow the user to define the radius
+        this.rwallProgram.uniformF("spadRadius", 0.007); // It's not this.spadRadius because it is small and difficult to see
+        this.rwallProgram.uniformF("aspect", this.aspect);
+        this.rwallProgram.uniform2F("firstSpad", this.spadPoints[0], this.spadPoints[1]);
+        this.rwallProgram.uniform2F("lastSpad", this.spadPoints[2*this.numSpads-2], this.spadPoints[2*this.numSpads-1]);
+        this.rwallProgram.uniform4F("uColor", 0.0, 1.0, 1.0, 1.0);
+        this.quadVbo.bind();
+        this.quadVbo.draw(this.rwallProgram, this.gl.TRIANGLE_FAN);
         gl.disable(gl.BLEND);
     }
 

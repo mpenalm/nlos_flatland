@@ -10,20 +10,20 @@ uniform vec4 uColor;
 varying vec2 mPos;
 
 void main() {
+    float r = spadRadius;
     gl_FragColor = vec4(0.0);
     vec2 coord;
     coord.x = (mPos.x * 2.0 - 1.0) * aspect;
     coord.y = mPos.y * 2.0 - 1.0;
-    float top = firstSpad.y + spadRadius;
-    float bottom = lastSpad.y - spadRadius;
-    float left = min(firstSpad.x, lastSpad.x) - spadRadius;
-    float right = max(firstSpad.x, lastSpad.x) + spadRadius;
-    if ((coord.x >= left) && (coord.y <= top) &&
-            (coord.x <= right) && (coord.y >= bottom)) {
-        vec2 scanSize = firstSpad - lastSpad;
-        vec2 normCoord = (coord - lastSpad) / scanSize;
-        if (distance(coord, lastSpad + scanSize / (numSpads - 1.0) * floor(normCoord.y * numSpads + 0.5)) <= spadRadius) {
-            gl_FragColor = uColor;
-        }
+    float top = firstSpad.y + r;
+    float bottom = lastSpad.y - r;
+    float left = min(firstSpad.x, lastSpad.x) - r;
+    float right = max(firstSpad.x, lastSpad.x) + r;
+    vec2 scanSize = firstSpad - lastSpad;
+    vec2 normCoord = (coord - lastSpad) / scanSize;
+    float n = floor(normCoord.y * (numSpads - 1.0) + 0.5);
+    if (n >= 0.0 && n < numSpads && 
+            distance(coord, lastSpad + scanSize / (numSpads - 1.0) * n) <= r) {
+        gl_FragColor = uColor;
     }
 }
