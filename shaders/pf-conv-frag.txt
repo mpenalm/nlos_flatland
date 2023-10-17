@@ -20,18 +20,6 @@ void main() {
 		meanColor += vec4(impulsePixel, impulsePixel, 0.0, 1.0) *
             texture2D(u_kernel, vec2(knlIdx, 0.5)) * vec4(knlIdx > 0.0 && knlIdx < 1.0);
 	}
-/*
-	vec2 onePixel = vec2(KERNEL_INTERVAL, 0.0);
-	int ms = KERNEL_SIZE / 2;
-	for (int i = 0; i < KERNEL_SIZE; i++) {
-		vec2 coordImpulse = mPos + onePixel*vec2(i-ms);
-		bool inx = coordImpulse.x > 0.0 && coordImpulse.x < 1.0;
-		float impulsePixel = texture2D(u_impulse, coordImpulse).x;
-
-		vec2 coordKernel = onePixel*vec2(i) + vec2(0.5*KERNEL_INTERVAL, 0.5);
-		meanColor += vec4(impulsePixel, impulsePixel, 0.0, 1.0) *
-			texture2D(u_kernel, coordKernel) * vec4(inx);
-	}*/
 
 	gl_FragColor = meanColor;
 }

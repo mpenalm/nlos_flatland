@@ -1320,7 +1320,7 @@
             this.laserGrid = [1.78, 0];
         }
 
-        if (this.spreadType === tcore.Renderer.SPREAD_LASER) {
+        if (this.spreadType === tcore.Renderer.SPREAD_LASER && reset) {
             this.setSpadPos(this.laserPos);
         }
 
