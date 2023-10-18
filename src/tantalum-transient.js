@@ -1,4 +1,8 @@
 var Transient = function () {
+
+    // Debug mode
+    this.DEBUG = true;
+
     this.canvas = document.getElementById("transient-canvas");
     this.overlay = document.getElementById("transient-overlay");
     this.controls = document.getElementById("transient-controls");
@@ -21,8 +25,17 @@ var Transient = function () {
     } catch (e) {
         /* Errors here are a bit more serious and shouldn't normally happen.
            Let's just dump what we have and hope the user can make sense of it */
-        this.fail("Something unexpected happened. The error message is listed below:<br/>" +
-            "<pre>" + e.message + "</pre>");
+        var message = e.message;
+        if (this.DEBUG) {
+            var aux = e.stack.split("\n");
+            aux.splice(0, 1); //removing the line that we force to generate the error (var err = new Error();) from the message
+            console.error(message + '\n' + aux.join('\n'));
+            aux = aux.join('<br>');
+            this.fail(message + '<br>' + aux);
+        } else {
+            this.fail("Something unexpected happened. The error message is listed below:<br/>" +
+            "<pre>" + message + "</pre>");
+        }
         return;
     }
 
@@ -160,7 +173,7 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene21', 'name': 'Two boxes', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene22', 'name': 'Triangle', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse }
         ],
-        "capture_methods": ["Non-confocal", "Confocal"],
+        "capture_methods": ["Single", "Confocal", "Exhaustive"],
         "camera_models": ["Confocal", "Transient", "Conventional"],
         "spad_num": [16, 32, 64, 128],
         "filters": ["None", "Laplacian", "Laplacian of Gaussian", "Phasor Fields"],
@@ -318,10 +331,14 @@ Transient.prototype.setupUI = function () {
         renderer.changeReconstructionResolution(height);
     });
     recResolutionSelector.select(2);
-    new tui.ButtonGroup("capture-selector", true, config.capture_methods, function (idx) {
-        var isConf = Boolean(idx);
-        renderer.setConfocal(isConf);
-        if (isConf)
+    new tui.ButtonGroup("capture-method-selector", true, config.capture_methods, function (idx) {
+        var captureMethod = {
+            0: "single",
+            1: "confocal",
+            2: "exhaustive"
+        }[idx]
+        renderer.setCaptureMethod(captureMethod);
+        if (captureMethod != "single")
             document.getElementById("spread-type").style.display = 'none';
         else
             document.getElementById("spread-type").style.display = 'block';
@@ -416,7 +433,7 @@ Transient.prototype.setupUI = function () {
     function selectScene(idx) {
         renderer.changeScene(idx, config.scenes[idx].wallMat);
         spreadSelector.select(config.scenes[idx].spread);
-        if (!renderer.isConf)
+        if (renderer.captureMethod == "single")
             renderer.setNormalizedEmitterPos(config.scenes[idx].posA, config.scenes[idx].posB);
     }
     var sceneSelector = new tui.ButtonGroup("scene-selector", true, sceneNames, selectScene);
@@ -882,7 +899,7 @@ Transient.prototype.saveParameters = function (fileName) {
     // Capture parameters
     text += `
 "capture": {
-    "method": "${config.capture_methods[Number(renderer.isConf)]}",
+    "method": "${renderer.captureMethod}",
     "num_spads": ${renderer.numSpads},
     "spad_boundaries": [${renderer.spadBoundaries[0]}, ${renderer.spadBoundaries[1]}],
     "delta_t": ${renderer.deltaT},
