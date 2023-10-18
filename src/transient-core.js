@@ -2,11 +2,6 @@
     var LAMBDA_MIN = 360.0;
     var LAMBDA_MAX = 750.0;
 
-    // var SECOND_CORNER_SCENE = 6;
-
-    var DEBUG = false;
-    var TESTING = true;
-
     function intermediatePositions(start, end, n) {
         if (n == 1) {
             return [(start + end) / 2.0];
@@ -100,9 +95,9 @@
 
         this.maxTime = this.numIntervals * this.deltaT; // fix the maxTime to a value that corresponds with integer numIntervals
         this.spadRadius = 0.0035;
+        this.captureMethod = "single";
         this.setSpadPos([0, -0.6]);
         this.bboxCorners = [-1.78, 1.0, 1.78, -1.0]; // upper left, bottom right
-        this.isConf = false;
         this.isVirtualConf = true;
         this.isConvCamera = false;
 
@@ -577,19 +572,19 @@
         this.reset();
     }
 
-    Renderer.prototype.setConfocal = function (isConf) {
+    Renderer.prototype.setCaptureMethod = function (captureMethod) {
         // Will have to change if we add more capture methods
-        if (this.isConf != isConf) {
-            this.isConf = isConf;
-            if (!isConf) {
+        if (this.captureMethod != captureMethod) {
+            this.captureMethod = captureMethod;
+            if (captureMethod == "single") {
                 this.laserGrid = [1.2, (this.spadBoundaries[0] + this.spadBoundaries[1]) / 2];
                 this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid), false);
-            } else {
+            } else if (captureMethod == "confocal" || captureMethod == "exhaustive") {
                 this.spreadType = tcore.Renderer.SPREAD_LASER;
                 this.laserGrid = [this.spadPoints[2 * this.confCounter], this.spadPoints[2 * this.confCounter + 1]];
                 this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid), false);
             }
-            this.createNLOSBuffers(ModifiedAttributes.Confocality);
+            this.createNLOSBuffers(ModifiedAttributes.CaptureMethod);
         }
         this.resetActiveBlock();
         this.reset();
@@ -923,7 +918,7 @@
 
         var start = Date.now();
         for (var i = 0; i < n; i++) {
-            if (this.isConf) {
+            if (this.captureMethod != "single") {
                 // Confocal data
                 this.bpConfProgram.bind();
                 inputTex.bind(0);
@@ -1142,7 +1137,7 @@
         NumSpads: 2,
         BboxCorners: 3,
         NumIntervals: 4,
-        Confocality: 5,
+        CaptureMethod: 5,
         FilterType: 6,
     }
 
@@ -1169,7 +1164,7 @@
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
             if (this.numIntervals != undefined && this.numSpads != undefined) {
                 this.capturedBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
-                if (DEBUG) {
+                if (this.DEBUG) {
                     this.h = new Float32Array(this.numIntervals * this.numSpads);
                     this.hFilt = new Float32Array(2 * this.h.length);
                 }
@@ -1225,7 +1220,7 @@
         this.nlosElapsedTimes = [];
         // this.setSpadPos([0, -0.6]);
         this.confCounter = 0;
-        if (this.isConf) {
+        if (this.captureMethod != "single") {
             this.laserGrid = [this.spadPoints[0], this.spadPoints[1]];
             this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid), false);
         }
@@ -1473,7 +1468,7 @@
     }
 
     Renderer.prototype.finished = function () {
-        if (!this.isConf)
+        if (this.captureMethod == "single")
             return this.totalSamplesTraced() >= this.maxSampleCount;
         else {
             if (this.confCounter >= this.numSpads)
@@ -1743,7 +1738,7 @@
 
         var maxValueTex = this.findMax(this.filteredBuffer, this.filterType === 'pf' && !this.isConvCamera);
 
-        if (DEBUG) {
+        if (this.DEBUG) {
             var h = this.capturedBuffer.getArray(this.h.length);
             for (let i = 0; i < this.h.length; i++) {
                 this.h[i] = h[4 * i];
@@ -1839,7 +1834,7 @@
 
         gl.viewport(0, 0, this.numIntervals, this.numSpads);
         this.fbo.attachTexture(this.capturedBuffer, 0);
-        if (!this.isConf) {
+        if (this.captureMethod == "single") {
             this.hProgram.bind();
             this.rayStates[current].posTex.bind(0);
             this.rayStates[next].posTex.bind(1);
