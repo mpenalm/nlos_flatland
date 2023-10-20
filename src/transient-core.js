@@ -71,6 +71,7 @@
         this.emitterTemperature = 5000.0;
         this.emitterGas = 0;
         this.currentScene = 0;
+        this.currentSceneName = "";
         this.needsReset = true;
         this.currentCall = 0;
 
@@ -580,8 +581,9 @@
                 this.laserGrid = [1.2, (this.spadBoundaries[0] + this.spadBoundaries[1]) / 2];
                 this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid), false);
             } else if (captureMethod == "confocal" || captureMethod == "exhaustive") {
+                this.hExhaustive = new Float32Array(this.numSpads * this.numSpads * this.numIntervals);
                 this.spreadType = tcore.Renderer.SPREAD_LASER;
-                this.laserGrid = [this.spadPoints[2 * this.confCounter], this.spadPoints[2 * this.confCounter + 1]];
+                this.laserGrid = [this.spadPoints[2 * this.laserPointedAtSensorIdx], this.spadPoints[2 * this.laserPointedAtSensorIdx + 1]];
                 this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid), false);
             }
             this.createNLOSBuffers(ModifiedAttributes.CaptureMethod);
@@ -877,7 +879,7 @@
         }
     }
 
-    Renderer.prototype.changeScene = function (idx, rwallMaterial = genScene.Diffuse) {
+    Renderer.prototype.changeScene = function (idx, name, rwallMaterial = genScene.Diffuse) {
         this.resetActiveBlock();
         /*if (idx == SECOND_CORNER_SCENE + 1) {
             this.setSpadPos([0.4, -0.8]);
@@ -899,6 +901,7 @@
             this.setSpadPositions(true, true);
         } else*/
         this.currentScene = idx;
+        this.currentSceneName = name;
         this.rwallMaterial = rwallMaterial;
         this.reset();
     }
@@ -918,24 +921,7 @@
 
         var start = Date.now();
         for (var i = 0; i < n; i++) {
-            if (this.captureMethod != "single") {
-                // Confocal data
-                this.bpConfProgram.bind();
-                inputTex.bind(0);
-                this.spadGridTex.bind(1);
-                this.planeGridTex.bind(2);
-                this.bpConfProgram.uniformF("tmax", this.maxTime);
-                this.bpConfProgram.uniformF("instant", instant * this.deltaT);
-                this.bpConfProgram.uniformF("isConfocalModel", this.isVirtualConf);
-                this.bpConfProgram.uniformI("useAbsolute", this.isConvCamera && this.addModules);
-                this.bpConfProgram.uniformTexture("radiance", inputTex);
-                this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
-                this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
-                this.bpConfProgram.uniformTexture("wallGrid", this.spadGridTex);
-                this.bpConfProgram.uniformTexture("planeGrid", this.planeGridTex);
-                this.quadVbo.draw(this.bpConfProgram, gl.TRIANGLE_FAN);
-            } else {
-                // Non-confocal data
+            if (this.captureMethod == "single") {
                 this.bpProgram.bind();
                 inputTex.bind(0);
                 this.spadGridTex.bind(1);
@@ -952,6 +938,23 @@
                 this.bpProgram.uniformTexture("spadGrid", this.spadGridTex);
                 this.bpProgram.uniformTexture("planeGrid", this.planeGridTex);
                 this.quadVbo.draw(this.bpProgram, gl.TRIANGLE_FAN);
+            } else if (this.captureMethod == "confocal") {
+                this.bpConfProgram.bind();
+                inputTex.bind(0);
+                this.spadGridTex.bind(1);
+                this.planeGridTex.bind(2);
+                this.bpConfProgram.uniformF("tmax", this.maxTime);
+                this.bpConfProgram.uniformF("instant", instant * this.deltaT);
+                this.bpConfProgram.uniformF("isConfocalModel", this.isVirtualConf);
+                this.bpConfProgram.uniformI("useAbsolute", this.isConvCamera && this.addModules);
+                this.bpConfProgram.uniformTexture("radiance", inputTex);
+                this.bpConfProgram.uniform2F("laserPos", this.laserPos[0], this.laserPos[1]);
+                this.bpConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+                this.bpConfProgram.uniformTexture("wallGrid", this.spadGridTex);
+                this.bpConfProgram.uniformTexture("planeGrid", this.planeGridTex);
+                this.quadVbo.draw(this.bpConfProgram, gl.TRIANGLE_FAN);
+            } else if (this.captureMethod == "exhaustive") {
+                // TODO(diego) different camera models depending on what you want to do with this...
             }
             instant++;
         }
@@ -1164,6 +1167,7 @@
         if (modifiedAttr == ModifiedAttributes.All || modifiedAttr == ModifiedAttributes.NumIntervals || modifiedAttr == ModifiedAttributes.NumSpads)
             if (this.numIntervals != undefined && this.numSpads != undefined) {
                 this.capturedBuffer = new tgl.Texture(this.numIntervals, this.numSpads, 4, true, false, true, null);
+                // this.capturedBuffer3D = new tgl.Texture3D(this.numIntervals, this.numSpads, this.numSpads, 4, null);
                 if (this.DEBUG) {
                     this.h = new Float32Array(this.numIntervals * this.numSpads);
                     this.hFilt = new Float32Array(2 * this.h.length);
@@ -1219,7 +1223,7 @@
         this.currentCall = 0;
         this.nlosElapsedTimes = [];
         // this.setSpadPos([0, -0.6]);
-        this.confCounter = 0;
+        this.laserPointedAtSensorIdx = 0;
         if (this.captureMethod != "single") {
             this.laserGrid = [this.spadPoints[0], this.spadPoints[1]];
             this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid), false);
@@ -1467,19 +1471,53 @@
         return Math.min(this.totalRaysTraced() / this.maxRayCount(), 1.0);
     }
 
+    function getCurrentDateTimeString() {
+        const now = new Date();
+
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0'); // Month is 0-based, so we add 1 and format to two digits.
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+
+        return `${year}${month}${day}-${hours}${minutes}${seconds}`;
+      }
+
     Renderer.prototype.finished = function () {
-        if (this.captureMethod == "single")
+        if (this.captureMethod == "single") {
             return this.totalSamplesTraced() >= this.maxSampleCount;
-        else {
-            if (this.confCounter >= this.numSpads)
+        } else {
+            if (this.laserPointedAtSensorIdx >= this.numSpads)
                 return true;
             if (this.totalSamplesTraced() >= this.maxSampleCount) {
-                this.confCounter++;
-                if (this.confCounter >= this.numSpads)
-                    return true;
-                this.laserGrid = [this.spadPoints[2 * this.confCounter], this.spadPoints[2 * this.confCounter + 1]];
-                this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid), false);
-                this.partialReset();
+                if (this.captureMethod == "confocal") {
+                    this.laserPointedAtSensorIdx++;
+                    if (this.laserPointedAtSensorIdx >= this.numSpads) {
+                        return true;
+                    }
+                    this.laserGrid = [this.spadPoints[2 * this.laserPointedAtSensorIdx], this.spadPoints[2 * this.laserPointedAtSensorIdx + 1]];
+                    this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid), false);
+                    this.partialReset();
+                } else if (this.captureMethod == "exhaustive") {
+                    var partLength = this.numIntervals * this.numSpads;
+                    var hPartial = this.capturedBuffer.getArray(partLength);
+                    for (let i = 0; i < hPartial.length; i++) {
+                        this.hExhaustive[partLength * this.laserPointedAtSensorIdx + i] = hPartial[i * 4];
+                    }
+                    this.capturedBuffer.clear();
+                    this.laserPointedAtSensorIdx++;
+                    if (this.laserPointedAtSensorIdx >= this.numSpads) {
+                        text = this.numIntervals + "," + this.numSpads + "," + this.numSpads + ",";
+                        text += this.hExhaustive.join(",");
+                        var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+                        saveAs(blob, "hExhaustive-" + this.currentSceneName + "-" + getCurrentDateTimeString() + ".csv");
+                        return true;
+                    }
+                    this.laserGrid = [this.spadPoints[2 * this.laserPointedAtSensorIdx], this.spadPoints[2 * this.laserPointedAtSensorIdx + 1]];
+                    this.setEmitterPos(this.emitterPos, this.scene2canvas(this.laserGrid), false);
+                    this.partialReset();
+                }
             }
             return false;
         }
@@ -1834,7 +1872,7 @@
 
         gl.viewport(0, 0, this.numIntervals, this.numSpads);
         this.fbo.attachTexture(this.capturedBuffer, 0);
-        if (this.captureMethod == "single") {
+        if (this.captureMethod == "single" || this.captureMethod == "exhaustive") {
             this.hProgram.bind();
             this.rayStates[current].posTex.bind(0);
             this.rayStates[next].posTex.bind(1);
@@ -1865,11 +1903,11 @@
             this.spadNormalsTex.bind(6);
             this.hConfProgram.uniformI("matId", this.rwallMaterial);
             this.hConfProgram.uniformF("tmax", this.maxTime);
-            this.hConfProgram.uniformF("yNorm", (this.confCounter + 0.5) / this.numSpads);
+            this.hConfProgram.uniformF("yNorm", (this.laserPointedAtSensorIdx + 0.5) / this.numSpads);
             this.hConfProgram.uniformF("spadRadius", this.spadRadius);
             this.hConfProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
             this.hConfProgram.uniform2F("SpadGrid", this.laserGrid[0], this.laserGrid[1]);
-            this.hConfProgram.uniform2F("SpadNormal", this.spadNormalsData[4 * this.confCounter], this.spadNormalsData[4 * this.confCounter + 1]);
+            this.hConfProgram.uniform2F("SpadNormal", this.spadNormalsData[4 * this.laserPointedAtSensorIdx], this.spadNormalsData[4 * this.laserPointedAtSensorIdx + 1]);
             this.hConfProgram.uniformTexture("PosDataA", this.rayStates[current].posTex);
             this.hConfProgram.uniformTexture("PosDataB", this.rayStates[next].posTex);
             this.hConfProgram.uniformTexture("RgbData", this.rayStates[current].rgbTex);

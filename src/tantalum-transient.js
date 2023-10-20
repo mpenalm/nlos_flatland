@@ -228,6 +228,7 @@ Transient.prototype.setupUI = function () {
     }
 
     this.renderer = new transientcore.Renderer(this.gl, (this.canvas.width - 10) / 2, this.canvas.height, sceneShaders, this.filterCanvas);
+    this.renderer.changeScene(0, config.scenes[0].name, config.scenes[0].wallMat);
     this.generator = new genScene.SceneGenerator();
 
     /* Let's try and make member variables in JS a little less verbose... */
@@ -431,7 +432,7 @@ Transient.prototype.setupUI = function () {
     var spreadSelector = new tui.ButtonGroup("spread-selector", true, config.spread_types, renderer.setSpreadType.bind(renderer));
 
     function selectScene(idx) {
-        renderer.changeScene(idx, config.scenes[idx].wallMat);
+        renderer.changeScene(idx, config.scenes[idx].name, config.scenes[idx].wallMat);
         spreadSelector.select(config.scenes[idx].spread);
         if (renderer.captureMethod == "single")
             renderer.setNormalizedEmitterPos(config.scenes[idx].posA, config.scenes[idx].posB);

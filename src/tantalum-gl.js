@@ -20,6 +20,7 @@ var tgl = {'init': function(gl, multiBufExt) {
         if (width != undefined) {
             var coordMode = isClamped ? gl.CLAMP_TO_EDGE : gl.REPEAT;
             this.type     = isFloat   ? gl.FLOAT         : gl.UNSIGNED_BYTE;
+            this.channels = channels;
             this.format   = [gl.LUMINANCE, gl.RG, gl.RGB, gl.RGBA][channels - 1];
             
             this.width  = width;
@@ -152,7 +153,18 @@ var tgl = {'init': function(gl, multiBufExt) {
         gl.bindTexture(gl.TEXTURE_2D, this.glName);
         this.boundUnit = unit;
     }
-    
+
+    tgl.Texture.prototype.clear = function() {
+        const textureData = new Float32Array(this.width * this.height * this.channels); // Assuming RGBA format
+        for (let i = 0; i < textureData.length; i++) {
+            textureData[i] = 0.0;
+        }
+
+        gl.bindTexture(gl.TEXTURE_2D, this.glName);
+        gl.texImage2D(gl.TEXTURE_2D, 0, this.format, this.width, this.height, 0, this.format, this.type, textureData);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    }
+
     tgl.RenderTarget = function() {
         this.glName = gl.createFramebuffer();
     }
