@@ -224,7 +224,7 @@
             featureSize = (end[1] - start[1]) / nFeatures;
             y = linspace(start[1], end[1], nFeatures + 1);
             if (vertical) {
-                x = [Math.min(1.0, start[0] + Math.abs(featureSize) / 2), Math.min(1.0, start[0] - Math.abs(featureSize) / 2)];
+                x = [start[0] + Math.abs(featureSize) / 2, start[0] - Math.abs(featureSize) / 2];
                 for (var i = 0; i <= nFeatures; i++) {
                     res.push(x[i % 2]);
                     res.push(y[i]);
