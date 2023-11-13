@@ -1523,19 +1523,22 @@
 
     Renderer.prototype.composite = function (count = this.activeBlock) {
         this.screenBuffer.bind(0);
-        this.compositeProgram.bind();
-        this.compositeProgram.uniformTexture("Frame", this.screenBuffer);
-        this.compositeProgram.uniformF("Exposure", this.width / (Math.max(this.samplesTraced, this.raySize * count)));
-        this.quadVbo.bind();
-        this.quadVbo.draw(this.compositeProgram, this.gl.TRIANGLE_FAN);
-
         this.gl.enable(this.gl.BLEND);
-        this.geometryProgram.bind();
         if (this.showGeometry) {
-            this.geometryProgram.uniform4F("uColor", 0.0, 0.0, 1.0, 1.0);
-            this.sceneVBOs[this.currentScene].bind();
-            this.sceneVBOs[this.currentScene].draw(this.geometryProgram, this.gl.LINES);
+            this.geometryProgram.bind();
+            if (this.showGeometry) {
+                this.geometryProgram.uniform4F("uColor", 1.0, 1.0, 1.0, 1.0);
+                this.sceneVBOs[this.currentScene].bind();
+                this.sceneVBOs[this.currentScene].draw(this.geometryProgram, this.gl.LINES);
+            }
+        } else {
+            this.compositeProgram.bind();
+            this.compositeProgram.uniformTexture("Frame", this.screenBuffer);
+            this.compositeProgram.uniformF("Exposure", this.width / (Math.max(this.samplesTraced, this.raySize * count)));
+            this.quadVbo.bind();
+            this.quadVbo.draw(this.compositeProgram, this.gl.TRIANGLE_FAN);
         }
+
 
         this.rwallProgram.bind();
         this.rwallProgram.uniformF("numSpads", this.numSpads);
