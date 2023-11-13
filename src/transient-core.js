@@ -1508,10 +1508,35 @@
                     this.capturedBuffer.clear();
                     this.laserPointedAtSensorIdx++;
                     if (this.laserPointedAtSensorIdx >= this.numSpads) {
-                        text = this.numIntervals + "," + this.numSpads + "," + this.numSpads + ",";
-                        text += this.hExhaustive.join(",");
-                        var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
-                        saveAs(blob, "hExhaustive-" + this.currentSceneName + "-" + getCurrentDateTimeString() + ".csv");
+                        var downloadFiles = async () => {
+                            text = this.numIntervals + "," + this.numSpads + "," + this.numSpads + ",";
+                            text += this.hExhaustive.join(",");
+                            var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+                            var currentTime = getCurrentDateTimeString();
+                            saveAs(blob, "hExhaustive-" + this.currentSceneName + "-" + currentTime + ".csv");
+                            var sceneData = "NAME:," + this.currentSceneName + ",";
+                            sceneData += "BBOX(x0y0x1y1),";
+                            sceneData += this.bboxCorners[0] + ",";
+                            sceneData += this.bboxCorners[1] + ",";
+                            sceneData += this.bboxCorners[2] + ",";
+                            sceneData += this.bboxCorners[3] + ",";
+                            sceneData += "LASER-ORIGIN:," + this.laserPos[0] + "," + this.laserPos[1] + ",";
+                            sceneData += "SPAD-ORIGIN:," + this.spadPos[0] + "," + this.spadPos[1] + ",";
+                            sceneData += "DELTA_T:," + this.deltaT + ",";
+                            var numSpads = this.numSpads;
+                            sceneData += "NUM-SPADS:," +  numSpads + ",SPADS(N * PXPYNXNY):,";
+                            var spadPosArray = this.spadGridTex.getArray(numSpads);
+                            for (let i = 0; i < numSpads; i++) {
+                                sceneData += spadPosArray[4 * i + 0] + ",";
+                                sceneData += spadPosArray[4 * i + 1] + ",";
+                                sceneData += "-1,0,"; // Normal vector
+                            }
+                            sceneData = sceneData.slice(0, -1);
+                            await new Promise(r => setTimeout(r, 1000)); // Avoid downloading only the second file but twice on Chrome
+                            var blob2 = new Blob([sceneData], { type: "text/csv;charset=utf-8" });
+                            saveAs(blob2, "sceneData-" + this.currentSceneName + "-" + currentTime + ".csv");
+                        }
+                        downloadFiles();
                         return true;
                     }
                     this.laserGrid = [this.spadPoints[2 * this.laserPointedAtSensorIdx], this.spadPoints[2 * this.laserPointedAtSensorIdx + 1]];
