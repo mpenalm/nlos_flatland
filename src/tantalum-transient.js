@@ -188,6 +188,9 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene36-ku-facetmedium', 'name': 'ku-facetmedium', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene37-ku-facetbig', 'name': 'ku-facetbig', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene38-ku-facetplanarmedium', 'name': 'ku-facetplanarmedium', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene39-ku-semi-rough-2xsmall', 'name': 'ku-semi-rough-2xsmall', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene40-ku-semi-rough-4xsmall', 'name': 'ku-semi-rough-4xsmall', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene41-ku-semi-rough-8xsmall', 'name': 'ku-semi-rough-8xsmall', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
         ],
         "capture_methods": ["Single", "Confocal", "Exhaustive"],
         "camera_models": ["Confocal", "Transient", "Conventional"],
@@ -571,8 +574,9 @@ Transient.prototype.setupUI = function () {
         this.value = nFeatures;
     }
     var nFeatures = new NumFeatures(1);
-    var featureSizeSlider = new tui.Slider("feature-size", 1, 250, true, function (nf) {
-        nFeatures.setNFeatures(251 - nf);
+    const MAX_FACETS = 500;
+    var featureSizeSlider = new tui.Slider("feature-size", 1, MAX_FACETS, true, function (nf) {
+        nFeatures.setNFeatures(MAX_FACETS + 1 - nf);
         var d;
         if (usingModifiedScene) {
             if (modSceneSelector.selectedButton < 4) {
@@ -595,9 +599,9 @@ Transient.prototype.setupUI = function () {
             var y2 = getCoordinate("y2");
             d = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
         }
-        this.setLabel((d * 100 / (251 - nf)).toFixed(4) + " cm");
+        this.setLabel((d * 100 / (MAX_FACETS + 1 - nf)).toFixed(4) + " cm");
     });
-    featureSizeSlider.setValue(250);
+    featureSizeSlider.setValue(MAX_FACETS);
     document.getElementById("x1").onchange = function () { updateFeatureSize() };
     document.getElementById("x2").onchange = function () { updateFeatureSize() };
     document.getElementById("y1").onchange = function () { updateFeatureSize() };
@@ -626,7 +630,7 @@ Transient.prototype.setupUI = function () {
             var y2 = getCoordinate("y2");
             d = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
         }
-        var nf = 251 - featureSizeSlider.value;
+        var nf = MAX_FACETS + 1 - featureSizeSlider.value;
         featureSizeSlider.setLabel((d * 100 / nf).toFixed(4) + " cm");
     }
 
