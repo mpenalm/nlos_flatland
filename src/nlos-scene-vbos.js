@@ -7418,4 +7418,24 @@ var createSceneVBOs = function (renderer, gl, tgl) {
     vboData[1930] = 1.1968944099378882 / renderer.aspect
     vboData[1931] = 1.0000000000000016
     renderer.sceneVBOs[i].copy(vboData);
+
+    // scene42-ku-planar-rotatedplanar
+    i++;
+    renderer.sceneVBOs.push(new tgl.VertexBuffer());
+    renderer.sceneVBOs[i].addAttribute("Position", 2, gl.FLOAT, false);
+    renderer.sceneVBOs[i].init(3 * 2);
+    vboData = new Float32Array(3 * 4);
+    vboData[0] = 1.2 / renderer.aspect
+    vboData[1] = -1.0
+    vboData[2] = 1.2 / renderer.aspect
+    vboData[3] = -0.2
+    vboData[4] = 0.40 / renderer.aspect
+    vboData[5] = -0.40
+    vboData[6] = 0.40 / renderer.aspect
+    vboData[7] = 0.40
+    vboData[8] = 1.80 / renderer.aspect
+    vboData[9] = 0.00
+    vboData[10] = 1.00 / renderer.aspect
+    vboData[11] = 1.00
+    renderer.sceneVBOs[i].copy(vboData);
 };
