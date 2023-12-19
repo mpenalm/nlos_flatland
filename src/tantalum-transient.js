@@ -188,6 +188,7 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene36-ku-facetmedium', 'name': 'ku-facetmedium', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene37-ku-facetbig', 'name': 'ku-facetbig', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene38-ku-facetplanarmedium', 'name': 'ku-facetplanarmedium', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene42-ku-planar-rotatedplanar', 'name': 'ku-planar-rotatedplanar', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
         ],
         "capture_methods": ["Single", "Confocal", "Exhaustive"],
         "camera_models": ["Confocal", "Transient", "Conventional"],
@@ -212,7 +213,7 @@ Transient.prototype.setupUI = function () {
             // Virtual mirror
             [0.4, 0.2, 0.4, -0.2],
             // Rotated segment
-            [0.5, 0.2, 0.4, -0.2],
+            [0.6, 0.3, 0.45, -0.3],
             // Two boxes
             [
                 // First box
@@ -580,7 +581,7 @@ Transient.prototype.setupUI = function () {
                 d = 0.4;
             } else if (modSceneSelector.selectedButton == 4) {
                 // Rotated segment
-                d = Math.sqrt(0.17);
+                d = Math.sqrt(0.3825);
             } else if (modSceneSelector.selectedButton == 5) {
                 // Two boxes
                 d = 0.5;
@@ -611,7 +612,7 @@ Transient.prototype.setupUI = function () {
                 d = 0.4;
             } else if (selectedScene == 4) {
                 // Rotated segment
-                d = Math.sqrt(0.17);
+                d = Math.sqrt(0.3825);
             } else if (modSceneSelector.selectedButton == 5) {
                 // Two boxes
                 d = 0.5;

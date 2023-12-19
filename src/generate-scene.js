@@ -3,7 +3,7 @@
     var SceneGenerator = function () {
         this.pattern = new RegExp('// fill');
         this.relayWallPattern = new RegExp(RELAY_WALL_COMMENT);
-        this.sceneNumber = 23;
+        this.sceneNumber = 40;
         this.baseShader = Shaders['scene-base'];
         this.created = 0;
     }

@@ -312,10 +312,10 @@
         this.sceneVBOs[i].init(4);
         vboData = new Float32Array(4 * 2);
         addRelayWallVertices(vboData, this.aspect);
-        vboData[4] = 0.5 / this.aspect;
-        vboData[5] = 0.2;
-        vboData[6] = 0.4 / this.aspect;
-        vboData[7] = -0.2;
+        vboData[4] = 0.6 / this.aspect;
+        vboData[5] = 0.3;
+        vboData[6] = 0.45 / this.aspect;
+        vboData[7] = -0.3;
         this.sceneVBOs[i].copy(vboData);
 
         /*
