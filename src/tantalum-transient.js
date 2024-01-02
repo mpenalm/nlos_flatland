@@ -667,7 +667,7 @@ Transient.prototype.setupUI = function () {
 
     sceneNames = [];
     for (var i = 0; i < config.scenes.length; ++i) {
-        if ((i != 1 && i != 5 && i < 7) || (i >= 9)) {
+        if (i != 1 && i != 5 && i != 7 && i < 11) {
             sceneNames.push(config.scenes[i].name);
         }
     }

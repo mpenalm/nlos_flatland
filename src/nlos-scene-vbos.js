@@ -1,6 +1,6 @@
 var createSceneVBOs = function (renderer, gl, tgl) {
     
-    function addRelayWallVertices(vboData, aspect, ymin=-1.0, ymax=1.0) {
+    addRelayWallVertices = function (vboData, aspect, ymin=-1.0, ymax=1.0) {
         vboData[0] = 1.2 / aspect;
         vboData[1] = -1.0;
         vboData[2] = 1.2 / aspect;
