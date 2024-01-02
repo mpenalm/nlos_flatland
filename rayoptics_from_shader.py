@@ -14,8 +14,11 @@ if __name__ == '__main__':
     # filename2 = 'ray-optics-configs/ku-rough-planar-ray-optics.json'
     # filename = 'shaders/scene35-ku-facetsmall.txt'
     # filename2 = 'ray-optics-configs/ku-facetsmall-ray-optics.json'
-    filename = 'shaders/scene36-ku-facetmedium.txt'
-    filename2 = 'ray-optics-configs/ku-facetmedium-ray-optics.json'
+    # filename = 'shaders/scene36-ku-facetmedium.txt'
+    # filename2 = 'ray-optics-configs/ku-facetmedium-ray-optics.json'
+    filename = 'shaders/scene15.txt'
+    filename2 = 'ray-optics-configs/rotated-ray-optics.json'
+
 
     f = open(filename, 'r')
     lines = f.readlines()

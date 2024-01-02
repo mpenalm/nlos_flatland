@@ -1,0 +1,52 @@
+{
+    "version": 2,
+    "objs": [
+        {
+            "type": "mirror",
+            "p1": {
+                "type": 1,
+                "x": 480.0,
+                "y": 0.0,
+                "exist": true
+            },
+            "p2": {
+                "type": 1,
+                "x": 480.0,
+                "y": 400.0,
+                "exist": true
+            }
+        },
+        {
+            "type": "mirror",
+            "p1": {
+                "type": 1,
+                "x": 360.0,
+                "y": 260.0,
+                "exist": true
+            },
+            "p2": {
+                "type": 1,
+                "x": 330.0,
+                "y": 140.0,
+                "exist": true
+            }
+        }
+    ],
+    "mode": "light",
+    "rayDensity_light": 0.11358543431204121,
+    "rayDensity_images": 1,
+    "showGrid": true,
+    "grid": false,
+    "lockobjs": false,
+    "gridSize": 20,
+    "observer": null,
+    "origin": {
+        "x": 100,
+        "y": 100
+    },
+    "scale": 1.25,
+    "width": 2000,
+    "height": 1000,
+    "colorMode": false,
+    "symbolicGrin": false
+}
