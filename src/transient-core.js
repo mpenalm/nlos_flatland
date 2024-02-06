@@ -57,6 +57,7 @@
     }
 
     var Renderer = function (gl, width, height, scenes, filterCanvas) {
+        // this.DEBUG = true;
         this.gl = gl;
         this.filterCanvas = filterCanvas;
         this.glFilter = this.filterCanvas.getContext("webgl") || this.filterCanvas.getContext("experimental-webgl");
@@ -917,7 +918,7 @@
                 // this.capturedBuffer3D = new tgl.Texture3D(this.numIntervals, this.numSpads, this.numSpads, 4, null);
                 if (this.DEBUG) {
                     this.h = new Float32Array(this.numIntervals * this.numSpads);
-                    this.hFilt = new Float32Array(2 * this.h.length);
+                    // this.hFilt = new Float32Array(2 * this.h.length);
                 }
             }
         // PF buffers
@@ -978,8 +979,8 @@
         if (this.h != undefined) {
             for (var i = 0; i < this.h.length; i++) {
                 this.h[i] = 0;
-                this.hFilt[2 * i] = 0;
-                this.hFilt[2 * i + 1] = 0;
+                // this.hFilt[2 * i] = 0;
+                // this.hFilt[2 * i + 1] = 0;
             }
         }
 
@@ -1555,6 +1556,8 @@
         this.fbo.drawBuffers(1);
         this.quadVbo.bind();
 
+        // var start = Date.now();
+
         if (this.filterType === 'pf') {
             this.filterPF();
             this.computeBackprojection(this.interFiltBuffer, this.filteredBuffer);
@@ -1567,7 +1570,12 @@
             // else filterType === 'none', and this.filteredBuffer == this.unfilteredBuffer
         }
 
+        // var end = Date.now();
+
         var maxValueTex = this.findMax(this.filteredBuffer, this.filterType === 'pf' && !this.isConvCamera);
+
+        // var endMax = Date.now();
+        // console.log(`Imaging time (ms): ${end-start}\nFinding max value (ms): ${endMax-end}`);
 
         if (this.DEBUG) {
             var h = this.capturedBuffer.getArray(this.h.length);
@@ -1634,6 +1642,9 @@
         this.quadVbo.bind();
         this.quadVbo.draw(this.rwallProgram, this.gl.TRIANGLE_FAN);
         gl.disable(gl.BLEND);
+
+        // var trueEnd = Date.now();
+        // console.log(`Result render time: ${trueEnd-endMax}`);
     }
 
     Renderer.prototype.play = function (timestamp) {
@@ -1722,6 +1733,16 @@
         var result = [];
         for (let i = 0; i < h.length; i += 4) {
             result.push(h[i]);
+        }
+        return result;
+    }
+
+    Renderer.prototype.getFilteredCapture = function() {
+        var hFilt = this.interFiltBuffer.getArray(this.numSpads * this.numIntervals);
+        var result = [];
+        for (let i = 0; i < hFilt.length; i += 4) {
+            result.push(hFilt[i]);
+            result.push(hFilt[i+1]);
         }
         return result;
     }
