@@ -881,7 +881,7 @@ Transient.prototype.renderLoop = function (timestamp) {
     this.progressBar.setProgress(this.renderer.progress());
     this.progressBar.setLabel(Math.min(this.renderer.totalRaysTraced(), this.renderer.maxRayCount()) +
         "/" + this.renderer.maxRayCount() + " rays traced; Progress: " +
-        this.progressBar.getProgressPercentage() + "%");
+        this.progressBar.getProgressPercentage() + "%; ETA: " + this.renderer.getETA().toFixed(3) + "s");
 }
 
 Transient.prototype.saveParameters = function (fileName) {

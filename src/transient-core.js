@@ -1304,6 +1304,13 @@
         }
     }
 
+    Renderer.prototype.getETA = function () {
+        var elapsedTime = this.nlosElapsedTimes[this.nlosElapsedTimes.length-1] - this.nlosElapsedTimes[0];
+        var completed = this.laserPointedAtSensorIdx + this.progress();
+        if (this.captureMethod != "single") completed /= this.numSpads;
+        return Math.max((1 - completed) * elapsedTime / completed / 1000, 0);
+    }
+
     Renderer.prototype.partialReset = function () {
         this.wavesTraced = 0;
         this.raysTraced = 0;
@@ -1400,9 +1407,6 @@
     Renderer.prototype.render = function (timestamp) {
         this.needsReset = true;
         this.elapsedTimes.push(timestamp);
-        if (this.nlosElapsedTimes.length == 0) {
-            this.nlosElapsedTimes.push(timestamp);
-        }
 
         var current = this.currentState;
         var next = 1 - current;
@@ -1540,7 +1544,7 @@
             gl.disable(gl.SCISSOR_TEST);
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-            this.renderNLOS();
+            this.renderNLOS(timestamp);
 
             this.nlosElapsedTimes.push(timestamp);
         }
@@ -1549,7 +1553,7 @@
         this.currentCall++;
     }
 
-    Renderer.prototype.renderNLOS = function () {
+    Renderer.prototype.renderNLOS = function (timestamp) {
         var gl = this.gl;
 
         this.fbo.bind();
