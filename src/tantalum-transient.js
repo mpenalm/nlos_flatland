@@ -34,7 +34,7 @@ var Transient = function () {
             this.fail(message + '<br>' + aux);
         } else {
             this.fail("Something unexpected happened. The error message is listed below:<br/>" +
-            "<pre>" + message + "</pre>");
+                "<pre>" + message + "</pre>");
         }
         return;
     }
@@ -192,10 +192,17 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene40-ku-semi-rough-4xsmall', 'name': 'ku-semi-rough-4xsmall', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene41-ku-semi-rough-8xsmall', 'name': 'ku-semi-rough-8xsmall', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene42-ku-planar-rotatedplanar', 'name': 'ku-planar-rotatedplanar', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene43-ko', 'name': 'ko', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene44-ko-rough', 'name': 'ko-rough', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene45-rough-displaced', 'name': 'rough-displaced', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene46-ko-planar', 'name': 'ko-planar', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene43M-ko', 'name': 'ko (M)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene44M-ko-rough', 'name': 'ko-rough (M)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene45M-rough-displaced', 'name': 'rough-displaced (M)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene46M-ko-planar', 'name': 'ko-planar (M)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene43D-koi-randomfacets', 'name': 'koi-randomfacets (D)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene44D-koi-randomfacets-semirough', 'name': 'koi-randomfacets-semirough (D)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene45D-koi-randomfacets-semisemi', 'name': 'koi-randomfacets-semisemi (D)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene46D-koi-randomfacets-rotp10', 'name': 'koi-randomfacets-rotp10 (D)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene47D-koi-randomfacets-rotp20', 'name': 'koi-randomfacets-rotp20 (D)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene48D-koi-randomfacets-rotm10', 'name': 'koi-randomfacets-rotm10 (D)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene49D-koi-randomfacets-rotm20', 'name': 'koi-randomfacets-rotm20 (D)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
         ],
         "capture_methods": ["Single", "Confocal", "Exhaustive"],
         "camera_models": ["Confocal", "Transient", "Conventional"],
@@ -493,7 +500,7 @@ Transient.prototype.setupUI = function () {
         renderer.setMinPathLength(low);
     })
 
-    var sampleSlider = new tui.Slider("sample-count", 400, 850, true, function (exponent100) {
+    var sampleSlider = new tui.Slider("sample-count", 400, 900, true, function (exponent100) {
         var sampleCount = Math.floor(Math.pow(10, exponent100 * 0.01));
         this.setLabel(sampleCount + " light paths");
         renderer.setMaxSampleCount(sampleCount);
