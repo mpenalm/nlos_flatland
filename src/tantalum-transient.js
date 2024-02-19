@@ -203,6 +203,7 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene47D-koi-randomfacets-rotp20', 'name': 'koi-randomfacets-rotp20 (D)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene48D-koi-randomfacets-rotm10', 'name': 'koi-randomfacets-rotm10 (D)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene49D-koi-randomfacets-rotm20', 'name': 'koi-randomfacets-rotm20 (D)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene50-koi-discofacets-easy', 'name': 'koi-discofacets-easy', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
         ],
         "capture_methods": ["Single", "Confocal", "Exhaustive"],
         "camera_models": ["Confocal", "Transient", "Conventional"],

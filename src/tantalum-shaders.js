@@ -2138,6 +2138,59 @@ var Shaders = {
         '    }\n'                                                                          +
         '}\n',
 
+    'scene50-koi-discofacets-easy':
+        '#include "trace-frag"\n\n'                                                        +
+
+        '#include "bsdf"\n'                                                                +
+        '#include "intersect"\n\n'                                                         +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);\n'                +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, -0.2), 1.0, isect);\n\n'        +
+
+        '    // First hidden wall\n'                                                       +
+        '    lineIntersect(ray, vec2(0.4064438553940956, 0.17947754713327546), vec2(0.393' +
+                                  '55614460590443, 0.10052245286672455), 0.0, isect);\n'   +
+        '    lineIntersect(ray, vec2(0.40913990486208135, 0.25894177883857006), vec2(0.39' +
+                                  '08600951379187, 0.18105822116142997), 0.0, isect);\n'   +
+        '    lineIntersect(ray, vec2(0.41180505038113674, 0.33821833049073213), vec2(0.38' +
+                                  '81949496188633, 0.26178166950926796), 0.0, isect);\n'   +
+        '    lineIntersect(ray, vec2(0.41441405722563596, 0.4173126647975737), vec2(0.385' +
+                                   '5859427743641, 0.34268733520242634), 0.0, isect);\n'   +
+        '    lineIntersect(ray, vec2(0.41693481691017037, 0.49623826673861493), vec2(0.38' +
+                                    '30651830898297, 0.423761733261385), 0.0, isect);\n'   +
+        '    lineIntersect(ray, vec2(0.4193322054641126, 0.5750180786436568), vec2(0.3806' +
+                                    '6779453588745, 0.5049819213563432), 0.0, isect);\n'   +
+        '    lineIntersect(ray, vec2(0.42157329337732863, 0.6536837202941674), vec2(0.378' +
+                                    '4267066226714, 0.5863162797058326), 0.0, isect);\n'   +
+        '    lineIntersect(ray, vec2(0.42363232185470734, 0.7322724861725204), vec2(0.376' +
+                                    '3676781452927, 0.6677275138274795), 0.0, isect);\n'   +
+        '    lineIntersect(ray, vec2(0.42549393142361835, 0.8108230345775339), vec2(0.374' +
+                                    '5060685763817, 0.7491769654224661), 0.0, isect);\n'   +
+        '    lineIntersect(ray, vec2(0.4271539313307569, 0.8893711425260329), vec2(0.3728' +
+                                    '4606866924314, 0.8306288574739671), 0.0, isect);\n\n' +
+
+        '    // Second hidden wall\n'                                                      +
+        '    lineIntersect(ray, vec2(1.2, 0.1), vec2(1.2, 0.9), 0.0, isect);\n'            +
+        '}\n\n'                                                                            +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
+                                             'out vec3 throughput, out float tMult) {\n'   +
+        '    tMult = 1.0;\n'                                                               +
+        '    if (isect.mat == 5.0) {\n'                                                    +
+        '        // Bounding box\n'                                                        +
+        '        throughput = vec3(0.0);\n'                                                +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else if (isect.mat == 1.0) {\n'                                             +
+        '        // Relay wall\n'                                                          +
+        '        throughput *= vec3(0.5);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else {\n'                                                                   +
+        '        throughput *= vec3(0.5);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    }\n'                                                                          +
+        '}\n',
+
     'h-frag':
         '#include "preamble"\n\n'                                                   +
 
