@@ -7098,6 +7098,55 @@ var Shaders = {
         '    }\n'                                                                          +
         '}\n',
 
+    'scene54-koi-circlefacets':
+        '#include "trace-frag"\n\n'                                                        +
+
+        '#include "bsdf"\n'                                                                +
+        '#include "intersect"\n\n'                                                         +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);\n'                +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, -0.2), 1.0, isect);\n\n'        +
+
+        '    // First hidden wall\n'                                                       +
+        '    sphereIntersect(ray, vec2(0.40, 0.125), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.175), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.225), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.275), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.325), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.375), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.425), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.475), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.525), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.575), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.625), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.675), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.725), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.775), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.825), 0.025, 0.0, isect);\n'                +
+        '    sphereIntersect(ray, vec2(0.40, 0.875), 0.025, 0.0, isect);\n\n'              +
+
+        '    // Second hidden wall\n'                                                      +
+        '    lineIntersect(ray, vec2(1.2, 0.1), vec2(1.2, 0.9), 0.0, isect);\n'            +
+        '}\n\n'                                                                            +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
+                                             'out vec3 throughput, out float tMult) {\n'   +
+        '    tMult = 1.0;\n'                                                               +
+        '    if (isect.mat == 5.0) {\n'                                                    +
+        '        // Bounding box\n'                                                        +
+        '        throughput = vec3(0.0);\n'                                                +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else if (isect.mat == 1.0) {\n'                                             +
+        '        // Relay wall\n'                                                          +
+        '        throughput *= vec3(0.5);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else {\n'                                                                   +
+        '        throughput *= vec3(0.5);\n'                                               +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    }\n'                                                                          +
+        '}\n',
+
     'scene46M-ko-planar':
         '#include "trace-frag"\n\n'                                                        +
 

@@ -207,6 +207,7 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene51-ku-discofacets-easy', 'name': 'ku-discofacets-easy', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene52-ku-discofacets-50pcteasy', 'name': 'ku-discofacets-50pcteasy', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene53-ku-discofacets-25pcteasy', 'name': 'ku-discofacets-25pcteasy', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene54-koi-circlefacets', 'name': 'koi-circlefacets', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
         ],
         "capture_methods": ["Single", "Confocal", "Exhaustive"],
         "camera_models": ["Confocal", "Transient", "Conventional"],
