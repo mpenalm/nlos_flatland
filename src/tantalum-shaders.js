@@ -726,6 +726,79 @@ var Shaders = {
         '    }\n'                                                                          +
         '}\n',
 
+    'scene58-koi-randomfacets-circle4':
+        '#include "trace-frag"\n\n'                                                           +
+
+        '#include "bsdf"\n'                                                                   +
+        '#include "intersect"\n\n'                                                            +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                               +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);\n'                   +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, -0.2), 1.0, isect);\n\n'           +
+
+        '    // First hidden wall\n'                                                          +
+        'lineIntersect(ray, vec2(0.40273, 0.09525), vec2(0.39727, 0.12475), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39249, 0.11701), vec2(0.40751, 0.14299), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40886, 0.13789), vec2(0.39114, 0.16211), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41100, 0.15980), vec2(0.38900, 0.18020), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41236, 0.18150), vec2(0.38764, 0.19850), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39857, 0.19507), vec2(0.40143, 0.22493), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39413, 0.21620), vec2(0.40587, 0.24380), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38823, 0.24070), vec2(0.41177, 0.25930), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39414, 0.25619), vec2(0.40586, 0.28381), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40401, 0.27555), vec2(0.39599, 0.30445), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38881, 0.30002), vec2(0.41119, 0.31998), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40568, 0.31612), vec2(0.39432, 0.34388), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40335, 0.33538), vec2(0.39665, 0.36462), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39485, 0.35591), vec2(0.40515, 0.38409), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38816, 0.38078), vec2(0.41184, 0.39922), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40842, 0.39759), vec2(0.39158, 0.42241), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41269, 0.42200), vec2(0.38731, 0.43800), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39940, 0.43501), vec2(0.40060, 0.46499), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39279, 0.45684), vec2(0.40721, 0.48316), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41080, 0.47959), vec2(0.38920, 0.50041), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38877, 0.50005), vec2(0.41123, 0.51995), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38847, 0.52040), vec2(0.41153, 0.53960), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40074, 0.53502), vec2(0.39926, 0.56498), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38858, 0.56027), vec2(0.41142, 0.57973), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39733, 0.57524), vec2(0.40267, 0.60476), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40460, 0.59572), vec2(0.39540, 0.62428), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39366, 0.61641), vec2(0.40634, 0.64359), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39604, 0.63553), vec2(0.40396, 0.66447), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40656, 0.65651), vec2(0.39344, 0.68349), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40138, 0.67506), vec2(0.39862, 0.70494), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41230, 0.70142), vec2(0.38770, 0.71858), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40655, 0.71650), vec2(0.39345, 0.74350), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39348, 0.73649), vec2(0.40652, 0.76351), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41074, 0.75953), vec2(0.38926, 0.78047), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41046, 0.77925), vec2(0.38954, 0.80075), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40639, 0.79643), vec2(0.39361, 0.82357), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40487, 0.81581), vec2(0.39513, 0.84419), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41149, 0.84036), vec2(0.38851, 0.85964), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39251, 0.85700), vec2(0.40749, 0.88300), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38769, 0.88142), vec2(0.41231, 0.89858), 0.0, isect);\n\n' +
+
+        '    // Second hidden wall\n'                                                         +
+        '    sphereIntersect(ray, vec2(1.2, 0.3), 0.1, 0.0, isect);\n'                        +
+        '}\n\n'                                                                               +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in'    +
+                                             'out vec3 throughput, out float tMult) {\n'      +
+        '    tMult = 1.0;\n'                                                                  +
+        '    if (isect.mat == 5.0) {\n'                                                       +
+        '        // Bounding box\n'                                                           +
+        '        throughput = vec3(0.0);\n'                                                   +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else if (isect.mat == 1.0) {\n'                                                +
+        '        // Relay wall\n'                                                             +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else {\n'                                                                      +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    }\n'                                                                             +
+        '}\n',
+
     'scene3':
         '#include "trace-frag"\n\n'                                                        +
 
@@ -1424,8 +1497,8 @@ var Shaders = {
                                   '9503138745907, -0.18119683028669112), 0.0, isect);\n'   +
         '    lineIntersect(ray, vec2(0.43935597106368846, -0.12714895388389924), vec2(0.3' +
                                 '606440289363116, -0.11285104611610074), 0.0, isect);\n'   +
-        '    lineIntersect(ray, vec2(0.40033952187651783, -1.440964762698671e-06), vec2(0' +
-                              '.3996604781234822, -0.07999855903523737), 0.0, isect);\n'   +
+        '    lineIntersect(ray, vec2(0.40033952187651783, 0.0), vec2(0.3996604781234822, ' +
+                                                 '-0.07999855903523737), 0.0, isect);\n'   +
         '    lineIntersect(ray, vec2(0.36069361435888775, 0.047416741051982694), vec2(0.4' +
                                  '393063856411123, 0.03258325894801738), 0.0, isect);\n'   +
         '    lineIntersect(ray, vec2(0.43672784429910333, 0.13584504506591336), vec2(0.36' +
@@ -1832,8 +1905,8 @@ var Shaders = {
                                  '08981159597535, -0.23967485120220963), 0.0, isect);\n'   +
         '    lineIntersect(ray, vec2(0.3976235888199018, -0.08007065402610375), vec2(0.40' +
                                 '237641118009826, -0.15992934597389624), 0.0, isect);\n'   +
-        '    lineIntersect(ray, vec2(0.40033952187651783, -1.440964762698671e-06), vec2(0' +
-                              '.3996604781234822, -0.07999855903523737), 0.0, isect);\n'   +
+        '    lineIntersect(ray, vec2(0.40033952187651783, 0.0), vec2(0.3996604781234822, ' +
+                                                 '-0.07999855903523737), 0.0, isect);\n'   +
         '    lineIntersect(ray, vec2(0.4030551549302637, 0.07988315469408216), vec2(0.396' +
                                 '9448450697363, 0.00011684530591789949), 0.0, isect);\n'   +
         '    lineIntersect(ray, vec2(0.40576716511074545, 0.15958206420318932), vec2(0.39' +
@@ -2842,8 +2915,8 @@ var Shaders = {
                                  '08981159597535, -0.23967485120220963), 0.0, isect);\n'   +
         '    lineIntersect(ray, vec2(0.39418148225341126, -0.15957454802309978), vec2(0.4' +
                                 '058185177465888, -0.08042545197690021), 0.0, isect);\n'   +
-        '    lineIntersect(ray, vec2(0.40033952187651783, -1.440964762698671e-06), vec2(0' +
-                              '.3996604781234822, -0.07999855903523737), 0.0, isect);\n'   +
+        '    lineIntersect(ray, vec2(0.40033952187651783, 0.0), vec2(0.3996604781234822, ' +
+                                                 '-0.07999855903523737), 0.0, isect);\n'   +
         '    lineIntersect(ray, vec2(0.36098759941888847, 0.031166393664030255), vec2(0.4' +
                                 '390124005811116, 0.048833606335969816), 0.0, isect);\n'   +
         '    lineIntersect(ray, vec2(0.40576716511074545, 0.15958206420318932), vec2(0.39' +
@@ -3418,6 +3491,79 @@ var Shaders = {
 
         'void main() {\n'              +
         '    gl_FragColor = uColor;\n' +
+        '}\n',
+
+    'scene56-koi-randomfacets-circle2':
+        '#include "trace-frag"\n\n'                                                           +
+
+        '#include "bsdf"\n'                                                                   +
+        '#include "intersect"\n\n'                                                            +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                               +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);\n'                   +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, -0.2), 1.0, isect);\n\n'           +
+
+        '    // First hidden wall\n'                                                          +
+        'lineIntersect(ray, vec2(0.40273, 0.09525), vec2(0.39727, 0.12475), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39249, 0.11701), vec2(0.40751, 0.14299), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40886, 0.13789), vec2(0.39114, 0.16211), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41100, 0.15980), vec2(0.38900, 0.18020), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41236, 0.18150), vec2(0.38764, 0.19850), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39857, 0.19507), vec2(0.40143, 0.22493), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39413, 0.21620), vec2(0.40587, 0.24380), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38823, 0.24070), vec2(0.41177, 0.25930), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39414, 0.25619), vec2(0.40586, 0.28381), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40401, 0.27555), vec2(0.39599, 0.30445), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38881, 0.30002), vec2(0.41119, 0.31998), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40568, 0.31612), vec2(0.39432, 0.34388), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40335, 0.33538), vec2(0.39665, 0.36462), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39485, 0.35591), vec2(0.40515, 0.38409), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38816, 0.38078), vec2(0.41184, 0.39922), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40842, 0.39759), vec2(0.39158, 0.42241), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41269, 0.42200), vec2(0.38731, 0.43800), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39940, 0.43501), vec2(0.40060, 0.46499), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39279, 0.45684), vec2(0.40721, 0.48316), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41080, 0.47959), vec2(0.38920, 0.50041), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38877, 0.50005), vec2(0.41123, 0.51995), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38847, 0.52040), vec2(0.41153, 0.53960), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40074, 0.53502), vec2(0.39926, 0.56498), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38858, 0.56027), vec2(0.41142, 0.57973), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39733, 0.57524), vec2(0.40267, 0.60476), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40460, 0.59572), vec2(0.39540, 0.62428), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39366, 0.61641), vec2(0.40634, 0.64359), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39604, 0.63553), vec2(0.40396, 0.66447), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40656, 0.65651), vec2(0.39344, 0.68349), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40138, 0.67506), vec2(0.39862, 0.70494), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41230, 0.70142), vec2(0.38770, 0.71858), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40655, 0.71650), vec2(0.39345, 0.74350), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39348, 0.73649), vec2(0.40652, 0.76351), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41074, 0.75953), vec2(0.38926, 0.78047), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41046, 0.77925), vec2(0.38954, 0.80075), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40639, 0.79643), vec2(0.39361, 0.82357), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40487, 0.81581), vec2(0.39513, 0.84419), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41149, 0.84036), vec2(0.38851, 0.85964), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39251, 0.85700), vec2(0.40749, 0.88300), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38769, 0.88142), vec2(0.41231, 0.89858), 0.0, isect);\n\n' +
+
+        '    // Second hidden wall\n'                                                         +
+        '    sphereIntersect(ray, vec2(1.2, 0.7), 0.1, 0.0, isect);\n'                        +
+        '}\n\n'                                                                               +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in'    +
+                                             'out vec3 throughput, out float tMult) {\n'      +
+        '    tMult = 1.0;\n'                                                                  +
+        '    if (isect.mat == 5.0) {\n'                                                       +
+        '        // Bounding box\n'                                                           +
+        '        throughput = vec3(0.0);\n'                                                   +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else if (isect.mat == 1.0) {\n'                                                +
+        '        // Relay wall\n'                                                             +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else {\n'                                                                      +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    }\n'                                                                             +
         '}\n',
 
     'scene22':
@@ -4199,6 +4345,79 @@ var Shaders = {
 
         '	gl_FragColor = vec4(result, result2, oddY && (y == np.y - 1.0), 1.0);\n'         +
         '	// gl_FragColor = vec4(mPos, oddX && (x == np.x - 1.0), 1.0);\n'                 +
+        '}\n',
+
+    'scene57-koi-randomfacets-circle3':
+        '#include "trace-frag"\n\n'                                                           +
+
+        '#include "bsdf"\n'                                                                   +
+        '#include "intersect"\n\n'                                                            +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                               +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);\n'                   +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, -0.2), 1.0, isect);\n\n'           +
+
+        '    // First hidden wall\n'                                                          +
+        'lineIntersect(ray, vec2(0.40273, 0.09525), vec2(0.39727, 0.12475), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39249, 0.11701), vec2(0.40751, 0.14299), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40886, 0.13789), vec2(0.39114, 0.16211), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41100, 0.15980), vec2(0.38900, 0.18020), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41236, 0.18150), vec2(0.38764, 0.19850), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39857, 0.19507), vec2(0.40143, 0.22493), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39413, 0.21620), vec2(0.40587, 0.24380), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38823, 0.24070), vec2(0.41177, 0.25930), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39414, 0.25619), vec2(0.40586, 0.28381), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40401, 0.27555), vec2(0.39599, 0.30445), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38881, 0.30002), vec2(0.41119, 0.31998), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40568, 0.31612), vec2(0.39432, 0.34388), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40335, 0.33538), vec2(0.39665, 0.36462), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39485, 0.35591), vec2(0.40515, 0.38409), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38816, 0.38078), vec2(0.41184, 0.39922), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40842, 0.39759), vec2(0.39158, 0.42241), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41269, 0.42200), vec2(0.38731, 0.43800), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39940, 0.43501), vec2(0.40060, 0.46499), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39279, 0.45684), vec2(0.40721, 0.48316), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41080, 0.47959), vec2(0.38920, 0.50041), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38877, 0.50005), vec2(0.41123, 0.51995), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38847, 0.52040), vec2(0.41153, 0.53960), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40074, 0.53502), vec2(0.39926, 0.56498), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38858, 0.56027), vec2(0.41142, 0.57973), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39733, 0.57524), vec2(0.40267, 0.60476), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40460, 0.59572), vec2(0.39540, 0.62428), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39366, 0.61641), vec2(0.40634, 0.64359), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39604, 0.63553), vec2(0.40396, 0.66447), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40656, 0.65651), vec2(0.39344, 0.68349), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40138, 0.67506), vec2(0.39862, 0.70494), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41230, 0.70142), vec2(0.38770, 0.71858), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40655, 0.71650), vec2(0.39345, 0.74350), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39348, 0.73649), vec2(0.40652, 0.76351), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41074, 0.75953), vec2(0.38926, 0.78047), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41046, 0.77925), vec2(0.38954, 0.80075), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40639, 0.79643), vec2(0.39361, 0.82357), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40487, 0.81581), vec2(0.39513, 0.84419), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41149, 0.84036), vec2(0.38851, 0.85964), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39251, 0.85700), vec2(0.40749, 0.88300), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38769, 0.88142), vec2(0.41231, 0.89858), 0.0, isect);\n\n' +
+
+        '    // Second hidden wall\n'                                                         +
+        '    sphereIntersect(ray, vec2(1.2, 0.5), 0.1, 0.0, isect);\n'                        +
+        '}\n\n'                                                                               +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in'    +
+                                             'out vec3 throughput, out float tMult) {\n'      +
+        '    tMult = 1.0;\n'                                                                  +
+        '    if (isect.mat == 5.0) {\n'                                                       +
+        '        // Bounding box\n'                                                           +
+        '        throughput = vec3(0.0);\n'                                                   +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else if (isect.mat == 1.0) {\n'                                                +
+        '        // Relay wall\n'                                                             +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else {\n'                                                                      +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    }\n'                                                                             +
         '}\n',
 
     'scene43D-koi-randomfacets':
@@ -6155,6 +6374,79 @@ var Shaders = {
         '    //gl_FragColor = vec4(texture2D(Frame, vTexCoord).rgb, 1.0);\n'               +
         '}\n',
 
+    'scene55-koi-randomfacets-circle1':
+        '#include "trace-frag"\n\n'                                                           +
+
+        '#include "bsdf"\n'                                                                   +
+        '#include "intersect"\n\n'                                                            +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                               +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);\n'                   +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, -0.2), 1.0, isect);\n\n'           +
+
+        '    // First hidden wall\n'                                                          +
+        'lineIntersect(ray, vec2(0.40273, 0.09525), vec2(0.39727, 0.12475), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39249, 0.11701), vec2(0.40751, 0.14299), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40886, 0.13789), vec2(0.39114, 0.16211), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41100, 0.15980), vec2(0.38900, 0.18020), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41236, 0.18150), vec2(0.38764, 0.19850), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39857, 0.19507), vec2(0.40143, 0.22493), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39413, 0.21620), vec2(0.40587, 0.24380), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38823, 0.24070), vec2(0.41177, 0.25930), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39414, 0.25619), vec2(0.40586, 0.28381), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40401, 0.27555), vec2(0.39599, 0.30445), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38881, 0.30002), vec2(0.41119, 0.31998), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40568, 0.31612), vec2(0.39432, 0.34388), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40335, 0.33538), vec2(0.39665, 0.36462), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39485, 0.35591), vec2(0.40515, 0.38409), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38816, 0.38078), vec2(0.41184, 0.39922), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40842, 0.39759), vec2(0.39158, 0.42241), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41269, 0.42200), vec2(0.38731, 0.43800), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39940, 0.43501), vec2(0.40060, 0.46499), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39279, 0.45684), vec2(0.40721, 0.48316), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41080, 0.47959), vec2(0.38920, 0.50041), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38877, 0.50005), vec2(0.41123, 0.51995), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38847, 0.52040), vec2(0.41153, 0.53960), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40074, 0.53502), vec2(0.39926, 0.56498), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38858, 0.56027), vec2(0.41142, 0.57973), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39733, 0.57524), vec2(0.40267, 0.60476), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40460, 0.59572), vec2(0.39540, 0.62428), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39366, 0.61641), vec2(0.40634, 0.64359), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39604, 0.63553), vec2(0.40396, 0.66447), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40656, 0.65651), vec2(0.39344, 0.68349), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40138, 0.67506), vec2(0.39862, 0.70494), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41230, 0.70142), vec2(0.38770, 0.71858), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40655, 0.71650), vec2(0.39345, 0.74350), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39348, 0.73649), vec2(0.40652, 0.76351), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41074, 0.75953), vec2(0.38926, 0.78047), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41046, 0.77925), vec2(0.38954, 0.80075), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40639, 0.79643), vec2(0.39361, 0.82357), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40487, 0.81581), vec2(0.39513, 0.84419), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41149, 0.84036), vec2(0.38851, 0.85964), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39251, 0.85700), vec2(0.40749, 0.88300), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38769, 0.88142), vec2(0.41231, 0.89858), 0.0, isect);\n\n' +
+
+        '    // Second hidden wall\n'                                                         +
+        '    sphereIntersect(ray, vec2(1.2, 0.9), 0.1, 0.0, isect);\n'                        +
+        '}\n\n'                                                                               +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in'    +
+                                             'out vec3 throughput, out float tMult) {\n'      +
+        '    tMult = 1.0;\n'                                                                  +
+        '    if (isect.mat == 5.0) {\n'                                                       +
+        '        // Bounding box\n'                                                           +
+        '        throughput = vec3(0.0);\n'                                                   +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else if (isect.mat == 1.0) {\n'                                                +
+        '        // Relay wall\n'                                                             +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else {\n'                                                                      +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    }\n'                                                                             +
+        '}\n',
+
     'compose-vert':
         '#include "preamble"\n\n'                  +
 
@@ -7075,6 +7367,79 @@ var Shaders = {
         '    }\n'                                                                          +
         '}\n',
 
+    'scene59-koi-randomfacets-circle5':
+        '#include "trace-frag"\n\n'                                                           +
+
+        '#include "bsdf"\n'                                                                   +
+        '#include "intersect"\n\n'                                                            +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                               +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);\n'                   +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, -0.2), 1.0, isect);\n\n'           +
+
+        '    // First hidden wall\n'                                                          +
+        'lineIntersect(ray, vec2(0.40273, 0.09525), vec2(0.39727, 0.12475), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39249, 0.11701), vec2(0.40751, 0.14299), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40886, 0.13789), vec2(0.39114, 0.16211), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41100, 0.15980), vec2(0.38900, 0.18020), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41236, 0.18150), vec2(0.38764, 0.19850), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39857, 0.19507), vec2(0.40143, 0.22493), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39413, 0.21620), vec2(0.40587, 0.24380), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38823, 0.24070), vec2(0.41177, 0.25930), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39414, 0.25619), vec2(0.40586, 0.28381), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40401, 0.27555), vec2(0.39599, 0.30445), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38881, 0.30002), vec2(0.41119, 0.31998), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40568, 0.31612), vec2(0.39432, 0.34388), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40335, 0.33538), vec2(0.39665, 0.36462), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39485, 0.35591), vec2(0.40515, 0.38409), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38816, 0.38078), vec2(0.41184, 0.39922), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40842, 0.39759), vec2(0.39158, 0.42241), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41269, 0.42200), vec2(0.38731, 0.43800), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39940, 0.43501), vec2(0.40060, 0.46499), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39279, 0.45684), vec2(0.40721, 0.48316), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41080, 0.47959), vec2(0.38920, 0.50041), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38877, 0.50005), vec2(0.41123, 0.51995), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38847, 0.52040), vec2(0.41153, 0.53960), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40074, 0.53502), vec2(0.39926, 0.56498), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38858, 0.56027), vec2(0.41142, 0.57973), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39733, 0.57524), vec2(0.40267, 0.60476), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40460, 0.59572), vec2(0.39540, 0.62428), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39366, 0.61641), vec2(0.40634, 0.64359), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39604, 0.63553), vec2(0.40396, 0.66447), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40656, 0.65651), vec2(0.39344, 0.68349), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40138, 0.67506), vec2(0.39862, 0.70494), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41230, 0.70142), vec2(0.38770, 0.71858), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40655, 0.71650), vec2(0.39345, 0.74350), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39348, 0.73649), vec2(0.40652, 0.76351), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41074, 0.75953), vec2(0.38926, 0.78047), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41046, 0.77925), vec2(0.38954, 0.80075), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40639, 0.79643), vec2(0.39361, 0.82357), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40487, 0.81581), vec2(0.39513, 0.84419), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41149, 0.84036), vec2(0.38851, 0.85964), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39251, 0.85700), vec2(0.40749, 0.88300), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38769, 0.88142), vec2(0.41231, 0.89858), 0.0, isect);\n\n' +
+
+        '    // Second hidden wall\n'                                                         +
+        '    sphereIntersect(ray, vec2(1.2, 0.1), 0.1, 0.0, isect);\n'                        +
+        '}\n\n'                                                                               +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in'    +
+                                             'out vec3 throughput, out float tMult) {\n'      +
+        '    tMult = 1.0;\n'                                                                  +
+        '    if (isect.mat == 5.0) {\n'                                                       +
+        '        // Bounding box\n'                                                           +
+        '        throughput = vec3(0.0);\n'                                                   +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else if (isect.mat == 1.0) {\n'                                                +
+        '        // Relay wall\n'                                                             +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else {\n'                                                                      +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    }\n'                                                                             +
+        '}\n',
+
     'scene5':
         '#include "trace-frag"\n\n'                                                        +
 
@@ -7220,6 +7585,80 @@ var Shaders = {
         '        throughput *= vec3(0.5);\n'                                               +
         '        return sampleDiffuse(state, wiLocal);\n'                                  +
         '    }\n'                                                                          +
+        '}\n',
+
+    'scene60-koi-randomfacets-twocircles':
+        '#include "trace-frag"\n\n'                                                           +
+
+        '#include "bsdf"\n'                                                                   +
+        '#include "intersect"\n\n'                                                            +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                               +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);\n'                   +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, -0.2), 1.0, isect);\n\n'           +
+
+        '    // First hidden wall\n'                                                          +
+        'lineIntersect(ray, vec2(0.40273, 0.09525), vec2(0.39727, 0.12475), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39249, 0.11701), vec2(0.40751, 0.14299), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40886, 0.13789), vec2(0.39114, 0.16211), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41100, 0.15980), vec2(0.38900, 0.18020), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41236, 0.18150), vec2(0.38764, 0.19850), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39857, 0.19507), vec2(0.40143, 0.22493), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39413, 0.21620), vec2(0.40587, 0.24380), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38823, 0.24070), vec2(0.41177, 0.25930), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39414, 0.25619), vec2(0.40586, 0.28381), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40401, 0.27555), vec2(0.39599, 0.30445), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38881, 0.30002), vec2(0.41119, 0.31998), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40568, 0.31612), vec2(0.39432, 0.34388), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40335, 0.33538), vec2(0.39665, 0.36462), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39485, 0.35591), vec2(0.40515, 0.38409), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38816, 0.38078), vec2(0.41184, 0.39922), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40842, 0.39759), vec2(0.39158, 0.42241), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41269, 0.42200), vec2(0.38731, 0.43800), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39940, 0.43501), vec2(0.40060, 0.46499), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39279, 0.45684), vec2(0.40721, 0.48316), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41080, 0.47959), vec2(0.38920, 0.50041), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38877, 0.50005), vec2(0.41123, 0.51995), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38847, 0.52040), vec2(0.41153, 0.53960), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40074, 0.53502), vec2(0.39926, 0.56498), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38858, 0.56027), vec2(0.41142, 0.57973), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39733, 0.57524), vec2(0.40267, 0.60476), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40460, 0.59572), vec2(0.39540, 0.62428), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39366, 0.61641), vec2(0.40634, 0.64359), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39604, 0.63553), vec2(0.40396, 0.66447), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40656, 0.65651), vec2(0.39344, 0.68349), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40138, 0.67506), vec2(0.39862, 0.70494), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41230, 0.70142), vec2(0.38770, 0.71858), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40655, 0.71650), vec2(0.39345, 0.74350), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39348, 0.73649), vec2(0.40652, 0.76351), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41074, 0.75953), vec2(0.38926, 0.78047), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41046, 0.77925), vec2(0.38954, 0.80075), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40639, 0.79643), vec2(0.39361, 0.82357), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40487, 0.81581), vec2(0.39513, 0.84419), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41149, 0.84036), vec2(0.38851, 0.85964), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39251, 0.85700), vec2(0.40749, 0.88300), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38769, 0.88142), vec2(0.41231, 0.89858), 0.0, isect);\n\n' +
+
+        '    // Second hidden wall\n'                                                         +
+        '    sphereIntersect(ray, vec2(1.2, 0.7), 0.1, 0.0, isect);\n'                        +
+        '    sphereIntersect(ray, vec2(1.2, 0.3), 0.1, 0.0, isect);\n'                        +
+        '}\n\n'                                                                               +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in'    +
+                                             'out vec3 throughput, out float tMult) {\n'      +
+        '    tMult = 1.0;\n'                                                                  +
+        '    if (isect.mat == 5.0) {\n'                                                       +
+        '        // Bounding box\n'                                                           +
+        '        throughput = vec3(0.0);\n'                                                   +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else if (isect.mat == 1.0) {\n'                                                +
+        '        // Relay wall\n'                                                             +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else {\n'                                                                      +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    }\n'                                                                             +
         '}\n',
 
     'scene19':
