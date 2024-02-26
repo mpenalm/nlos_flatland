@@ -1564,7 +1564,10 @@
 
         if (this.filterType === 'pf') {
             this.filterPF();
+            // var start = Date.now()
             this.computeBackprojection(this.interFiltBuffer, this.filteredBuffer);
+            // var end = Date.now()
+            // console.log(`Execution time: ${end - start} ms`);
         } else {
             this.computeBackprojection(this.capturedBuffer, this.unfilteredBuffer);
             if (this.filterType === 'log')
@@ -1584,7 +1587,7 @@
         if (this.DEBUG) {
             var h = this.capturedBuffer.getArray(this.h.length);
             for (let i = 0; i < this.h.length; i++) {
-                this.h[i] = h[4 * i];
+                this.h[i] += h[4 * i];
             }
             var f = this.filteredBuffer.getArray(this.numPixels[0] * this.numPixels[1]);
             this.f = [];

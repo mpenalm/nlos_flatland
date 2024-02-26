@@ -18,7 +18,7 @@ void bboxIntersect(Ray ray, vec2 center, vec2 radius, float matId, inout Interse
         isect.mat = matId;
     }
 }
-void sphereIntersect(Ray ray, vec2 center, float radius, float matId, inout Intersection isect) {
+void circleIntersect(Ray ray, vec2 center, float radius, float matId, inout Intersection isect) {
     vec2 p = ray.pos - center;
     float B = dot(p, ray.dir);
     float C = dot(p, p) - radius*radius;
