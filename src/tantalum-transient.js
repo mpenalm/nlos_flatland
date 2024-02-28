@@ -34,7 +34,7 @@ var Transient = function () {
             this.fail(message + '<br>' + aux);
         } else {
             this.fail("Something unexpected happened. The error message is listed below:<br/>" +
-            "<pre>" + message + "</pre>");
+                "<pre>" + message + "</pre>");
         }
         return;
     }
@@ -232,6 +232,7 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene62-circle-1', 'name': 'Circle 1 (with occluder)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene63-circle-2', 'name': 'Circle 2 (with occluder)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene64-circle-3', 'name': 'Circle 3 (with occluder)', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene65-koi-randomfacets5cm-twocircles', 'name': 'koi-randomfacets5cm-twocircles', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
         ],
         "capture_methods": ["Single", "Confocal", "Exhaustive"],
         "camera_models": ["Confocal", "Transient", "Conventional"],
