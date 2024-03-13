@@ -1,0 +1,50 @@
+#include "trace-frag"
+
+#include "bsdf"
+#include "intersect"
+
+void intersect(Ray ray, inout Intersection isect) {
+    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);
+    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, -0.2), 1.0, isect);
+
+    // First hidden wall
+lineIntersect(ray, vec2(0.37645, 0.09582), vec2(0.42355, 0.15418), 0.0, isect);
+lineIntersect(ray, vec2(0.41705, 0.14160), vec2(0.38295, 0.20840), 0.0, isect);
+lineIntersect(ray, vec2(0.37230, 0.19972), vec2(0.42770, 0.25028), 0.0, isect);
+lineIntersect(ray, vec2(0.41649, 0.24132), vec2(0.38351, 0.30868), 0.0, isect);
+lineIntersect(ray, vec2(0.40522, 0.28786), vec2(0.39478, 0.36214), 0.0, isect);
+lineIntersect(ray, vec2(0.38717, 0.33976), vec2(0.41283, 0.41024), 0.0, isect);
+lineIntersect(ray, vec2(0.37379, 0.39818), vec2(0.42621, 0.45182), 0.0, isect);
+lineIntersect(ray, vec2(0.40428, 0.43774), vec2(0.39572, 0.51226), 0.0, isect);
+lineIntersect(ray, vec2(0.43063, 0.50337), vec2(0.36937, 0.54663), 0.0, isect);
+lineIntersect(ray, vec2(0.39532, 0.53779), vec2(0.40468, 0.61221), 0.0, isect);
+lineIntersect(ray, vec2(0.40973, 0.58878), vec2(0.39027, 0.66122), 0.0, isect);
+lineIntersect(ray, vec2(0.42446, 0.64657), vec2(0.37554, 0.70343), 0.0, isect);
+lineIntersect(ray, vec2(0.37624, 0.69599), vec2(0.42376, 0.75401), 0.0, isect);
+lineIntersect(ray, vec2(0.38320, 0.74147), vec2(0.41680, 0.80853), 0.0, isect);
+lineIntersect(ray, vec2(0.42357, 0.79583), vec2(0.37643, 0.85417), 0.0, isect);
+lineIntersect(ray, vec2(0.40837, 0.83845), vec2(0.39163, 0.91155), 0.0, isect);
+
+    // Second hidden wall
+    circleIntersect(ray, vec2(1.2, 0.7), 0.05, 0.0, isect);
+    circleIntersect(ray, vec2(1.2, 0.3), 0.05, 0.0, isect);
+
+    // Occluder
+    bboxIntersect(ray, vec2(1.2, 0.0), vec2(0.1, 0.05), 5.0, isect);
+}
+
+vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, inout vec3 throughput, out float tMult) {
+    tMult = 1.0;
+    if (isect.mat == 5.0) {
+        // Bounding box
+        throughput = vec3(0.0);
+        return sampleDiffuse(state, wiLocal);
+    } else if (isect.mat == 1.0) {
+        // Relay wall
+        throughput *= vec3(0.5);
+        return sampleDiffuse(state, wiLocal);
+    } else {
+        throughput *= vec3(0.5);
+        return sampleDiffuse(state, wiLocal);
+    }
+}
