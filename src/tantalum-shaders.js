@@ -29,6 +29,70 @@ var Shaders = {
         '    gl_FragColor = vec4(pf, 0.0, 0.0);\n'                                      +
         '}\n',
 
+    'scene80-koi-randomfacets3cmV4-circlesD':
+        '#include "trace-frag"\n\n'                                                           +
+
+        '#include "bsdf"\n'                                                                   +
+        '#include "intersect"\n\n'                                                            +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                               +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);\n'                   +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, -0.2), 1.0, isect);\n\n'           +
+
+        '    // First hidden wall\n'                                                          +
+        'lineIntersect(ray, vec2(0.40942, 0.09457), vec2(0.39058, 0.13543), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38965, 0.12502), vec2(0.41035, 0.16498), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41826, 0.16185), vec2(0.38174, 0.18815), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38191, 0.19163), vec2(0.41809, 0.21837), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41745, 0.22080), vec2(0.38255, 0.24920), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38135, 0.25242), vec2(0.41865, 0.27758), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38276, 0.28055), vec2(0.41724, 0.30945), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41827, 0.31187), vec2(0.38173, 0.33813), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41284, 0.33652), vec2(0.38716, 0.37348), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39997, 0.36250), vec2(0.40003, 0.40750), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41842, 0.40208), vec2(0.38158, 0.42792), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38550, 0.42780), vec2(0.41450, 0.46220), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40648, 0.45345), vec2(0.39352, 0.49655), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41760, 0.49098), vec2(0.38240, 0.51902), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40817, 0.51404), vec2(0.39183, 0.55596), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38209, 0.55138), vec2(0.41791, 0.57862), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41414, 0.57750), vec2(0.38586, 0.61250), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40872, 0.60426), vec2(0.39128, 0.64574), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38767, 0.63618), vec2(0.41233, 0.67382), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38261, 0.67072), vec2(0.41739, 0.69928), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41664, 0.69986), vec2(0.38336, 0.73014), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41855, 0.73227), vec2(0.38145, 0.75773), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40028, 0.75250), vec2(0.39972, 0.79750), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40849, 0.78416), vec2(0.39151, 0.82584), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39529, 0.81300), vec2(0.40471, 0.85700), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39360, 0.84343), vec2(0.40640, 0.88657), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41920, 0.88326), vec2(0.38080, 0.90674), 0.0, isect);\n\n' +
+
+        '    // Second hidden wall\n'                                                         +
+        '    circleIntersect(ray, vec2(1.2, 0.7), 0.07, 0.0, isect);\n'                       +
+        '    circleIntersect(ray, vec2(1.2, 0.3), 0.07, 0.0, isect);\n\n'                     +
+
+        '    // Occluder\n'                                                                   +
+        '    bboxIntersect(ray, vec2(1.2, 0.0), vec2(0.1, 0.05), 5.0, isect);\n'              +
+        '}\n\n'                                                                               +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in'    +
+                                             'out vec3 throughput, out float tMult) {\n'      +
+        '    tMult = 1.0;\n'                                                                  +
+        '    if (isect.mat == 5.0) {\n'                                                       +
+        '        // Bounding box\n'                                                           +
+        '        throughput = vec3(0.0);\n'                                                   +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else if (isect.mat == 1.0) {\n'                                                +
+        '        // Relay wall\n'                                                             +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else {\n'                                                                      +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    }\n'                                                                             +
+        '}\n',
+
     'scene40-ku-semi-rough-4xsmall':
         '#include "trace-frag"\n\n'                                                        +
 
@@ -8370,6 +8434,70 @@ var Shaders = {
         '        throughput *= vec3(0.5);\n'                                               +
         '        return sampleDiffuse(state, wiLocal);\n'                                  +
         '    }\n'                                                                          +
+        '}\n',
+
+    'scene79-koi-randomfacets3cmV3-circlesD':
+        '#include "trace-frag"\n\n'                                                           +
+
+        '#include "bsdf"\n'                                                                   +
+        '#include "intersect"\n\n'                                                            +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                               +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);\n'                   +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, -0.2), 1.0, isect);\n\n'           +
+
+        '    // First hidden wall\n'                                                          +
+        'lineIntersect(ray, vec2(0.41018, 0.09493), vec2(0.38982, 0.13507), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40460, 0.12297), vec2(0.39540, 0.16703), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41089, 0.15531), vec2(0.38911, 0.19469), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38221, 0.19123), vec2(0.41779, 0.21877), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39956, 0.21250), vec2(0.40044, 0.25750), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41267, 0.24640), vec2(0.38733, 0.28360), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39974, 0.27250), vec2(0.40026, 0.31750), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39601, 0.30286), vec2(0.40399, 0.34714), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38212, 0.34135), vec2(0.41788, 0.36865), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41045, 0.36508), vec2(0.38955, 0.40492), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41768, 0.40108), vec2(0.38232, 0.42892), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38190, 0.43164), vec2(0.41810, 0.45836), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41634, 0.45954), vec2(0.38366, 0.49046), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40664, 0.48350), vec2(0.39336, 0.52650), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40953, 0.51462), vec2(0.39047, 0.55538), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38547, 0.54782), vec2(0.41453, 0.58218), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39028, 0.57471), vec2(0.40972, 0.61529), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40510, 0.60308), vec2(0.39490, 0.64692), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39597, 0.63286), vec2(0.40403, 0.67714), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38061, 0.67359), vec2(0.41939, 0.69641), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38227, 0.70115), vec2(0.41773, 0.72885), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.39686, 0.72272), vec2(0.40314, 0.76728), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38164, 0.76199), vec2(0.41836, 0.78801), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.41721, 0.79051), vec2(0.38279, 0.81949), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38613, 0.81728), vec2(0.41387, 0.85272), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.38458, 0.84861), vec2(0.41542, 0.88139), 0.0, isect);\n'   +
+        'lineIntersect(ray, vec2(0.40122, 0.87253), vec2(0.39878, 0.91747), 0.0, isect);\n\n' +
+
+        '    // Second hidden wall\n'                                                         +
+        '    circleIntersect(ray, vec2(1.2, 0.7), 0.07, 0.0, isect);\n'                       +
+        '    circleIntersect(ray, vec2(1.2, 0.3), 0.07, 0.0, isect);\n\n'                     +
+
+        '    // Occluder\n'                                                                   +
+        '    bboxIntersect(ray, vec2(1.2, 0.0), vec2(0.1, 0.05), 5.0, isect);\n'              +
+        '}\n\n'                                                                               +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in'    +
+                                             'out vec3 throughput, out float tMult) {\n'      +
+        '    tMult = 1.0;\n'                                                                  +
+        '    if (isect.mat == 5.0) {\n'                                                       +
+        '        // Bounding box\n'                                                           +
+        '        throughput = vec3(0.0);\n'                                                   +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else if (isect.mat == 1.0) {\n'                                                +
+        '        // Relay wall\n'                                                             +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    } else {\n'                                                                      +
+        '        throughput *= vec3(0.5);\n'                                                  +
+        '        return sampleDiffuse(state, wiLocal);\n'                                     +
+        '    }\n'                                                                             +
         '}\n',
 
     'bp-vert':
