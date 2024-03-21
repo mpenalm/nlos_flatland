@@ -939,6 +939,40 @@ var Shaders = {
         '    }\n'                                                                             +
         '}\n',
 
+    'scene81-koi-planar-circle':
+        '#include "trace-frag"\n\n'                                                        +
+
+        '#include "bsdf"\n'                                                                +
+        '#include "intersect"\n\n'                                                         +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);\n\n'              +
+
+        '    // relay wall\n'                                                              +
+        '    lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, -0.2), 1.0, isect);\n\n'        +
+
+        '    // planar wall\n'                                                             +
+        '    lineIntersect(ray, vec2(0.4, 0.8), vec2(0.4, 0.2), 5.0, isect);\n\n'          +
+
+        '    // circle\n'                                                                  +
+        '    circleIntersect(ray, vec2(1.2, 0.5), 0.1, 2.0, isect);\n'                     +
+        '}\n\n'                                                                            +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
+                                             'out vec3 throughput, out float tMult) {\n'   +
+        '    tMult = 1.0;\n'                                                               +
+        '    if (isect.mat == 5.0) {\n'                                                    +
+        '        // Bounding box\n'                                                        +
+        '        throughput = vec3(0.0);\n'                                                +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else if (isect.mat == 1.0) {\n'                                             +
+        '        // Relay wall\n'                                                          +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else {\n'                                                                   +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    }\n'                                                                          +
+        '}\n',
+
     'scene68-koi-randomfacets3-5cm-circlesA':
         '#include "trace-frag"\n\n'                                                           +
 
@@ -5342,6 +5376,45 @@ var Shaders = {
         '            radianceAccum.y * float(1 - useAbsolute), 0.0, 1.0);\n'               +
         '}\n',
 
+    'scene83-mu-planar-circle':
+        '#include "trace-frag"\n\n'                                                        +
+
+        '#include "bsdf"\n'                                                                +
+        '#include "intersect"\n\n'                                                         +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);\n\n'              +
+
+        '    // relay wall\n'                                                              +
+        '    lineIntersect(ray, vec2(1.2, -0.5), vec2(1.2, 0.5), 1.0, isect);\n\n'         +
+
+        '    // planar wall\n'                                                             +
+        '    lineIntersect(ray, vec2(0.0, -0.3), vec2(-0.6, 0.3), 2.0, isect);\n\n'        +
+
+        '    // blocker wall\n'                                                            +
+        '    lineIntersect(ray, vec2(0.45, 0.4), vec2(1.4, 0.6), 5.0, isect);\n\n'         +
+
+        '    // circle\n'                                                                  +
+        '    circleIntersect(ray, vec2(0.4, 0.7), 0.15, 2.0, isect);\n'                    +
+        '    // reflection of circle\n'                                                    +
+        '    circleIntersect(ray, vec2(-1.0, -0.7), 0.15, 5.0, isect);\n'                  +
+        '}\n\n'                                                                            +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
+                                             'out vec3 throughput, out float tMult) {\n'   +
+        '    tMult = 1.0;\n'                                                               +
+        '    if (isect.mat == 5.0) {\n'                                                    +
+        '        // Bounding box\n'                                                        +
+        '        throughput = vec3(0.0);\n'                                                +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else if (isect.mat == 1.0) {\n'                                             +
+        '        // Relay wall\n'                                                          +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else {\n'                                                                   +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    }\n'                                                                          +
+        '}\n',
+
     'rwall-frag':
         '#include "preamble"\n\n'                                                           +
 
@@ -9510,6 +9583,45 @@ var Shaders = {
         '    } else {\n'                                                                   +
         '        throughput *= vec3(0.5);\n'                                               +
         'return sampleDiffuse(state, wiLocal);\n'                                          +
+        '    }\n'                                                                          +
+        '}\n',
+
+    'scene82-mu-specular-planar-circle':
+        '#include "trace-frag"\n\n'                                                        +
+
+        '#include "bsdf"\n'                                                                +
+        '#include "intersect"\n\n'                                                         +
+
+        'void intersect(Ray ray, inout Intersection isect) {\n'                            +
+        '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);\n\n'              +
+
+        '    // relay wall\n'                                                              +
+        '    lineIntersect(ray, vec2(1.2, -0.5), vec2(1.2, 0.5), 1.0, isect);\n\n'         +
+
+        '    // planar wall\n'                                                             +
+        '    lineIntersect(ray, vec2(0.0, -0.3), vec2(-0.6, 0.3), 2.0, isect);\n\n'        +
+
+        '    // blocker wall\n'                                                            +
+        '    lineIntersect(ray, vec2(-0.1, 0.4), vec2(1.4, 0.6), 5.0, isect);\n\n'         +
+
+        '    // circle\n'                                                                  +
+        '    circleIntersect(ray, vec2(-0.3, 0.8), 0.15, 2.0, isect);\n'                   +
+        '    // reflection of circle\n'                                                    +
+        '    circleIntersect(ray, vec2(-1.1, 0.0), 0.15, 5.0, isect);\n'                   +
+        '}\n\n'                                                                            +
+
+        'vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in' +
+                                             'out vec3 throughput, out float tMult) {\n'   +
+        '    tMult = 1.0;\n'                                                               +
+        '    if (isect.mat == 5.0) {\n'                                                    +
+        '        // Bounding box\n'                                                        +
+        '        throughput = vec3(0.0);\n'                                                +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else if (isect.mat == 1.0) {\n'                                             +
+        '        // Relay wall\n'                                                          +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
+        '    } else {\n'                                                                   +
+        '        return sampleDiffuse(state, wiLocal);\n'                                  +
         '    }\n'                                                                          +
         '}\n',
 

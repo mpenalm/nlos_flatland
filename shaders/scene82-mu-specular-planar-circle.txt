@@ -1,0 +1,36 @@
+#include "trace-frag"
+
+#include "bsdf"
+#include "intersect"
+
+void intersect(Ray ray, inout Intersection isect) {
+    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 5.0, isect);
+    
+    // relay wall
+    lineIntersect(ray, vec2(1.2, -0.5), vec2(1.2, 0.5), 1.0, isect);
+    
+    // planar wall
+    lineIntersect(ray, vec2(0.0, -0.3), vec2(-0.6, 0.3), 2.0, isect);
+    
+    // blocker wall
+    lineIntersect(ray, vec2(-0.1, 0.4), vec2(1.4, 0.6), 5.0, isect);
+    
+    // circle
+    circleIntersect(ray, vec2(-0.3, 0.8), 0.15, 2.0, isect);
+    // reflection of circle
+    circleIntersect(ray, vec2(-1.1, 0.0), 0.15, 5.0, isect);
+}
+
+vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, inout vec3 throughput, out float tMult) {
+    tMult = 1.0;
+    if (isect.mat == 5.0) {
+        // Bounding box
+        throughput = vec3(0.0);
+        return sampleDiffuse(state, wiLocal);
+    } else if (isect.mat == 1.0) {
+        // Relay wall
+        return sampleDiffuse(state, wiLocal);
+    } else {
+        return sampleDiffuse(state, wiLocal);
+    }
+}
