@@ -180,6 +180,9 @@
         this.addModules = true;
         this.showGeometry = false;
         this.createSceneVBOs();
+
+        // for rendering multiple scenes one by one
+        this.renderUntilScene = this.currentScene;
     }
 
     Renderer.prototype.scene2canvas = function (pos) {
@@ -627,28 +630,25 @@
         }
     }
 
+    Renderer.prototype.setMultipleScenes = function (nScenes, selectionFunc) {
+        this.renderUntilScene = Math.min(this.currentScene + nScenes - 1, this.tracePrograms.length - 1);
+        this.selectScene = selectionFunc;
+        // Check if the current scene had finished and then start the next one
+        console.log(`I will render scenes until number ${this.renderUntilScene}`);
+    }
+
+    Renderer.prototype.advanceScene = function (name, rwallMaterial = genScene.Diffuse) {
+        this.resetActiveBlock();
+        this.currentScene++;
+        this.currentSceneName = name;
+        this.rwallMaterial = rwallMaterial;
+        this.reset();
+    }
+
     Renderer.prototype.changeScene = function (idx, name, rwallMaterial = genScene.Diffuse) {
         this.resetActiveBlock();
-        /*if (idx == SECOND_CORNER_SCENE + 1) {
-            this.setSpadPos([0.4, -0.8]);
-        } else {*/
-        this.setSpadPos([0, -0.6]);
-        // }
-
-        /*if (this.currentScene == SECOND_CORNER_SCENE) {
-            // Changing from the different relay wall
-            this.setSpadPos([0, -0.6]);
-            this.currentScene = idx;
-            this.setSpadBoundaries(this.spadBoundaries[0] * 2 + 1, this.spadBoundaries[1] * 2 + 1);
-            this.setSpadPositions(true, false);
-        } else if (idx == SECOND_CORNER_SCENE) {
-            // Changing to the different relay wall
-            this.setSpadPos([[-1, 0.8]]);
-            this.currentScene = idx;
-            this.setSpadBoundaries(this.spadBoundaries[0], this.spadBoundaries[1]);
-            this.setSpadPositions(true, true);
-        } else*/
         this.currentScene = idx;
+        this.renderUntilScene = idx;
         this.currentSceneName = name;
         this.rwallMaterial = rwallMaterial;
         this.reset();
@@ -1232,16 +1232,63 @@
         return `${year}${month}${day}-${hours}${minutes}${seconds}`;
       }
 
+    Renderer.prototype.downloadSignal = function () {
+        var downloadFiles = async () => {
+            text = this.numIntervals + "," + this.numSpads + "," + this.numSpads + ",";
+            text += this.hExhaustive.join(",");
+            // var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+            var currentTime = getCurrentDateTimeString();
+            var filename = "sceneData-" + this.currentSceneName + "-" + currentTime + ".csv";
+            // saveAs(blob, "hExhaustive-" + this.currentSceneName + "-" + currentTime + ".csv");
+            var sceneData = "NAME:," + this.currentSceneName + ",";
+            sceneData += "BBOX(x0y0x1y1),";
+            sceneData += this.bboxCorners[0] + ",";
+            sceneData += this.bboxCorners[1] + ",";
+            sceneData += this.bboxCorners[2] + ",";
+            sceneData += this.bboxCorners[3] + ",";
+            sceneData += "LASER-ORIGIN:," + this.laserPos[0] + "," + this.laserPos[1] + ",";
+            sceneData += "SPAD-ORIGIN:," + this.spadPos[0] + "," + this.spadPos[1] + ",";
+            sceneData += "DELTA_T:," + this.deltaT + ",";
+            var numSpads = this.numSpads;
+            sceneData += "NUM-SPADS:," +  numSpads + ",SPADS(N * PXPYNXNY):,";
+            var spadPosArray = this.spadGridTex.getArray(numSpads);
+            for (let i = 0; i < numSpads; i++) {
+                sceneData += spadPosArray[4 * i + 0] + ",";
+                sceneData += spadPosArray[4 * i + 1] + ",";
+                sceneData += "-1,0,"; // Normal vector
+            }
+            sceneData = sceneData.slice(0, -1);
+            // await new Promise(r => setTimeout(r, 1000)); // Avoid downloading only the second file but twice on Chrome
+            var blob2 = new Blob([sceneData+'\n'+text], { type: "text/csv;charset=utf-8" });
+            saveAs(blob2, filename);
+        }
+        downloadFiles();
+    }
+
     Renderer.prototype.finished = function () {
+        var enoughSamples = (this.totalSamplesTraced() >= this.maxSampleCount);
         if (this.captureMethod == "single") {
+            if (this.currentScene < this.renderUntilScene && enoughSamples) {
+                this.selectScene(this.currentScene+1);
+                return false;
+            }
             return this.totalSamplesTraced() >= this.maxSampleCount;
         } else {
-            if (this.laserPointedAtSensorIdx >= this.numSpads)
+            if (this.laserPointedAtSensorIdx >= this.numSpads) {
+                if (this.currentScene < this.renderUntilScene) {
+                    this.selectScene(this.currentScene+1);
+                    return false
+                }
                 return true;
-            if (this.totalSamplesTraced() >= this.maxSampleCount) {
+            }
+            if (enoughSamples) {
                 if (this.captureMethod == "confocal") {
                     this.laserPointedAtSensorIdx++;
                     if (this.laserPointedAtSensorIdx >= this.numSpads) {
+                        if (this.currentScene < this.renderUntilScene) {
+                            this.selectScene(this.currentScene+1);
+                            return false;
+                        }
                         return true;
                     }
                     this.laserGrid = [this.spadPoints[2 * this.laserPointedAtSensorIdx], this.spadPoints[2 * this.laserPointedAtSensorIdx + 1]];
@@ -1256,35 +1303,11 @@
                     this.capturedBuffer.clear();
                     this.laserPointedAtSensorIdx++;
                     if (this.laserPointedAtSensorIdx >= this.numSpads) {
-                        var downloadFiles = async () => {
-                            text = this.numIntervals + "," + this.numSpads + "," + this.numSpads + ",";
-                            text += this.hExhaustive.join(",");
-                            var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
-                            var currentTime = getCurrentDateTimeString();
-                            saveAs(blob, "hExhaustive-" + this.currentSceneName + "-" + currentTime + ".csv");
-                            var sceneData = "NAME:," + this.currentSceneName + ",";
-                            sceneData += "BBOX(x0y0x1y1),";
-                            sceneData += this.bboxCorners[0] + ",";
-                            sceneData += this.bboxCorners[1] + ",";
-                            sceneData += this.bboxCorners[2] + ",";
-                            sceneData += this.bboxCorners[3] + ",";
-                            sceneData += "LASER-ORIGIN:," + this.laserPos[0] + "," + this.laserPos[1] + ",";
-                            sceneData += "SPAD-ORIGIN:," + this.spadPos[0] + "," + this.spadPos[1] + ",";
-                            sceneData += "DELTA_T:," + this.deltaT + ",";
-                            var numSpads = this.numSpads;
-                            sceneData += "NUM-SPADS:," +  numSpads + ",SPADS(N * PXPYNXNY):,";
-                            var spadPosArray = this.spadGridTex.getArray(numSpads);
-                            for (let i = 0; i < numSpads; i++) {
-                                sceneData += spadPosArray[4 * i + 0] + ",";
-                                sceneData += spadPosArray[4 * i + 1] + ",";
-                                sceneData += "-1,0,"; // Normal vector
-                            }
-                            sceneData = sceneData.slice(0, -1);
-                            await new Promise(r => setTimeout(r, 1000)); // Avoid downloading only the second file but twice on Chrome
-                            var blob2 = new Blob([sceneData], { type: "text/csv;charset=utf-8" });
-                            saveAs(blob2, "sceneData-" + this.currentSceneName + "-" + currentTime + ".csv");
+                        this.downloadSignal();
+                        if (this.currentScene < this.renderUntilScene) {
+                            this.selectScene(this.currentScene+1);
+                            return false;
                         }
-                        downloadFiles();
                         return true;
                     }
                     this.laserGrid = [this.spadPoints[2 * this.laserPointedAtSensorIdx], this.spadPoints[2 * this.laserPointedAtSensorIdx + 1]];

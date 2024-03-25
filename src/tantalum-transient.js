@@ -511,6 +511,22 @@ Transient.prototype.setupUI = function () {
     }
     var sceneSelector = new tui.ButtonGroup("scene-selector", true, sceneNames, selectScene);
 
+    var advanceScene = function (idx) {
+        renderer.advanceScene(config.scenes[idx].name, config.scenes[idx].wallMat);
+        spreadSelector.select(config.scenes[idx].spread);
+        sceneSelector.mark(idx);
+    }
+    document.getElementById('render-multiple-button').addEventListener('click', (function () {
+        var element = document.getElementById("n-scenes");
+        var nScenes = element.value;
+        if (!nScenes) nScenes = element.placeholder;
+        nScenes = parseFloat(nScenes);
+        var min = parseFloat(element.min);
+        nScenes = Math.max(min, nScenes);
+        console.log(`I want to render ${nScenes} scenes`);
+        renderer.setMultipleScenes(nScenes, advanceScene);
+    }).bind(this));
+
     var mouseListener = new tui.MouseListener(canvas, renderer.setEmitterPos.bind(renderer));
 
     // var bounceSlider = new tui.Slider("path-length", 1, 20, true, function (length) {

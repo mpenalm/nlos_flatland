@@ -48,6 +48,16 @@
         this.selectedButton = idx;
     }
 
+    exports.ButtonGroup.prototype.mark = function(idx) {
+        if (idx < 0 || idx >= this.buttons.length)
+            return;
+        
+        stripClass(this.buttons[this.selectedButton], "active");
+        addClass(this.buttons[idx], "active");
+        
+        this.selectedButton = idx;
+    }
+
     exports.ButtonGroup.prototype.addButton = function(label) {
         var vertical = (this.group.className === "button-group-vert");
         var length = this.buttons.length;
