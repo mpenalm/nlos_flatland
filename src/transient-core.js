@@ -699,9 +699,6 @@
 
             // Recompile shaders only if necessary
             if (changeNumSpads) {
-                var bpSumFrag = this.replaceNumSpads("bp-sum-frag");
-                Shaders["replacedSum"] = bpSumFrag;
-                this.bpSumProgram = new tgl.Shader(Shaders, "bp-vert", "replacedSum");
                 var bpFrag = this.replaceNumSpads("bp-frag");
                 Shaders["replacedBp"] = bpFrag;
                 this.bpProgram = new tgl.Shader(Shaders, "bp-vert", "replacedBp");

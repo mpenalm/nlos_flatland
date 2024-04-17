@@ -121,50 +121,6 @@ var Shaders = {
         '            radianceAccum.y * float(1 - useAbsolute), 0.0, 1.0);\n'               +
         '}\n',
 
-    'bp-sum-frag':
-        '#include "preamble"\n\n'                                                          +
-
-        'uniform sampler2D radiance; // x time, y spad\n\n'                                +
-
-        'uniform int numRows;\n'                                                           +
-        'uniform int useAbsolute;\n'                                                       +
-        'uniform vec2 numPixels;\n\n'                                                      +
-
-        'varying vec2 mPos; // Pixel coordinates [0,1]\n\n'                                +
-
-        'const int numSpads = {numSpads};\n\n'                                             +
-
-        'void main() {\n'                                                                  +
-        '    float x = floor(mPos.x * numPixels.x);\n'                                     +
-        '    float y = floor(mPos.y * numPixels.y);\n'                                     +
-        '    float npy = numPixels.y / float(numRows);\n'                                  +
-        '    float yStart = (floor(y / npy) * 2.0 + 1.0) / float(numRows * 2); // 0.5 for' +
-                          ' single row, for two rows: 0.25 for first, 0.75 for second\n'   +
-        '    bool isSecond = (y >= npy) && (numRows == 2);\n'                              +
-        '    y = mod(y, npy);\n'                                                           +
-        '    float pos = x + numPixels.x * (npy - 1.0 - y);\n'                             +
-        '    pos = (pos + 0.5) / (numPixels.x * npy);\n\n'                                 +
-
-        '    float spadDist = 1.0 / float(numSpads);\n\n'                                  +
-
-        '    vec2 radianceAccum = vec2(0.0);\n'                                            +
-        '    for (int i = 0; i < 1; i++) {\n'                                              +
-        '        radianceAccum += texture2D(radiance, vec2(pos, spadDist * (float(i) + yS' +
-                                                                         'tart))).xy;\n'   +
-        '    }\n\n'                                                                        +
-
-        '    //radianceAccum.x = radianceAccum.x * float(1 - useAbsolute) + length(radian' +
-                                                      'ceAccum) * float(useAbsolute);\n'   +
-        '    //radianceAccum.y = radianceAccum.y * float(1 - useAbsolute);\n'              +
-        '    float result = length(radianceAccum);\n\n'                                    +
-
-        '    if (useAbsolute > 0) {\n'                                                     +
-        '        gl_FragColor = vec4(result, 0.0, 0.0, 1.0);\n'                            +
-        '    } else {\n'                                                                   +
-        '        gl_FragColor = vec4(radianceAccum, 0.0, 1.0);\n'                          +
-        '    }\n'                                                                          +
-        '}\n',
-
     'bp-vert':
         '#include "preamble"\n\n'                       +
 
@@ -972,19 +928,7 @@ var Shaders = {
         '		meanColor += vec4(impulsePixel, impulsePixel, 0.0, 1.0) *\n'                    +
         '            texture2D(u_kernel, vec2(knlIdx, 0.5)) * vec4(knlIdx > 0.0 && knlIdx' +
                                                                             ' < 1.0);\n'   +
-        '	}\n'                                                                             +
-        '/*\n'                                                                             +
-        '	vec2 onePixel = vec2(KERNEL_INTERVAL, 0.0);\n'                                   +
-        '	int ms = KERNEL_SIZE / 2;\n'                                                     +
-        '	for (int i = 0; i < KERNEL_SIZE; i++) {\n'                                       +
-        '		vec2 coordImpulse = mPos + onePixel*vec2(i-ms);\n'                              +
-        '		bool inx = coordImpulse.x > 0.0 && coordImpulse.x < 1.0;\n'                     +
-        '		float impulsePixel = texture2D(u_impulse, coordImpulse).x;\n\n'                 +
-
-        '		vec2 coordKernel = onePixel*vec2(i) + vec2(0.5*KERNEL_INTERVAL, 0.5);\n'        +
-        '		meanColor += vec4(impulsePixel, impulsePixel, 0.0, 1.0) *\n'                    +
-        '			texture2D(u_kernel, coordKernel) * vec4(inx);\n'                               +
-        '	}*/\n\n'                                                                         +
+        '	}\n\n'                                                                           +
 
         '	gl_FragColor = meanColor;\n'                                                     +
         '}\n',
@@ -1143,37 +1087,34 @@ var Shaders = {
         '}\n',
 
     'rwall-frag':
-        '#include "preamble"\n\n'                                                          +
+        '#include "preamble"\n\n'                                                           +
 
-        'uniform float numSpads;\n'                                                        +
-        'uniform float spadRadius;\n'                                                      +
-        'uniform float aspect;\n'                                                          +
-        'uniform vec2 firstSpad;\n'                                                        +
-        'uniform vec2 lastSpad;\n'                                                         +
-        'uniform vec4 uColor;\n\n'                                                         +
+        'uniform float numSpads;\n'                                                         +
+        'uniform float spadRadius;\n'                                                       +
+        'uniform float aspect;\n'                                                           +
+        'uniform vec2 firstSpad;\n'                                                         +
+        'uniform vec2 lastSpad;\n'                                                          +
+        'uniform vec4 uColor;\n\n'                                                          +
 
-        'varying vec2 mPos;\n\n'                                                           +
+        'varying vec2 mPos;\n\n'                                                            +
 
-        'void main() {\n'                                                                  +
-        '    // float r = spadRadius;\n'                                                   +
-        '    float r = 0.007;\n'                                                           +
-        '    gl_FragColor = vec4(0.0);\n'                                                  +
-        '    vec2 coord;\n'                                                                +
-        '    coord.x = (mPos.x * 2.0 - 1.0) * aspect;\n'                                   +
-        '    coord.y = mPos.y * 2.0 - 1.0;\n'                                              +
-        '    float top = firstSpad.y + r;\n'                                               +
-        '    float bottom = lastSpad.y - r;\n'                                             +
-        '    float left = min(firstSpad.x, lastSpad.x) - r;\n'                             +
-        '    float right = max(firstSpad.x, lastSpad.x) + r;\n'                            +
-        '    // if (/*(coord.x >= left) &&*/ (coord.y <= top) &&\n'                        +
-        '        // /*(coord.x <= right) &&*/ (coord.y >= bottom)) {\n'                    +
-        '        vec2 scanSize = firstSpad - lastSpad;\n'                                  +
-        '        vec2 normCoord = (coord - lastSpad) / scanSize;\n'                        +
-        '        float n = floor(normCoord.y * (numSpads - 1.0) + 0.5);\n'                 +
-        '        if (n >= 0.0 && n < numSpads && distance(coord, lastSpad + scanSize / (n' +
-                                                         'umSpads - 1.0) * n) <= r) {\n'   +
-        '            gl_FragColor = uColor;\n'                                             +
-        '        }\n'                                                                      +
+        'void main() {\n'                                                                   +
+        '    float r = spadRadius;\n'                                                       +
+        '    gl_FragColor = vec4(0.0);\n'                                                   +
+        '    vec2 coord;\n'                                                                 +
+        '    coord.x = (mPos.x * 2.0 - 1.0) * aspect;\n'                                    +
+        '    coord.y = mPos.y * 2.0 - 1.0;\n'                                               +
+        '    float top = firstSpad.y + r;\n'                                                +
+        '    float bottom = lastSpad.y - r;\n'                                              +
+        '    float left = min(firstSpad.x, lastSpad.x) - r;\n'                              +
+        '    float right = max(firstSpad.x, lastSpad.x) + r;\n'                             +
+        '    vec2 scanSize = firstSpad - lastSpad;\n'                                       +
+        '    vec2 normCoord = (coord - lastSpad) / scanSize;\n'                             +
+        '    float n = floor(normCoord.y * (numSpads - 1.0) + 0.5);\n'                      +
+        '    if (n >= 0.0 && n < numSpads && \n'                                            +
+        '            distance(coord, lastSpad + scanSize / (numSpads - 1.0) * n) <= r) {\n' +
+        '        gl_FragColor = uColor;\n'                                                  +
+        '    }\n'                                                                           +
         '}\n',
 
     'scene-base':
