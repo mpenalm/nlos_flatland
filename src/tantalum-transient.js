@@ -423,11 +423,6 @@ Transient.prototype.setupUI = function () {
 
     var mouseListener = new tui.MouseListener(canvas, renderer.setEmitterPos.bind(renderer));
 
-    // var bounceSlider = new tui.Slider("path-length", 1, 20, true, function (length) {
-    //     this.setLabel((length - 1) + " light bounces");
-    //     renderer.setMaxPathLength(length);
-    // });
-    // bounceSlider.setValue(12);
     var bounceSlider = document.getElementById("path-length");
     noUiSlider.create(bounceSlider, {
         start: [3, 12],
@@ -820,7 +815,7 @@ Transient.prototype.renderLoop = function (timestamp) {
 
         var downloadFiles = async (fileName) => {
             this.saveParameters(fileName + ".json");
-            await new Promise(r => setTimeout(r, 1000)); // Avoid downloading only the second file but twice on Chrome
+            await new Promise(r => setTimeout(r, 1000)); // Avoid downloading only one file but multiple times on Chrome
             this.saveRaw(fileName + ".csv");
         }
         downloadFiles(fileName);
@@ -831,8 +826,6 @@ Transient.prototype.renderLoop = function (timestamp) {
 
         this.savedImages++;
         this.saveImageData = false;
-
-        // console.log(this.renderer.getTransientValues());
     }
 
     this.progressBar.setProgress(this.renderer.progress());
@@ -927,17 +920,6 @@ Transient.prototype.saveParameters = function (fileName) {
 
 Transient.prototype.saveRaw = function (fileName) {
     var values = this.renderer.getReconstructionValues();
-    // var arr = new Float32Array(values.length / 2);
-    // var k = 0;
-    // for (var j = 0; j < this.renderer.numPixels[1]; j++) {
-    //     for (var i = 0; i < this.renderer.numPixels[0]; i++) {
-    //         k = (this.renderer.numPixels[0] * j + i) * 4;
-    //         arr[k / 2] = values[k];
-    //         arr[k / 2 + 1] = values[k + 1];
-    //     }
-    // }
-    // hdf5.FS.writeFile(fileName + ".hdf5", arr.buffer);
-    // console.log(f);
 
     var text = ``;
     var k = 0;
