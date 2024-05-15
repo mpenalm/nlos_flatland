@@ -2,6 +2,7 @@ filename = 'singleLineBunny.obj'
 shadername = 'shader.txt'
 vboname = 'vbo.txt'
 svgname = 'shape.svg'
+arrayname = 'array.txt'
 
 import numpy as np
 
@@ -34,9 +35,12 @@ void intersect(Ray ray, inout Intersection isect) {
     bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 0.0, isect);
     lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, 1.0), 1.0, isect);
 '''
+arraystring = f'''            // {filename}
+            ['''
 
 for line in obj_lines:
     shaderstring += f'    lineIntersect(ray, vec2({vertices[line[0]][0]}, {vertices[line[0]][1]}), vec2({vertices[line[1]][0]}, {vertices[line[1]][1]}), 1.0, isect);\n'
+    arraystring += f' {vertices[line[0]][0]}, {vertices[line[0]][1]}, {vertices[line[1]][0]}, {vertices[line[1]][1]},'
 
 shaderstring += '''}
 
@@ -51,9 +55,13 @@ vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in
     }
 }
 '''
+arraystring += '],\n'
 
 with open(shadername, 'w+') as f:
     f.write(shaderstring)
+
+with open(arrayname, 'w+') as f:
+    f.write(arraystring)
 
 num_vertices = 2 + 2 * len(obj_lines)  # num_segments = len(obj_lines); +1 relay wall
 vbostring = f'''        // {filename}
@@ -65,7 +73,6 @@ vbostring = f'''        // {filename}
         addRelayWallVertices(vboData, this.aspect);
 '''
 
-#vertices[line[0]][0]
 j = 4
 for line in obj_lines:
     vbostring += f'''        vboData[{j}] = {vertices[line[0]][0]} / this.aspect;
@@ -89,9 +96,6 @@ vertex_order = []
 line = obj_lines[0]
 vertex_order.append(line[0])
 vertex_order.append(line[1])
-# print(vertex_order)
-# print(vertex_order[-1])
-# print(line)
 while len(vertex_order) < len(vertices):
     idx = np.where(np.array(obj_lines) == vertex_order[-1])
     if len(idx) != 2:
@@ -103,9 +107,6 @@ while len(vertex_order) < len(vertices):
     else:
         line = obj_lines[idx[0][0]]
         vertex_order.append(line[1-idx[1][0]])
-    # print(line)
-    # print(vertex_order)
-    # exit()
 print(len(set(vertex_order)) == len(vertex_order)) # Check unique elements
 vertex_order.append(vertex_order[0])
 

@@ -2,6 +2,7 @@ filename = 'bunny_vertices.txt'
 shadername = 'shader.txt'
 vboname = 'vbo.txt'
 svgname = 'shape.svg'
+arrayname = 'array.txt'
 
 import numpy as np
 
@@ -19,9 +20,12 @@ void intersect(Ray ray, inout Intersection isect) {
     bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 0.0, isect);
     lineIntersect(ray, vec2(1.2, -1.0), vec2(1.2, 1.0), 1.0, isect);
 '''
+arraystring = f'''            // {filename}
+            ['''
 
 for i in range(len(vertices)-1):
     shaderstring += f'    lineIntersect(ray, vec2({vertices[i][0]}, {vertices[i][1]}), vec2({vertices[i+1][0]}, {vertices[i+1][1]}), 1.0, isect);\n'
+    arraystring += f' {vertices[i][0]}, {vertices[i][1]}, {vertices[i+1][0]}, {vertices[i+1][1]},'
 
 shaderstring += '''}
 
@@ -36,9 +40,13 @@ vec2 sample(inout vec4 state, Intersection isect, float lambda, vec2 wiLocal, in
     }
 }
 '''
+arraystring += '],\n'
 
 with open(shadername, 'w+') as f:
     f.write(shaderstring)
+
+with open(arrayname, 'w+') as f:
+    f.write(arraystring)
 
 num_vertices = 2 * len(vertices)  # num_segments = len(vertices)-1; +1 relay wall
 vbostring = f'''        // {filename}
