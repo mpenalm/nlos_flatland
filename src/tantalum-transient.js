@@ -149,19 +149,14 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene9', 'name': 'Circle', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene20', 'name': 'Box', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene11', 'name': 'Visibility test', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            // {'shader': 'scene12', 'name': 'Virtual mirror',   'posA': [0.5, 0.8],       'posB': [0.837, 0.5],      'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene14', 'name': 'Virtual mirror', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene16', 'name': 'Virtual mirror 2', 'posA': [0.64, 0.995], 'posB': [0.837, 0.75], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            // { 'shader': 'scene13', 'name': 'Virtual mirror 2', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene15', 'name': 'Rotated segment', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            // { 'shader': 'scene17', 'name': 'Non-working second corner', 'posA': [0.218, 0.1], 'posB': [0.359, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene18', 'name': 'Second corner', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene19', 'name': 'Second corner target', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene21', 'name': 'Two boxes', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene22', 'name': 'Triangle', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            // { 'shader': 'scene23-bunny-head', 'name': 'Bunny\'s head', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene24-bunny', 'name': 'Bunny', 'posA': [0.767, 0.75], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            // { 'shader': 'scene25-mirror-bunny', 'name': 'Mirror bunny', 'posA': [0.767, 0.75], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
             { 'shader': 'scene26-smooth-bunny', 'name': 'Smooth bunny', 'posA': [0.767, 0.75], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
         ],
         "capture_methods": ["Non-confocal", "Confocal"],
@@ -205,8 +200,6 @@ Transient.prototype.setupUI = function () {
             [0.0, 0.4, 0.2, 0.0,
                 0.2, 0.0, 0.0, -0.4,
                 0.0, -0.4, 0.0, 0.4],
-            // bunny_head_vertices.txt
-            // [ 0.5499999999999999, 0.4, 0.6, 0.38, 0.6, 0.38, 0.6599999999999999, 0.3, 0.6599999999999999, 0.3, 0.69, 0.24, 0.69, 0.24, 0.75, 0.24, 0.75, 0.24, 0.7999999999999999, 0.22, 0.7999999999999999, 0.22, 0.82, 0.2, 0.82, 0.2, 0.85, 0.16, 0.85, 0.16, 0.8699999999999999, 0.125, 0.8699999999999999, 0.125, 0.875, 0.1, 0.875, 0.1, 0.8699999999999999, 0.08, 0.8699999999999999, 0.08, 0.8799999999999999, 0.06, 0.8799999999999999, 0.06, 0.8699999999999999, 0.04, 0.8699999999999999, 0.04, 0.8599999999999999, 0.02, 0.8599999999999999, 0.02, 0.84, 0.0, 0.84, 0.0, 0.61, 0.08, 0.61, 0.08, 0.61, 0.1, 0.61, 0.1, 0.615, 0.15, 0.615, 0.15, 0.605, 0.165, 0.605, 0.165, 0.48, 0.2, 0.48, 0.2, 0.3999999999999999, 0.25, 0.3999999999999999, 0.25, 0.38, 0.32, 0.38, 0.32, 0.3899999999999999, 0.36, 0.3899999999999999, 0.36, 0.4099999999999999, 0.37, 0.4099999999999999, 0.37, 0.49, 0.32, 0.49, 0.32, 0.5499999999999999, 0.3, 0.5499999999999999, 0.3, 0.5299999999999999, 0.32, 0.5299999999999999, 0.32, 0.5199999999999999, 0.35, 0.5199999999999999, 0.35, 0.5299999999999999, 0.39, 0.5299999999999999, 0.39, 0.5499999999999999, 0.4,],
             // bunny_vertices.txt
             [ 0.61, 0.08, 0.61, 0.1, 0.61, 0.1, 0.615, 0.15, 0.615, 0.15, 0.605, 0.165, 0.605, 0.165, 0.48, 0.2, 0.48, 0.2, 0.3999999999999999, 0.25, 0.3999999999999999, 0.25, 0.38, 0.32, 0.38, 0.32, 0.3899999999999999, 0.36, 0.3899999999999999, 0.36, 0.4099999999999999, 0.37, 0.4099999999999999, 0.37, 0.49, 0.32, 0.49, 0.32, 0.5499999999999999, 0.3, 0.5499999999999999, 0.3, 0.5299999999999999, 0.32, 0.5299999999999999, 0.32, 0.5199999999999999, 0.35, 0.5199999999999999, 0.35, 0.5299999999999999, 0.39, 0.5299999999999999, 0.39, 0.5499999999999999, 0.4, 0.5499999999999999, 0.4, 0.6, 0.38, 0.6, 0.38, 0.6599999999999999, 0.3, 0.6599999999999999, 0.3, 0.69, 0.24, 0.69, 0.24, 0.75, 0.24, 0.75, 0.24, 0.7999999999999999, 0.22, 0.7999999999999999, 0.22, 0.82, 0.2, 0.82, 0.2, 0.85, 0.16, 0.85, 0.16, 0.8699999999999999, 0.125, 0.8699999999999999, 0.125, 0.875, 0.1, 0.875, 0.1, 0.8699999999999999, 0.08, 0.8699999999999999, 0.08, 0.8799999999999999, 0.06, 0.8799999999999999, 0.06, 0.8699999999999999, 0.04, 0.8699999999999999, 0.04, 0.8599999999999999, 0.02, 0.8599999999999999, 0.02, 0.84, 0.0, 0.84, 0.0, 0.835, -0.005, 0.835, -0.005, 0.838, -0.01, 0.838, -0.01, 0.838, -0.02, 0.838, -0.02, 0.847, -0.03, 0.847, -0.03, 0.853, -0.045, 0.853, -0.045, 0.865, -0.05, 0.865, -0.05, 0.8699999999999999, -0.06, 0.8699999999999999, -0.06, 0.8799999999999999, -0.07, 0.8799999999999999, -0.07, 0.8899999999999999, -0.087, 0.8899999999999999, -0.087, 0.8919999999999999, -0.1, 0.8919999999999999, -0.1, 0.895, -0.135, 0.895, -0.135, 0.8979999999999999, -0.137, 0.8979999999999999, -0.137, 0.8979999999999999, -0.15, 0.8979999999999999, -0.15, 0.8999999999999999, -0.17, 0.8999999999999999, -0.17, 0.9019999999999999, -0.18, 0.9019999999999999, -0.18, 0.8999999999999999, -0.186, 0.8999999999999999, -0.186, 0.8979999999999999, -0.192, 0.8979999999999999, -0.192, 0.8899999999999999, -0.21, 0.8899999999999999, -0.21, 0.8899999999999999, -0.22, 0.8899999999999999, -0.22, 0.891, -0.24, 0.891, -0.24, 0.8799999999999999, -0.265, 0.8799999999999999, -0.265, 0.883, -0.28, 0.883, -0.28, 0.883, -0.29, 0.883, -0.29, 0.875, -0.3, 0.875, -0.3, 0.8599999999999999, -0.32, 0.8599999999999999, -0.32, 0.875, -0.33, 0.875, -0.33, 0.879, -0.34, 0.879, -0.34, 0.8799999999999999, -0.35, 0.8799999999999999, -0.35, 0.8799999999999999, -0.375, 0.8799999999999999, -0.375, 0.8779999999999999, -0.38, 0.8779999999999999, -0.38, 0.8739999999999999, -0.38, 0.8739999999999999, -0.38, 0.873, -0.383, 0.873, -0.383, 0.8599999999999999, -0.387, 0.8599999999999999, -0.387, 0.845, -0.387, 0.845, -0.387, 0.835, -0.39, 0.835, -0.39, 0.76, -0.395, 0.76, -0.395, 0.725, -0.398, 0.725, -0.398, 0.71, -0.396, 0.71, -0.396, 0.6399999999999999, -0.398,],
         ],
@@ -289,7 +282,6 @@ Transient.prototype.setupUI = function () {
     new tui.ButtonGroup("magnitude-selector", false, config.magnitudes, function (idx) {
         var usePhase = Boolean(idx);
         renderer.setUsePhase(usePhase);
-        // var visibility = (usePhase) ? 'hidden' : 'visible';
         var display = (usePhase) ? 'none' : 'block';
         if (usePhase) {
             renderer.setToneMapper('none');
@@ -310,10 +302,10 @@ Transient.prototype.setupUI = function () {
         renderer.setFilterType(filterTypes[idx]);
         if (idx < 3) {
             document.getElementById("filter-parameter").style.display = 'none';
-            document.getElementById("conventional-addition").style.display = 'none';
+            document.getElementById("conventional-addition").style.visibility = 'hidden';
         } else {
             document.getElementById("filter-parameter").style.display = 'block';
-            document.getElementById("conventional-addition").style.display = (renderer.isConvCamera) ? 'block' : 'none';
+            document.getElementById("conventional-addition").style.visibility = (renderer.isConvCamera) ? 'visible' : 'hidden';
             wlSlider.show(filterTypes[idx] === 'pf');
         }
     })).select(3);
@@ -362,7 +354,7 @@ Transient.prototype.setupUI = function () {
 
             if (prev) {
                 // Show Amplitude/Phase selector
-                document.getElementById("magnitude-div").style.display = 'block';
+                document.getElementById("magnitude-div").style.visibility = 'visible';
 
                 // Hide tone mapper selector if showing phase
                 var display = (usePhase) ? 'none' : 'block';
@@ -374,10 +366,10 @@ Transient.prototype.setupUI = function () {
                 document.getElementById("tonemap-div").style.display = display;
 
                 // Hide Module/Complex addition selector
-                document.getElementById("conventional-addition").style.display = 'none';
+                document.getElementById("conventional-addition").style.visibility = 'hidden';
             } else if (current) {
                 // Hide Amplitude/Phase selector
-                document.getElementById("magnitude-div").style.display = 'none';
+                document.getElementById("magnitude-div").style.visibility = 'hidden';
 
                 // Show tone mapper selector if previously showing phase
                 if (usePhase) {
@@ -386,7 +378,7 @@ Transient.prototype.setupUI = function () {
                 }
 
                 // Show Module/Complex addition selector
-                document.getElementById("conventional-addition").style.display = 'block';
+                document.getElementById("conventional-addition").style.visibility = 'visible';
             }
         }
     });
