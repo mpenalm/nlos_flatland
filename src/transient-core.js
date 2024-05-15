@@ -443,131 +443,6 @@
         vboData[15] = 0.4;
         this.sceneVBOs[i].copy(vboData);
 
-        // bunny_head_vertices.txt
-        i++;
-        this.sceneVBOs.push(new tgl.VertexBuffer());
-        this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
-        this.sceneVBOs[i].init(60);
-        vboData = new Float32Array(60 * 2);
-        addRelayWallVertices(vboData, this.aspect);
-        vboData[4] = 0.5499999999999999 / this.aspect;
-        vboData[5] = 0.4;
-        vboData[6] = 0.6 / this.aspect;
-        vboData[7] = 0.38;
-        vboData[8] = 0.6 / this.aspect;
-        vboData[9] = 0.38;
-        vboData[10] = 0.6599999999999999 / this.aspect;
-        vboData[11] = 0.3;
-        vboData[12] = 0.6599999999999999 / this.aspect;
-        vboData[13] = 0.3;
-        vboData[14] = 0.69 / this.aspect;
-        vboData[15] = 0.24;
-        vboData[16] = 0.69 / this.aspect;
-        vboData[17] = 0.24;
-        vboData[18] = 0.75 / this.aspect;
-        vboData[19] = 0.24;
-        vboData[20] = 0.75 / this.aspect;
-        vboData[21] = 0.24;
-        vboData[22] = 0.7999999999999999 / this.aspect;
-        vboData[23] = 0.22;
-        vboData[24] = 0.7999999999999999 / this.aspect;
-        vboData[25] = 0.22;
-        vboData[26] = 0.82 / this.aspect;
-        vboData[27] = 0.2;
-        vboData[28] = 0.82 / this.aspect;
-        vboData[29] = 0.2;
-        vboData[30] = 0.85 / this.aspect;
-        vboData[31] = 0.16;
-        vboData[32] = 0.85 / this.aspect;
-        vboData[33] = 0.16;
-        vboData[34] = 0.8699999999999999 / this.aspect;
-        vboData[35] = 0.125;
-        vboData[36] = 0.8699999999999999 / this.aspect;
-        vboData[37] = 0.125;
-        vboData[38] = 0.875 / this.aspect;
-        vboData[39] = 0.1;
-        vboData[40] = 0.875 / this.aspect;
-        vboData[41] = 0.1;
-        vboData[42] = 0.8699999999999999 / this.aspect;
-        vboData[43] = 0.08;
-        vboData[44] = 0.8699999999999999 / this.aspect;
-        vboData[45] = 0.08;
-        vboData[46] = 0.8799999999999999 / this.aspect;
-        vboData[47] = 0.06;
-        vboData[48] = 0.8799999999999999 / this.aspect;
-        vboData[49] = 0.06;
-        vboData[50] = 0.8699999999999999 / this.aspect;
-        vboData[51] = 0.04;
-        vboData[52] = 0.8699999999999999 / this.aspect;
-        vboData[53] = 0.04;
-        vboData[54] = 0.8599999999999999 / this.aspect;
-        vboData[55] = 0.02;
-        vboData[56] = 0.8599999999999999 / this.aspect;
-        vboData[57] = 0.02;
-        vboData[58] = 0.84 / this.aspect;
-        vboData[59] = 0.0;
-        vboData[60] = 0.84 / this.aspect;
-        vboData[61] = 0.0;
-        vboData[62] = 0.61 / this.aspect;
-        vboData[63] = 0.08;
-        vboData[64] = 0.61 / this.aspect;
-        vboData[65] = 0.08;
-        vboData[66] = 0.61 / this.aspect;
-        vboData[67] = 0.1;
-        vboData[68] = 0.61 / this.aspect;
-        vboData[69] = 0.1;
-        vboData[70] = 0.615 / this.aspect;
-        vboData[71] = 0.15;
-        vboData[72] = 0.615 / this.aspect;
-        vboData[73] = 0.15;
-        vboData[74] = 0.605 / this.aspect;
-        vboData[75] = 0.165;
-        vboData[76] = 0.605 / this.aspect;
-        vboData[77] = 0.165;
-        vboData[78] = 0.48 / this.aspect;
-        vboData[79] = 0.2;
-        vboData[80] = 0.48 / this.aspect;
-        vboData[81] = 0.2;
-        vboData[82] = 0.3999999999999999 / this.aspect;
-        vboData[83] = 0.25;
-        vboData[84] = 0.3999999999999999 / this.aspect;
-        vboData[85] = 0.25;
-        vboData[86] = 0.38 / this.aspect;
-        vboData[87] = 0.32;
-        vboData[88] = 0.38 / this.aspect;
-        vboData[89] = 0.32;
-        vboData[90] = 0.3899999999999999 / this.aspect;
-        vboData[91] = 0.36;
-        vboData[92] = 0.3899999999999999 / this.aspect;
-        vboData[93] = 0.36;
-        vboData[94] = 0.4099999999999999 / this.aspect;
-        vboData[95] = 0.37;
-        vboData[96] = 0.4099999999999999 / this.aspect;
-        vboData[97] = 0.37;
-        vboData[98] = 0.49 / this.aspect;
-        vboData[99] = 0.32;
-        vboData[100] = 0.49 / this.aspect;
-        vboData[101] = 0.32;
-        vboData[102] = 0.5499999999999999 / this.aspect;
-        vboData[103] = 0.3;
-        vboData[104] = 0.5499999999999999 / this.aspect;
-        vboData[105] = 0.3;
-        vboData[106] = 0.5299999999999999 / this.aspect;
-        vboData[107] = 0.32;
-        vboData[108] = 0.5299999999999999 / this.aspect;
-        vboData[109] = 0.32;
-        vboData[110] = 0.5199999999999999 / this.aspect;
-        vboData[111] = 0.35;
-        vboData[112] = 0.5199999999999999 / this.aspect;
-        vboData[113] = 0.35;
-        vboData[114] = 0.5299999999999999 / this.aspect;
-        vboData[115] = 0.39;
-        vboData[116] = 0.5299999999999999 / this.aspect;
-        vboData[117] = 0.39;
-        vboData[118] = 0.5499999999999999 / this.aspect;
-        vboData[119] = 0.4;
-        this.sceneVBOs[i].copy(vboData);
-
         // bunny_vertices.txt
         i++;
         this.sceneVBOs.push(new tgl.VertexBuffer());
@@ -5047,19 +4922,27 @@
 
     Renderer.prototype.composite = function (count = this.activeBlock) {
         this.screenBuffer.bind(0);
+        { // disable this to not see fluence and see only the geometry
         this.compositeProgram.bind();
         this.compositeProgram.uniformTexture("Frame", this.screenBuffer);
         this.compositeProgram.uniformF("Exposure", this.width / (Math.max(this.samplesTraced, this.raySize * count)));
         this.quadVbo.bind();
         this.quadVbo.draw(this.compositeProgram, this.gl.TRIANGLE_FAN);
-
+        }
         this.gl.enable(this.gl.BLEND);
-        this.geometryProgram.bind();
         if (this.showGeometry) {
+            this.geometryProgram.bind();
             this.geometryProgram.uniform4F("uColor", 1.0, 1.0, 1.0, 1.0);
             this.sceneVBOs[this.currentScene].bind();
             this.sceneVBOs[this.currentScene].draw(this.geometryProgram, this.gl.LINES);
-        }
+        } //else {
+        //     this.compositeProgram.bind();
+        //     this.compositeProgram.uniformTexture("Frame", this.screenBuffer);
+        //     this.compositeProgram.uniformF("Exposure", this.width / (Math.max(this.samplesTraced, this.raySize * count)));
+        //     this.quadVbo.bind();
+        //     this.quadVbo.draw(this.compositeProgram, this.gl.TRIANGLE_FAN);
+        // }
+
 
         this.rwallProgram.bind();
         this.rwallProgram.uniformF("numSpads", this.numSpads);
