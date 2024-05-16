@@ -112,5 +112,4 @@ void main () {
 	}
 	
 	gl_FragColor = vec4(result, result2, oddY && (y == np.y - 1.0), 1.0);
-	// gl_FragColor = vec4(mPos, oddX && (x == np.x - 1.0), 1.0);
 }
