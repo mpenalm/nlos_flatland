@@ -535,7 +535,8 @@ Transient.prototype.setupUI = function () {
     var featureSizeSlider = new tui.Slider("feature-size", 1, 250, true, function (nf) {
         nFeatures.setNFeatures(251 - nf);
         var d;
-        if (usingModifiedScene) {
+        if (typeOfScene == 1) {
+        // if (usingModifiedScene) {
             if (modSceneSelector.selectedButton < 4) {
                 // Line, Box, Visibility test, and Virtual mirror
                 d = 0.4;
@@ -549,7 +550,7 @@ Transient.prototype.setupUI = function () {
                 // Triangle
                 d = Math.sqrt(0.2);
             }
-        } else {
+        } else if (typeOfScene == 0) {
             var x1 = getCoordinate("x1");
             var x2 = getCoordinate("x2");
             var y1 = getCoordinate("y1");
@@ -564,7 +565,8 @@ Transient.prototype.setupUI = function () {
     document.getElementById("y1").onchange = function () { updateFeatureSize() };
     document.getElementById("y2").onchange = function () { updateFeatureSize() };
     function updateFeatureSize(sceneIdx = -1) {
-        if (usingModifiedScene) {
+        if (typeOfScene == 1) {
+        // if (usingModifiedScene) {
             var d;
             var selectedScene = (sceneIdx == -1) ? modSceneSelector.selectedButton : sceneIdx;
             if (selectedScene < 4) {
@@ -580,7 +582,7 @@ Transient.prototype.setupUI = function () {
                 // Triangle
                 d = Math.sqrt(0.2);
             }
-        } else {
+        } else if (typeOfScene == 0) {
             var x1 = getCoordinate("x1");
             var x2 = getCoordinate("x2");
             var y1 = getCoordinate("y1");
@@ -607,33 +609,83 @@ Transient.prototype.setupUI = function () {
 
     document.getElementById("segment-div").style.display = 'block';
     document.getElementById("scene-div").style.display = 'none';
+    document.getElementById("import-div").style.display = 'none';
+    var typeOfScene = 0; // 0 - Single segment/Box
+                         // 1 - Predefined scene modified
+                         // 2 - Imported from JSON
+    var jsonScene;
     var usingModifiedScene = false;
-    new tui.ButtonGroup("type-of-scene", true, ["Single segment/Box", "Predefined scene"], function (idx) {
+    new tui.ButtonGroup("type-of-scene", true, ["Single segment/Box", "Predefined scene", "Import from JSON file"], function (idx) {
+        typeOfScene = idx;
         if (idx == 0) {
             document.getElementById("segment-div").style.display = 'block';
             document.getElementById("scene-div").style.display = 'none';
+            document.getElementById("import-div").style.display = 'none';
             usingModifiedScene = false;
-        } else {
+        } else if (idx == 1) {
             document.getElementById("segment-div").style.display = 'none';
             document.getElementById("scene-div").style.display = 'block';
+            document.getElementById("import-div").style.display = 'none';
             usingModifiedScene = true;
+        } else {
+            document.getElementById("segment-div").style.display = 'none';
+            document.getElementById("scene-div").style.display = 'none';
+            document.getElementById("import-div").style.display = 'block';
+            usingModifiedScene = false;
         }
         updateFeatureSize();
     });
 
-    sceneNames = [];
+    modSceneNames = [];
     for (var i = 0; i < config.scenes.length; ++i) {
         if ((i != 1 && i != 5 && i < 7) || (i >= 9 && i != 12)) {
-            sceneNames.push(config.scenes[i].name);
+            modSceneNames.push(config.scenes[i].name);
         }
     }
-    var modSceneSelector = new tui.ButtonGroup("mod-scene-selector", true, sceneNames, function (idx) {
+    var modSceneSelector = new tui.ButtonGroup("mod-scene-selector", true, modSceneNames, function (idx) {
         updateFeatureSize(idx);
     });
 
     document.getElementById('create-button').addEventListener('click', (function () {
+        var jsonScene = null;
+
+        if (typeOfScene == 2) {
+            // Read data from imported scene file
+            var files = document.getElementById('selectFiles').files;
+            if (files.length <= 0) {
+                alert('No file uploaded');
+                return false;
+            }
+
+            files[0].text().then(function (text) {
+                jsonScene = JSON.parse(text);
+                var nameWords = jsonScene.scene.name.split(' ');
+                console.log(nameWords);
+                if (nameWords[0] != 'Custom' && nameWords[nameWords.length-1] != 'modified') {
+                    console.log(jsonScene.scene);
+                    // Find the index of the scene and select it
+                    var sceneIdx = sceneNames.findIndex((name) => name === jsonScene.scene.name);
+                    if (sceneIdx == -1) {
+                        alert('Unknown scene');
+                        // TODO: prevent from adding an empty scene
+                    } else {
+                        modal.style.display = "none";
+                        showSliderHandles();
+                        sceneSelector.select(sceneIdx);
+                        return;
+                    }
+                } else {
+                    console.log(jsonScene.scene.name);
+                    // TODO: the code should be pretty similar to the one below
+                }
+
+                // TODO: in both cases, imaging parameters, laser location, etc. should be applied from json file
+            })
+        }
+        
         var verticesList = [];
-        if (usingModifiedScene) {
+        if (typeOfScene == 1) {
+        // if (usingModifiedScene) {
             var endVertices = config.vertices[modSceneSelector.selectedButton];
             if (modSceneSelector.selectedButton == 1) {
                 // Box
@@ -653,7 +705,7 @@ Transient.prototype.setupUI = function () {
                         [endVertices[i + 2], endVertices[i + 3]], nFeatures.value));
                 }
             }
-        } else {
+        } else if (typeOfScene == 0) {
             var x1 = getCoordinate("x1");
             var x2 = getCoordinate("x2");
             var y1 = getCoordinate("y1");
@@ -674,6 +726,8 @@ Transient.prototype.setupUI = function () {
                 v1 = [listAux[listAux.length - 2], listAux[listAux.length - 1], v1[0], v1[1]];
                 verticesList.push(v2, listAux, v1);
             }
+        } else {
+            // TODO
         }
         var vertices = [];
         verticesList.forEach(vertexList => {
@@ -698,7 +752,8 @@ Transient.prototype.setupUI = function () {
             'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': wallMatType,
             'modifications': {
                 'feature_size': featureSizeSlider.label.innerHTML,
-                'base_scene': (usingModifiedScene) ? sceneNames[modSceneSelector.selectedButton] : 'Custom',
+                // 'base_scene': (usingModifiedScene) ? sceneNames[modSceneSelector.selectedButton] : 'Custom',
+                'base_scene': (typeOfScene == 1) ? modSceneNames[modSceneSelector.selectedButton] : 'Custom',
                 'mat_type': matType,
                 'mat_params': matParams,
                 'wall_mat_type': wallMatType,
