@@ -291,14 +291,14 @@ Transient.prototype.setupUI = function () {
         document.getElementById("tonemap-div").style.display = display;
     });
 
-    new tui.ButtonGroup("geometry-visibility-selector", false, ['Hide', 'Show'], function (idx) {
+    var geomVisSelector = new tui.ButtonGroup("geometry-visibility-selector", false, ['Hide', 'Show'], function (idx) {
         var showGeometry = Boolean(idx);
         renderer.setShowGeometry(showGeometry);
     });
 
     document.getElementById("filter-parameter").style.display = 'none';
 
-    (new tui.ButtonGroup("filter-selector", true, config.filters, function (idx) {
+    var filterSelector = new tui.ButtonGroup("filter-selector", true, config.filters, function (idx) {
         renderer.setFilterType(filterTypes[idx]);
         if (idx < 3) {
             document.getElementById("filter-parameter").style.display = 'none';
@@ -308,7 +308,8 @@ Transient.prototype.setupUI = function () {
             document.getElementById("conventional-addition").style.visibility = (renderer.isConvCamera) ? 'visible' : 'hidden';
             wlSlider.show(filterTypes[idx] === 'pf');
         }
-    })).select(3);
+    })
+    filterSelector.select(3);
 
     for (var i = 0; i < config.reconstruction_resolutions.length; ++i)
         config.resolution_labels.push(parseInt(config.reconstruction_resolutions[i] * renderer.aspect) + "x" + config.reconstruction_resolutions[i]);
@@ -318,7 +319,7 @@ Transient.prototype.setupUI = function () {
         renderer.changeReconstructionResolution(height);
     });
     recResolutionSelector.select(2);
-    new tui.ButtonGroup("capture-selector", true, config.capture_methods, function (idx) {
+    var captureSelector = new tui.ButtonGroup("capture-selector", true, config.capture_methods, function (idx) {
         var isConf = Boolean(idx);
         renderer.setConfocal(isConf);
         if (isConf)
@@ -343,7 +344,7 @@ Transient.prototype.setupUI = function () {
     new tui.ButtonGroup("addition-selector", false, config.addition_modes, function (idx) {
         renderer.setAddModules(!idx);
     });
-    new tui.ButtonGroup("camera-selector", true, config.camera_models, function (idx) {
+    var camSelector = new tui.ButtonGroup("camera-selector", true, config.camera_models, function (idx) {
         var prev = renderer.isConvCamera;
         renderer.setCameraModel(idx);
 
@@ -385,10 +386,10 @@ Transient.prototype.setupUI = function () {
     var tonemapSelector = new tui.ButtonGroup("tonemap-selector", true, config.tone_mapper_labels, function (idx) {
         renderer.setToneMapper(config.tone_mapper_ids[idx]);
     });
-    var spadNumberSelector = new tui.ButtonGroup("spad-selector", false, config.spad_num, function (idx) {
+    var nSpadSelector = new tui.ButtonGroup("spad-selector", false, config.spad_num, function (idx) {
         renderer.changeSpadResolution(config.spad_num[idx]);
     });
-    spadNumberSelector.select(2);
+    nSpadSelector.select(2);
 
     var spadPositionsSlider = document.getElementById("spad-positions-selector");
     noUiSlider.create(spadPositionsSlider, {
@@ -660,15 +661,52 @@ Transient.prototype.setupUI = function () {
             files[0].text().then(function (text) {
                 jsonScene = JSON.parse(text);
                 var nameWords = jsonScene.scene.name.split(' ');
-                console.log(nameWords);
+
+                var applyCommonParameters = function () {
+                    console.log(jsonScene);
+
+                    // Capture parameters
+                    // Sample count must be set before capture method
+                    var captIdx = config.capture_methods.findIndex((method) => method === jsonScene.capture.method);
+                    captureSelector.select(captIdx);
+                    var nSpadIdx = config.spad_num.findIndex((num) => num == jsonScene.capture.num_spads);
+                    nSpadSelector.select(nSpadIdx);
+                    spadPositionsSlider.noUiSlider.set(jsonScene.capture.spad_boundaries);
+                    // If not confocal, light position should be set after capture method, or it will be overwritten
+                    // TODO: it is overwritten after selecting the scene, too, so it should be done after changing the scene
+
+                    // Show geometry over the scene
+                    geomVisSelector.select(jsonScene.superimpose_geometry ? 1 : 0);
+
+                    // Reconstruction parameters
+                    var filterIdx = config.filters.findIndex((type) => type === jsonScene.reconstruction.filter.type);
+                    filterSelector.select(filterIdx);
+                    if (renderer.filterType === 'pf') {
+                        var wl = jsonScene.reconstruction.filter.wl.split(' ');
+                        wl = parseFloat(wl[0]); // Assuming cm
+                        wlSlider.setValue(wl);
+                        var sigma = jsonScene.reconstruction.filter.sigma.split(' ');
+                        sigma = parseFloat(sigma[0]); // Assuming cm
+                        sigmaSlider.setValue(sigma * 10);
+                    }
+                    var resIdx = config.resolution_labels.findIndex((res) => res === jsonScene.reconstruction.resolution);
+                    recResolutionSelector.select(resIdx);
+                    var camIdx = config.camera_models.findIndex((model) => model === jsonScene.reconstruction.camera_model.type);
+                    camSelector.select(camIdx);
+                    // TODO: deltaT and tmax must be updated before this, otherwise instant will reset to 0
+                    instantSlider.setValue(jsonScene.reconstruction.instant);
+                    instantSlider.updateLabel();
+                }
+
                 if (nameWords[0] != 'Custom' && nameWords[nameWords.length-1] != 'modified') {
-                    console.log(jsonScene.scene);
+                    // console.log(jsonScene.scene);
                     // Find the index of the scene and select it
                     var sceneIdx = sceneNames.findIndex((name) => name === jsonScene.scene.name);
                     if (sceneIdx == -1) {
                         alert('Unknown scene');
                         // TODO: prevent from adding an empty scene
                     } else {
+                        applyCommonParameters();
                         modal.style.display = "none";
                         showSliderHandles();
                         sceneSelector.select(sceneIdx);
@@ -676,6 +714,7 @@ Transient.prototype.setupUI = function () {
                     }
                 } else {
                     console.log(jsonScene.scene.name);
+                    applyCommonParameters();
                     // TODO: the code should be pretty similar to the one below
                 }
 
