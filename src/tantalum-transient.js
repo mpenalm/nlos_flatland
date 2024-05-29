@@ -533,6 +533,9 @@ Transient.prototype.setupUI = function () {
         this.value = nFeatures;
     }
     var nFeatures = new NumFeatures(1);
+    var typeOfScene = 0; // 0 - Single segment/Box
+                         // 1 - Predefined scene modified
+                         // 2 - Imported from JSON
     var featureSizeSlider = new tui.Slider("feature-size", 1, 250, true, function (nf) {
         nFeatures.setNFeatures(251 - nf);
         var d;
@@ -611,9 +614,7 @@ Transient.prototype.setupUI = function () {
     document.getElementById("segment-div").style.display = 'block';
     document.getElementById("scene-div").style.display = 'none';
     document.getElementById("import-div").style.display = 'none';
-    var typeOfScene = 0; // 0 - Single segment/Box
-                         // 1 - Predefined scene modified
-                         // 2 - Imported from JSON
+
     var jsonScene;
     var usingModifiedScene = false;
     new tui.ButtonGroup("type-of-scene", true, ["Single segment/Box", "Predefined scene", "Import from JSON file"], function (idx) {
@@ -663,17 +664,32 @@ Transient.prototype.setupUI = function () {
                 var nameWords = jsonScene.scene.name.split(' ');
 
                 var applyCommonParameters = function () {
-                    console.log(jsonScene);
+                    // TODO: make robust against invalid values
+                    // console.log(jsonScene);
 
                     // Capture parameters
-                    // Sample count must be set before capture method
+                    var sampleCount = parseInt(jsonScene.capture.sample_count.split(' ')[0]);
+                    sampleSlider.setValue(100 * Math.log10(sampleCount));
                     var captIdx = config.capture_methods.findIndex((method) => method === jsonScene.capture.method);
                     captureSelector.select(captIdx);
                     var nSpadIdx = config.spad_num.findIndex((num) => num == jsonScene.capture.num_spads);
                     nSpadSelector.select(nSpadIdx);
                     spadPositionsSlider.noUiSlider.set(jsonScene.capture.spad_boundaries);
-                    // If not confocal, light position should be set after capture method, or it will be overwritten
-                    // TODO: it is overwritten after selecting the scene, too, so it should be done after changing the scene
+                    var delta_t = jsonScene.capture.delta_t;
+                    deltaTSlider.setValue(parseInt(delta_t * 1000));
+                    var tmax = jsonScene.capture.max_time;
+                    tmaxSlider.setValue(parseInt(tmax / delta_t));
+                    var bounces = jsonScene.capture.bounces_saved;
+                    bounces[1] += 1;
+                    bounceSlider.noUiSlider.set(bounces);
+
+                    // Light source parameters
+                    // TODO: this should go after selecting the scene
+                    var spreadIdx = config.spread_types.findIndex((type) => type === jsonScene.light_source.spread);
+                    spreadSelector.select(spreadIdx);
+                    var lightOrigin = jsonScene.light_source.origin;
+                    var lightLookAt = (renderer.isConf) ? [renderer.spadPoints[0], renderer.spadPoints[1]] : jsonScene.light_source.look_at;
+                    renderer.setEmitterPos(renderer.scene2canvas(lightOrigin), renderer.scene2canvas(lightLookAt));
 
                     // Show geometry over the scene
                     geomVisSelector.select(jsonScene.superimpose_geometry ? 1 : 0);
@@ -693,27 +709,25 @@ Transient.prototype.setupUI = function () {
                     recResolutionSelector.select(resIdx);
                     var camIdx = config.camera_models.findIndex((model) => model === jsonScene.reconstruction.camera_model.type);
                     camSelector.select(camIdx);
-                    // TODO: deltaT and tmax must be updated before this, otherwise instant will reset to 0
                     instantSlider.setValue(jsonScene.reconstruction.instant);
                     instantSlider.updateLabel();
                 }
 
                 if (nameWords[0] != 'Custom' && nameWords[nameWords.length-1] != 'modified') {
-                    // console.log(jsonScene.scene);
                     // Find the index of the scene and select it
                     var sceneIdx = sceneNames.findIndex((name) => name === jsonScene.scene.name);
                     if (sceneIdx == -1) {
                         alert('Unknown scene');
                         // TODO: prevent from adding an empty scene
                     } else {
-                        applyCommonParameters();
                         modal.style.display = "none";
                         showSliderHandles();
                         sceneSelector.select(sceneIdx);
+                        applyCommonParameters();
                         return;
                     }
                 } else {
-                    console.log(jsonScene.scene.name);
+                    console.log(jsonScene.scene);
                     applyCommonParameters();
                     // TODO: the code should be pretty similar to the one below
                 }
