@@ -664,6 +664,8 @@ Transient.prototype.setupUI = function () {
                 var nameWords = jsonScene.scene.name.split(' ');
 
                 var applyCommonParameters = function () {
+                    // Should be called after setting the scene, or emitter parameters will be overwritten
+                    
                     // TODO: make robust against invalid values
                     // console.log(jsonScene);
 
@@ -683,8 +685,7 @@ Transient.prototype.setupUI = function () {
                     bounces[1] += 1;
                     bounceSlider.noUiSlider.set(bounces);
 
-                    // Light source parameters
-                    // TODO: this should go after selecting the scene
+                    // Emitter parameters - this must go after selecting the scene
                     var spreadIdx = config.spread_types.findIndex((type) => type === jsonScene.light_source.spread);
                     spreadSelector.select(spreadIdx);
                     var lightOrigin = jsonScene.light_source.origin;
