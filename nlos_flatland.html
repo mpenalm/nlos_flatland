@@ -38,7 +38,7 @@
         <div class="control-row clearfix">
             <div class="col-2-12 col-left col-padding">
                 <h3 class="control-title">Download</h3>
-                <div class="button stretch-button active" id="save-button">Download as PNG</div>
+                <div class="button stretch-button active" id="save-button">Download reconstruction</div>
             </div>
             <div class="col-2-12 col-left col-padding">
                 <h3 class="control-title">Play/Pause</h3>
@@ -88,6 +88,8 @@
         <div class="control-row clearfix">
             <div class="col-2-12 col-left col-padding">
                 <h3 class="control-title">Scene</h3>
+                <div class="button stretch-button active" id="add-button">Add scene</div>
+                <br>
                 <div id="scene-selector"></div>
             </div>
             <div class="col-4-12 col-left col-padding">
@@ -137,11 +139,6 @@
                 <div id="geometry-visibility-selector"></div>
             </div>
 
-            <div class="col-2-12 col-left col-padding">
-                <h3 class="control-title">Add scene</h3>
-                <div class="button stretch-button active" id="add-button">Add scene</div>
-            </div>
-
             <div class="control-row clearfix">
                 <div class="col-3-12 col-left col-padding">
                     <h3 class="control-title">Light Path Length</h3>
@@ -163,53 +160,59 @@
                 <h2>Select the new scene parameters</h2>
                 <div class="control-row clearfix">
                     <div class="col-2-12 col-padding col-left">
-                        <h3 class="control-title">Material type</h3>
-                        <div id="material-types"></div>
                         <h3 class="control-title">Type of scene</h3>
                         <div id="type-of-scene"></div>
+                        <div class="custom-scene">
+                            <h3 class="control-title">Material type</h3>
+                            <div id="material-types"></div>
+                        </div>
                     </div>
                     <div class="col-3-12 col-padding col-left">
-                        <h3 class="control-title">Feature size</h3>
-                        <div id="feature-size"></div>
-                        <h3 class="control-title">Object roughness</h3>
-                        <div id="roughness-slider"></div>
-                        <h3 class="control-title">Object's index of refraction</h3>
-                        <input type="number" id="ior" placeholder="1.3" class="col-2-12 number-input" step="0.1"
-                            max="20.0" min="1.0">
-                        <div id="segment-div">
-                            <h3 class="control-title">Vertices (m)</h3>
-                            <label for="x1">x1: </label>
-                            <input type="number" id="x1" placeholder="0.0" class="col-2-12 number-input" step="0.1"
-                                max="1.78" min="-1.78">
-                            <label for="y1">y1: </label>
-                            <input type="number" id="y1" placeholder="0.8" class="col-2-12 number-input" step="0.1"
-                                max="1.0" min="-1.0"><br />
-                            <label for="x2">x2: </label>
-                            <input type="number" id="x2" placeholder="-1.5" class="col-2-12 number-input" step="0.1"
-                                max="1.78" min="-1.78">
-                            <label for="y2">y2: </label>
-                            <input type="number" id="y2" placeholder="0.8" class="col-2-12 number-input" step="0.1"
-                                max="1.0" min="-1.0"><br /><br>
-                            <label for="box-width">Box width (m): </label>
-                            <input type="number" id="box-width" placeholder="0.0" class="col-2-12 number-input"
-                                step="0.1" max="1.0" min="0.0">
-                        </div>
-                        <div id="scene-div">
-                            <h3 class="control-title">Scene to modify</h3>
-                            <div id="mod-scene-selector"></div>
+                        <div class="custom-scene">
+                            <h3 class="control-title">Feature size</h3>
+                            <div id="feature-size"></div>
+                            <h3 class="control-title">Object roughness</h3>
+                            <div id="roughness-slider"></div>
+                            <h3 class="control-title">Object's index of refraction</h3>
+                            <input type="number" id="ior" placeholder="1.3" class="col-2-12 number-input" step="0.1"
+                                max="20.0" min="1.0">
+                            <div id="segment-div">
+                                <h3 class="control-title">Vertices (m)</h3>
+                                <label for="x1">x1: </label>
+                                <input type="number" id="x1" placeholder="0.0" class="col-2-12 number-input" step="0.1"
+                                    max="1.78" min="-1.78">
+                                <label for="y1">y1: </label>
+                                <input type="number" id="y1" placeholder="0.8" class="col-2-12 number-input" step="0.1"
+                                    max="1.0" min="-1.0"><br />
+                                <label for="x2">x2: </label>
+                                <input type="number" id="x2" placeholder="-1.5" class="col-2-12 number-input" step="0.1"
+                                    max="1.78" min="-1.78">
+                                <label for="y2">y2: </label>
+                                <input type="number" id="y2" placeholder="0.8" class="col-2-12 number-input" step="0.1"
+                                    max="1.0" min="-1.0"><br /><br>
+                                <label for="box-width">Box width (m): </label>
+                                <input type="number" id="box-width" placeholder="0.0" class="col-2-12 number-input"
+                                    step="0.1" max="1.0" min="0.0">
+                            </div>
+                            <div id="scene-div">
+                                <h3 class="control-title">Scene to modify</h3>
+                                <div id="mod-scene-selector"></div>
+                            </div>
                         </div>
                         <div id="import-div">
                             <h3 class="control-title">Import JSON file</h3>
                             <input type="file" accept=".json" id="selectFiles" value="Import" /><br />
                         </div>
                     </div>
-                    <div class="col-3-12 col-padding col-left">
-                        <h3 class="control-title">Relay wall roughness</h3>
-                        <div id="rwall-roughness"></div>
-                    </div>
-                    <div class="col-2-12 col-padding col-left">
-                        <h3 class="control-title">Material type of the relay wall</h3>
-                        <div id="rwall-mat-types"></div>
+                    <div class="custom-scene">
+                        <div class="col-3-12 col-padding col-left">
+                            <h3 class="control-title">Relay wall roughness</h3>
+                            <div id="rwall-roughness"></div>
+                        </div>
+                        <div class="col-2-12 col-padding col-left">
+                            <h3 class="control-title">Material type of the relay wall</h3>
+                            <div id="rwall-mat-types"></div>
+                        </div>
                     </div>
                 </div>
                 <br>

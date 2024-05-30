@@ -436,6 +436,11 @@ body {
     cursor: pointer;
 }
 
+/* Show/hide controls to modify a scene */
+.custom-scene {
+    display: block;
+}
+
 /* The Modal (background) */
 .modal {
     display: none;

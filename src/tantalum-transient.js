@@ -623,16 +623,31 @@ Transient.prototype.setupUI = function () {
             document.getElementById("segment-div").style.display = 'block';
             document.getElementById("scene-div").style.display = 'none';
             document.getElementById("import-div").style.display = 'none';
+
+            customSceneDivs = document.getElementsByClassName("custom-scene");
+            for (var i = 0; i < customSceneDivs.length; i++)
+                customSceneDivs[i].style.display = 'block';
+
             usingModifiedScene = false;
         } else if (idx == 1) {
             document.getElementById("segment-div").style.display = 'none';
             document.getElementById("scene-div").style.display = 'block';
             document.getElementById("import-div").style.display = 'none';
+
+            customSceneDivs = document.getElementsByClassName("custom-scene");
+            for (var i = 0; i < customSceneDivs.length; i++)
+                customSceneDivs[i].style.display = 'block';
+
             usingModifiedScene = true;
         } else {
             document.getElementById("segment-div").style.display = 'none';
             document.getElementById("scene-div").style.display = 'none';
             document.getElementById("import-div").style.display = 'block';
+            
+            customSceneDivs = document.getElementsByClassName("custom-scene");
+            for (var i = 0; i < customSceneDivs.length; i++)
+                customSceneDivs[i].style.display = 'none';
+
             usingModifiedScene = false;
         }
         updateFeatureSize();
