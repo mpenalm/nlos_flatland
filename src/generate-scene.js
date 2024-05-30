@@ -8,14 +8,6 @@
         this.created = 0;
     }
 
-    const MaterialType = {
-        Diffuse: 2,
-        Mirror: 3,
-        Dielectric: 4,
-        RoughMirror: 5,
-        RoughDielectric: 6,
-    }
-
     function toPrint(n) {
         if (n % 1 === 0) {
             // is integer, write as float
@@ -42,6 +34,8 @@
             return result;
         }
     }
+
+    let MaterialType = sceneData.MaterialType;
 
     SceneGenerator.prototype.generateSample = function (matType, matParams, shader) {
         var functionCall;
@@ -251,5 +245,4 @@
     }
 
     exports.SceneGenerator = SceneGenerator;
-    exports.MaterialType = MaterialType;
 })(window.genScene = window.genScene || {});

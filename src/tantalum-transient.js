@@ -143,21 +143,21 @@ function closeBox(x1, y1, x2, y2, width) {
 
 Transient.prototype.setupUI = function () {
     var config = {
-        "reconstruction_resolutions": [32, 64, 128, 256, 512, 1024, 2048],
+        "reconstruction_resolutions": [32, 64, 128, 256, 512, 1024],
         "scenes": [
-            { 'shader': 'scene10', 'name': 'Line', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene9', 'name': 'Circle', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene20', 'name': 'Box', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene11', 'name': 'Visibility test', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene14', 'name': 'Virtual mirror', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene16', 'name': 'Virtual mirror 2', 'posA': [0.64, 0.995], 'posB': [0.837, 0.75], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene15', 'name': 'Rotated segment', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene18', 'name': 'Second corner', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene19', 'name': 'Second corner target', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene21', 'name': 'Two boxes', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene22', 'name': 'Triangle', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene24-bunny', 'name': 'Bunny', 'posA': [0.767, 0.75], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
-            { 'shader': 'scene26-smooth-bunny', 'name': 'Smooth bunny', 'posA': [0.767, 0.75], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': genScene.MaterialType.Diffuse },
+            { 'shader': 'scene10', 'name': 'Line', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
+            { 'shader': 'scene9', 'name': 'Circle', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
+            { 'shader': 'scene20', 'name': 'Box', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
+            { 'shader': 'scene11', 'name': 'Visibility test', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
+            { 'shader': 'scene14', 'name': 'Virtual mirror', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
+            { 'shader': 'scene16', 'name': 'Virtual mirror 2', 'posA': [0.64, 0.995], 'posB': [0.837, 0.75], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
+            { 'shader': 'scene15', 'name': 'Rotated segment', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
+            { 'shader': 'scene18', 'name': 'Second corner', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
+            { 'shader': 'scene19', 'name': 'Second corner target', 'posA': [0.625, 0.9], 'posB': [0.837, 0.8], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
+            { 'shader': 'scene21', 'name': 'Two boxes', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
+            { 'shader': 'scene22', 'name': 'Triangle', 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
+            { 'shader': 'scene24-bunny', 'name': 'Bunny', 'posA': [0.767, 0.75], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
+            { 'shader': 'scene26-smooth-bunny', 'name': 'Smooth bunny', 'posA': [0.767, 0.75], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
         ],
         "capture_methods": ["Non-confocal", "Confocal"],
         "camera_models": ["Confocal", "Transient", "Conventional"],
@@ -228,7 +228,7 @@ Transient.prototype.setupUI = function () {
     var filterTypes = [];
     config.filters.forEach(filt => {
         filt = filt.toLowerCase();
-        words = filt.split(" ");
+        var words = filt.split(" ");
         if (words.length == 1) {
             if (filt[0] == 'l')
                 filt = "lap";
@@ -519,10 +519,10 @@ Transient.prototype.setupUI = function () {
     });
     typeSelector.select(0);
 
-    this.wallMatType = genScene.MaterialType.Diffuse;
+    this.wallMatType = sceneData.MaterialType.Diffuse;
     var wallMatType = this.wallMatType;
     var wallTypeSelector = new tui.ButtonGroup("rwall-mat-types", true, ["Diffuse", "RoughMirror"], function (idx) {
-        wallMatType = (idx == 0) ? genScene.MaterialType.Diffuse : genScene.MaterialType.RoughMirror;
+        wallMatType = (idx == 0) ? sceneData.MaterialType.Diffuse : sceneData.MaterialType.RoughMirror;
     })
     wallTypeSelector.select(0);
 
@@ -726,7 +726,6 @@ Transient.prototype.setupUI = function () {
                     var camIdx = config.camera_models.findIndex((model) => model === jsonScene.reconstruction.camera_model.type);
                     camSelector.select(camIdx);
                     instantSlider.setValue(jsonScene.reconstruction.instant);
-                    instantSlider.updateLabel();
                 }
 
                 if (nameWords[0] != 'Custom' && nameWords[nameWords.length-1] != 'modified') {
@@ -803,17 +802,17 @@ Transient.prototype.setupUI = function () {
             vertices = vertices.concat(vertexList);
         });
         var matParams = [];
-        if (matType === genScene.MaterialType.RoughMirror || matType === genScene.MaterialType.RoughDielectric) {
+        if (matType === sceneData.MaterialType.RoughMirror || matType === sceneData.MaterialType.RoughDielectric) {
             matParams.push(roughness);
-        } else if (matType === genScene.MaterialType.Diffuse) {
+        } else if (matType === sceneData.MaterialType.Diffuse) {
             matParams.push(0.5);
         }
-        if (matType === genScene.MaterialType.Dielectric || matType === genScene.MaterialType.RoughDielectric) {
+        if (matType === sceneData.MaterialType.Dielectric || matType === sceneData.MaterialType.RoughDielectric) {
             var ior = getCoordinate("ior");
             matParams.push(ior);
         }
         var wallMatParams = [0.5];
-        if (wallMatType === genScene.MaterialType.RoughMirror || wallMatType === genScene.MaterialType.RoughDielectric) {
+        if (wallMatType === sceneData.MaterialType.RoughMirror || wallMatType === sceneData.MaterialType.RoughDielectric) {
             wallMatParams = [wallRoughness];
         }
         var ids = generator.generate(verticesList, matType, matParams, wallMatType, wallMatParams);
@@ -977,14 +976,14 @@ Transient.prototype.saveParameters = function (fileName) {
 `;
         }
         text += `\t"hidden_mat": "${config.material_types[modifications.mat_type - 2]}",\n`;
-        if (modifications.mat_type === genScene.MaterialType.RoughDielectric || modifications.mat_type === genScene.MaterialType.RoughMirror) {
+        if (modifications.mat_type === sceneData.MaterialType.RoughDielectric || modifications.mat_type === sceneData.MaterialType.RoughMirror) {
             text += `\t"hidden_roughness": ${modifications.mat_params[0]},\n`;
         }
-        if (modifications.mat_type === genScene.MaterialType.Dielectric || modifications.mat_type === genScene.MaterialType.RoughDielectric) {
+        if (modifications.mat_type === sceneData.MaterialType.Dielectric || modifications.mat_type === sceneData.MaterialType.RoughDielectric) {
             text += `\t"hidden_ior": ${modifications.mat_params[0]},\n`;
         }
         text += `\t"wall_mat": "${config.material_types[modifications.wall_mat_type - 2]}",\n`;
-        if (modifications.wall_mat_type === genScene.MaterialType.RoughDielectric || modifications.wall_mat_type === genScene.MaterialType.RoughMirror) {
+        if (modifications.wall_mat_type === sceneData.MaterialType.RoughDielectric || modifications.wall_mat_type === sceneData.MaterialType.RoughMirror) {
             text += `\t"wall_roughness": ${modifications.wall_mat_params[0]},\n`;
         }
         text += `\t"feature_size": "${modifications.feature_size}"\n`;
