@@ -673,6 +673,49 @@ Transient.prototype.setupUI = function () {
                 alert('No file uploaded');
                 return false;
             }
+/*
+            var data = new sceneData.SceneData(files[0], config, sceneNames, modSceneNames);
+            
+                if (data.typeOfScene == sceneData.LoadedSceneType.Default) {
+                    if (data.sceneIdx == -1) return;
+
+                    // Close the modal and change the scene
+                    modal.style.display = "none";
+                    showSliderHandles();
+                    sceneSelector.select(sceneIdx);
+
+                    // Capture parameters
+                    sampleSlider.setValue(100 * Math.log10(data.sampleCount));
+                    captureSelector.select(data.captureIdx);
+                    nSpadSelector.select(data.nSpadIdx);
+                    spadPositionsSlider.noUiSlider.set(data.spadBoundaries);
+                    deltaTSlider.setValue(parseInt(data.deltaT * 1000));
+                    tmaxSlider.setValue(parseInt(data.tmax / data.deltaT));
+                    bounceSlider.noUiSlider.set(data.bounces);
+
+                    // Emitter parameters
+                    spreadSelector.select(data.spreadIdx);
+                    var lightLookAt = (renderer.isConf) ? [renderer.spadPoints[0], renderer.spadPoints[1]] : data.lightLookAt;
+                    renderer.setEmitterPos(renderer.scene2canvas(data.lightOrigin), renderer.scene2canvas(lightLookAt));
+
+                    // Show geometry over the scene
+                    geomVisSelector.select(data.geometryVisibilityIdx);
+
+                    // Reconstruction parameters
+                    filterSelector.select(data.filterIdx);
+                    if (renderer.filterType === 'pf') {
+                        wlSlider.setValue(data.wl);
+                        sigmaSlider.setValue(parseInt(data.sigma * 10));
+                    }
+                    recResolutionSelector.select(data.resolutionIdx);
+                    camSelector.select(data.cameraIdx);
+                    instantSlider.setValue(data.instant);
+                    return;
+                } else {
+                    alert('Unsupported format');
+                    return;
+                }
+            */
 
             files[0].text().then(function (text) {
                 jsonScene = JSON.parse(text);
