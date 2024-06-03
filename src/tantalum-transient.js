@@ -540,26 +540,13 @@ Transient.prototype.setupUI = function () {
         nFeatures.setNFeatures(251 - nf);
         var d;
         if (typeOfScene == 1) {
-        // if (usingModifiedScene) {
-            if (modSceneSelector.selectedButton < 4) {
-                // Line, Box, Visibility test, and Virtual mirror
-                d = 0.4;
-            } else if (modSceneSelector.selectedButton == 4) {
-                // Rotated segment
-                d = Math.sqrt(0.17);
-            } else if (modSceneSelector.selectedButton == 5) {
-                // Two boxes
-                d = 0.5;
-            } else {
-                // Triangle
-                d = Math.sqrt(0.2);
-            }
+            d = sceneData.getSceneGeometryLength(modSceneSelector.selectedButton);
         } else if (typeOfScene == 0) {
             var x1 = getCoordinate("x1");
             var x2 = getCoordinate("x2");
             var y1 = getCoordinate("y1");
             var y2 = getCoordinate("y2");
-            d = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+            d = sceneData.getSegmentLength([x1, y1], [x2, y2]);
         }
         this.setLabel((d * 100 / (251 - nf)).toFixed(4) + " cm");
     });
@@ -568,30 +555,18 @@ Transient.prototype.setupUI = function () {
     document.getElementById("x2").onchange = function () { updateFeatureSize() };
     document.getElementById("y1").onchange = function () { updateFeatureSize() };
     document.getElementById("y2").onchange = function () { updateFeatureSize() };
+
     function updateFeatureSize(sceneIdx = -1) {
         if (typeOfScene == 1) {
-        // if (usingModifiedScene) {
             var d;
             var selectedScene = (sceneIdx == -1) ? modSceneSelector.selectedButton : sceneIdx;
-            if (selectedScene < 4) {
-                // Line, Box, Visibility test, and Virtual mirror
-                d = 0.4;
-            } else if (selectedScene == 4) {
-                // Rotated segment
-                d = Math.sqrt(0.17);
-            } else if (modSceneSelector.selectedButton == 5) {
-                // Two boxes
-                d = 0.5;
-            } else {
-                // Triangle
-                d = Math.sqrt(0.2);
-            }
+            d = sceneData.getSceneGeometryLength(selectedScene);
         } else if (typeOfScene == 0) {
             var x1 = getCoordinate("x1");
             var x2 = getCoordinate("x2");
             var y1 = getCoordinate("y1");
             var y2 = getCoordinate("y2");
-            d = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+            d = sceneData.getSegmentLength([x1, y1], [x2, y2]);
         }
         var nf = 251 - featureSizeSlider.value;
         featureSizeSlider.setLabel((d * 100 / nf).toFixed(4) + " cm");
@@ -615,8 +590,6 @@ Transient.prototype.setupUI = function () {
     document.getElementById("scene-div").style.display = 'none';
     document.getElementById("import-div").style.display = 'none';
 
-    var jsonScene;
-    var usingModifiedScene = false;
     new tui.ButtonGroup("type-of-scene", true, ["Single segment/Box", "Predefined scene", "Import from JSON file"], function (idx) {
         typeOfScene = idx;
         if (idx == 0) {
@@ -627,8 +600,6 @@ Transient.prototype.setupUI = function () {
             customSceneDivs = document.getElementsByClassName("custom-scene");
             for (var i = 0; i < customSceneDivs.length; i++)
                 customSceneDivs[i].style.display = 'block';
-
-            usingModifiedScene = false;
         } else if (idx == 1) {
             document.getElementById("segment-div").style.display = 'none';
             document.getElementById("scene-div").style.display = 'block';
@@ -637,8 +608,6 @@ Transient.prototype.setupUI = function () {
             customSceneDivs = document.getElementsByClassName("custom-scene");
             for (var i = 0; i < customSceneDivs.length; i++)
                 customSceneDivs[i].style.display = 'block';
-
-            usingModifiedScene = true;
         } else {
             document.getElementById("segment-div").style.display = 'none';
             document.getElementById("scene-div").style.display = 'none';
@@ -647,8 +616,6 @@ Transient.prototype.setupUI = function () {
             customSceneDivs = document.getElementsByClassName("custom-scene");
             for (var i = 0; i < customSceneDivs.length; i++)
                 customSceneDivs[i].style.display = 'none';
-
-            usingModifiedScene = false;
         }
         updateFeatureSize();
     });
@@ -664,7 +631,8 @@ Transient.prototype.setupUI = function () {
     });
 
     document.getElementById('create-button').addEventListener('click', (function () {
-        var jsonScene = null;
+        var verticesList = [];
+        var hiddenBox = null;
 
         if (typeOfScene == 2) {
             // Read data from imported scene file
@@ -673,211 +641,114 @@ Transient.prototype.setupUI = function () {
                 alert('No file uploaded');
                 return false;
             }
-/*
-            var data = new sceneData.SceneData(files[0], config, sceneNames, modSceneNames);
-            
+
+            files[0].text().then(function (text) {
+                var data = new sceneData.SceneData(text, config, sceneNames, modSceneNames);
+
                 if (data.typeOfScene == sceneData.LoadedSceneType.Default) {
                     if (data.sceneIdx == -1) return;
 
                     // Close the modal and change the scene
                     modal.style.display = "none";
                     showSliderHandles();
-                    sceneSelector.select(sceneIdx);
+                    sceneSelector.select(data.sceneIdx);
 
                     // Capture parameters
-                    sampleSlider.setValue(100 * Math.log10(data.sampleCount));
-                    captureSelector.select(data.captureIdx);
-                    nSpadSelector.select(data.nSpadIdx);
-                    spadPositionsSlider.noUiSlider.set(data.spadBoundaries);
-                    deltaTSlider.setValue(parseInt(data.deltaT * 1000));
-                    tmaxSlider.setValue(parseInt(data.tmax / data.deltaT));
-                    bounceSlider.noUiSlider.set(data.bounces);
+                    data.applyCaptureParameters(sampleSlider, captureSelector, nSpadSelector, spadPositionsSlider, deltaTSlider, tmaxSlider, bounceSlider);
 
                     // Emitter parameters
-                    spreadSelector.select(data.spreadIdx);
-                    var lightLookAt = (renderer.isConf) ? [renderer.spadPoints[0], renderer.spadPoints[1]] : data.lightLookAt;
-                    renderer.setEmitterPos(renderer.scene2canvas(data.lightOrigin), renderer.scene2canvas(lightLookAt));
+                    data.applyEmitterParameters(spreadSelector, renderer);
 
                     // Show geometry over the scene
                     geomVisSelector.select(data.geometryVisibilityIdx);
 
                     // Reconstruction parameters
-                    filterSelector.select(data.filterIdx);
-                    if (renderer.filterType === 'pf') {
-                        wlSlider.setValue(data.wl);
-                        sigmaSlider.setValue(parseInt(data.sigma * 10));
-                    }
-                    recResolutionSelector.select(data.resolutionIdx);
-                    camSelector.select(data.cameraIdx);
-                    instantSlider.setValue(data.instant);
+                    data.applyReconstructionParameters(filterSelector, wlSlider, sigmaSlider, recResolutionSelector, camSelector, instantSlider, renderer.filterType);
+
                     return;
+                } else if (data.typeOfScene == sceneData.LoadedSceneType.ModifiedDefault) {
+                    if (data.baseSceneIdx == -1) return;
+
+                    verticesList = generator.generateVertexListForModifiedScene(data.baseSceneIdx, config.vertices[data.baseSceneIdx], data.nFeatures);
+                } else if (data.typeOfScene == sceneData.LoadedSceneType.Custom) {
+                    verticesList = generator.generateVertexListForCustomScene(data.v1, data.v2, data.boxWidth, data.nFeatures);
+                    hiddenBox = {
+                        x1: data.v1[0],
+                        x2: data.v2[0],
+                        y1: data.v1[1],
+                        y2: data.v2[1],
+                        width: data.boxWidth
+                    };
                 } else {
                     alert('Unsupported format');
                     return;
                 }
-            */
 
-            files[0].text().then(function (text) {
-                jsonScene = JSON.parse(text);
-                var nameWords = jsonScene.scene.name.split(' ');
-
-                var applyCommonParameters = function () {
-                    // Should be called after setting the scene, or emitter parameters will be overwritten
-                    
-                    // TODO: make robust against invalid values
-                    // console.log(jsonScene);
-
-                    // Capture parameters
-                    var sampleCount = parseInt(jsonScene.capture.sample_count.split(' ')[0]);
-                    sampleSlider.setValue(100 * Math.log10(sampleCount));
-                    var captIdx = config.capture_methods.findIndex((method) => method === jsonScene.capture.method);
-                    captureSelector.select(captIdx);
-                    var nSpadIdx = config.spad_num.findIndex((num) => num == jsonScene.capture.num_spads);
-                    nSpadSelector.select(nSpadIdx);
-                    spadPositionsSlider.noUiSlider.set(jsonScene.capture.spad_boundaries);
-                    var delta_t = jsonScene.capture.delta_t;
-                    deltaTSlider.setValue(parseInt(delta_t * 1000));
-                    var tmax = jsonScene.capture.max_time;
-                    tmaxSlider.setValue(parseInt(tmax / delta_t));
-                    var bounces = jsonScene.capture.bounces_saved;
-                    bounces[1] += 1;
-                    bounceSlider.noUiSlider.set(bounces);
-
-                    // Emitter parameters - this must go after selecting the scene
-                    var spreadIdx = config.spread_types.findIndex((type) => type === jsonScene.light_source.spread);
-                    spreadSelector.select(spreadIdx);
-                    var lightOrigin = jsonScene.light_source.origin;
-                    var lightLookAt = (renderer.isConf) ? [renderer.spadPoints[0], renderer.spadPoints[1]] : jsonScene.light_source.look_at;
-                    renderer.setEmitterPos(renderer.scene2canvas(lightOrigin), renderer.scene2canvas(lightLookAt));
-
-                    // Show geometry over the scene
-                    geomVisSelector.select(jsonScene.superimpose_geometry ? 1 : 0);
-
-                    // Reconstruction parameters
-                    var filterIdx = config.filters.findIndex((type) => type === jsonScene.reconstruction.filter.type);
-                    filterSelector.select(filterIdx);
-                    if (renderer.filterType === 'pf') {
-                        var wl = jsonScene.reconstruction.filter.wl.split(' ');
-                        wl = parseFloat(wl[0]); // Assuming cm
-                        wlSlider.setValue(wl);
-                        var sigma = jsonScene.reconstruction.filter.sigma.split(' ');
-                        sigma = parseFloat(sigma[0]); // Assuming cm
-                        sigmaSlider.setValue(sigma * 10);
-                    }
-                    var resIdx = config.resolution_labels.findIndex((res) => res === jsonScene.reconstruction.resolution);
-                    recResolutionSelector.select(resIdx);
-                    var camIdx = config.camera_models.findIndex((model) => model === jsonScene.reconstruction.camera_model.type);
-                    camSelector.select(camIdx);
-                    instantSlider.setValue(jsonScene.reconstruction.instant);
-                }
-
-                if (nameWords[0] != 'Custom' && nameWords[nameWords.length-1] != 'modified') {
-                    // Find the index of the scene and select it
-                    var sceneIdx = sceneNames.findIndex((name) => name === jsonScene.scene.name);
-                    if (sceneIdx == -1) {
-                        alert('Unknown scene');
-                        // TODO: prevent from adding an empty scene
-                    } else {
-                        modal.style.display = "none";
-                        showSliderHandles();
-                        sceneSelector.select(sceneIdx);
-                        applyCommonParameters();
-                        return;
-                    }
-                } else {
-                    console.log(jsonScene.scene);
-                    applyCommonParameters();
-                    // TODO: the code should be pretty similar to the one below
-                }
-
-                // TODO: in both cases, imaging parameters, laser location, etc. should be applied from json file
-            })
-        }
+                // Create the new scene and close modal
+                var hiddenMaterial = {
+                    matType: data.hiddenMat,
+                    roughness: data.hiddenRoughness,
+                    albedo: 0.5,
+                    ior: data.hiddenIor,
+                };
+                var wallMaterial = {
+                    matType: data.wallMat,
+                    roughness: data.wallRoughness,
+                    albedo: 0.5,
+                };
+                generator.generateAndAddScene(renderer, config, sceneSelector, verticesList, hiddenMaterial, wallMaterial, data.featureSize, data.name, hiddenBox);
         
-        var verticesList = [];
-        if (typeOfScene == 1) {
-        // if (usingModifiedScene) {
-            var endVertices = config.vertices[modSceneSelector.selectedButton];
-            if (modSceneSelector.selectedButton == 1) {
-                // Box
-                verticesList.push(generator.generateVertices([endVertices[0], endVertices[1]],
-                    [endVertices[2], endVertices[3]], nFeatures.value));
+                modal.style.display = "none";
+                showSliderHandles();
+                sceneSelector.select(config.scenes.length - 1);
 
-                var v1 = [verticesList[0][0], verticesList[0][1]];
-                var v2 = [verticesList[0][verticesList[0].length - 2], verticesList[0][verticesList[0].length - 1]];
-                var listAux = generator.generateVertices([endVertices[8], endVertices[9]],
-                    [endVertices[10], endVertices[11]], nFeatures.value);
-                v2.push(listAux[0], listAux[1]);
-                v1 = [listAux[listAux.length - 2], listAux[listAux.length - 1], v1[0], v1[1]];
-                verticesList.push(v2, listAux, v1);
-            } else {
-                for (var i = 0; i < endVertices.length; i += 4) {
-                    verticesList.push(generator.generateVertices([endVertices[i], endVertices[i + 1]],
-                        [endVertices[i + 2], endVertices[i + 3]], nFeatures.value));
-                }
-            }
+                // Capture parameters
+                data.applyCaptureParameters(sampleSlider, captureSelector, nSpadSelector, spadPositionsSlider, deltaTSlider, tmaxSlider, bounceSlider);
+
+                // Emitter parameters
+                data.applyEmitterParameters(spreadSelector, renderer);
+
+                // Show geometry over the scene
+                geomVisSelector.select(data.geometryVisibilityIdx);
+
+                // Reconstruction parameters
+                data.applyReconstructionParameters(filterSelector, wlSlider, sigmaSlider, recResolutionSelector, camSelector, instantSlider, renderer.filterType);
+            })
+
+        } else if (typeOfScene == 1) {
+            verticesList = generator.generateVertexListForModifiedScene(modSceneSelector.selectedButton, config.vertices[modSceneSelector.selectedButton], nFeatures.value);
         } else if (typeOfScene == 0) {
             var x1 = getCoordinate("x1");
             var x2 = getCoordinate("x2");
             var y1 = getCoordinate("y1");
             var y2 = getCoordinate("y2");
             var boxWidth = getCoordinate("box-width");
-            if (boxWidth <= 1e-5) {
-                // Use a segment
-                verticesList = [generator.generateVertices([x1, y1], [x2, y2], nFeatures.value)];
-            } else {
-                // Use a box
-                var vertices = closeBox(x1, y1, x2, y2, boxWidth);
-                verticesList.push(generator.generateVertices([x1, y1], [x2, y2], nFeatures.value));
-                var v1 = [verticesList[0][0], verticesList[0][1]];
-                var v2 = [verticesList[0][verticesList[0].length - 2], verticesList[0][verticesList[0].length - 1]];
-                var listAux = generator.generateVertices([vertices[4], vertices[5]],
-                    [vertices[6], vertices[7]], nFeatures.value);
-                v2.push(listAux[0], listAux[1]);
-                v1 = [listAux[listAux.length - 2], listAux[listAux.length - 1], v1[0], v1[1]];
-                verticesList.push(v2, listAux, v1);
-            }
+            verticesList = generator.generateVertexListForCustomScene([x1, y1], [x2, y2], boxWidth, nFeatures.value);
+            hiddenBox = {
+                x1: x1,
+                x2: x2,
+                y1: y1,
+                y2: y2,
+                width: boxWidth
+            };
         } else {
-            // TODO
+            alert('Invalid scene type');
+            return;
         }
-        var vertices = [];
-        verticesList.forEach(vertexList => {
-            vertices = vertices.concat(vertexList);
-        });
-        var matParams = [];
-        if (matType === sceneData.MaterialType.RoughMirror || matType === sceneData.MaterialType.RoughDielectric) {
-            matParams.push(roughness);
-        } else if (matType === sceneData.MaterialType.Diffuse) {
-            matParams.push(0.5);
-        }
-        if (matType === sceneData.MaterialType.Dielectric || matType === sceneData.MaterialType.RoughDielectric) {
-            var ior = getCoordinate("ior");
-            matParams.push(ior);
-        }
-        var wallMatParams = [0.5];
-        if (wallMatType === sceneData.MaterialType.RoughMirror || wallMatType === sceneData.MaterialType.RoughDielectric) {
-            wallMatParams = [wallRoughness];
-        }
-        var ids = generator.generate(verticesList, matType, matParams, wallMatType, wallMatParams);
-        config.scenes.push({
-            'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': wallMatType,
-            'modifications': {
-                'feature_size': featureSizeSlider.label.innerHTML,
-                // 'base_scene': (usingModifiedScene) ? sceneNames[modSceneSelector.selectedButton] : 'Custom',
-                'base_scene': (typeOfScene == 1) ? modSceneNames[modSceneSelector.selectedButton] : 'Custom',
-                'mat_type': matType,
-                'mat_params': matParams,
-                'wall_mat_type': wallMatType,
-                'wall_mat_params': wallMatParams,
-                'x1': x1,
-                'x2': x2,
-                'y1': y1,
-                'y2': y2,
-                'width': boxWidth
-            }
-        });
-        sceneSelector.addButton(config.scenes[config.scenes.length - 1].name);
-        renderer.addScene(ids[0], verticesList);
+
+        var hiddenMaterial = {
+            matType: matType,
+            roughness: roughness,
+            albedo: 0.5,
+            ior: getCoordinate("ior"),
+        };
+        var wallMaterial = {
+            matType: wallMatType,
+            roughness: wallRoughness,
+            albedo: 0.5,
+        };
+        generator.generateAndAddScene(renderer, config, sceneSelector, verticesList, hiddenMaterial, wallMaterial, featureSizeSlider.label.innerHTML, (typeOfScene == 1) ? modSceneNames[modSceneSelector.selectedButton] : 'Custom', hiddenBox);
+
         modal.style.display = "none";
         showSliderHandles();
         sceneSelector.select(config.scenes.length - 1);

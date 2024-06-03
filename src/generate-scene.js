@@ -244,5 +244,112 @@
         return res;
     }
 
+    SceneGenerator.prototype.generateVertexListForModifiedScene = function (baseSceneIdx, sceneVertices, nFeatures) {
+        var verticesList = [];
+        var endVertices = sceneVertices;
+        if (baseSceneIdx == 1) {
+            // Box
+            verticesList.push(this.generateVertices([endVertices[0], endVertices[1]],
+                [endVertices[2], endVertices[3]], nFeatures));
+
+            var v1 = [verticesList[0][0], verticesList[0][1]];
+            var v2 = [verticesList[0][verticesList[0].length - 2], verticesList[0][verticesList[0].length - 1]];
+            var listAux = this.generateVertices([endVertices[8], endVertices[9]],
+                [endVertices[10], endVertices[11]], nFeatures);
+            v2.push(listAux[0], listAux[1]);
+            v1 = [listAux[listAux.length - 2], listAux[listAux.length - 1], v1[0], v1[1]];
+            verticesList.push(v2, listAux, v1);
+        } else {
+            for (var i = 0; i < endVertices.length; i += 4) {
+                verticesList.push(this.generateVertices([endVertices[i], endVertices[i + 1]],
+                    [endVertices[i + 2], endVertices[i + 3]], nFeatures));
+            }
+        }
+        return verticesList;
+    }
+
+    /*
+    * Create a box with a side [(x1,y1),(x2,y2)], and the new perpendicular sides having a length of width
+    */
+    function closeBox(x1, y1, x2, y2, width) {
+        // Perpendicular direction to the given segment
+        var xDir = y2 - y1;
+        var yDir = -(x2 - x1);
+        // Normalize the vector and make it width-lengthed
+        var length = Math.sqrt(xDir * xDir + yDir * yDir);
+        xDir /= length / width;
+        yDir /= length / width;
+
+        var x3 = x2 + xDir;
+        var y3 = y2 + yDir;
+        var x4 = x1 + xDir;
+        var y4 = y1 + yDir;
+        return [x1, y1, x2, y2, x3, y3, x4, y4];
+    }
+
+    SceneGenerator.prototype.generateVertexListForCustomScene = function (v1, v2, boxWidth, nFeatures) {
+        var verticesList = [];
+        if (boxWidth <= 1e-5) {
+            // Use a segment
+            verticesList = [this.generateVertices(v1, v2, nFeatures)];
+        } else {
+            // Use a box
+            var vertices = closeBox(v1[0], v1[1], v2[0], v2[1], boxWidth);
+            verticesList.push(this.generateVertices(v1, v2, nFeatures));
+            // Because of the features, the exact vertices may vary
+            var vert1 = [verticesList[0][0], verticesList[0][1]];
+            var vert2 = [verticesList[0][verticesList[0].length - 2], verticesList[0][verticesList[0].length - 1]];
+            var listAux = this.generateVertices([vertices[4], vertices[5]],
+                [vertices[6], vertices[7]], nFeatures);
+            vert2.push(listAux[0], listAux[1]);
+            vert1 = [listAux[listAux.length - 2], listAux[listAux.length - 1], vert1[0], vert1[1]];
+            verticesList.push(vert2, listAux, vert1);
+        }
+        return verticesList;
+    }
+
+    SceneGenerator.prototype.generateAndAddScene = function (renderer, config, sceneSelector, verticesList, hiddenMaterial, wallMaterial, featureSize, baseSceneName, hiddenBox) {
+        var vertices = [];
+        verticesList.forEach(vertexList => {
+            vertices = vertices.concat(vertexList);
+        });
+        var matParams = [];
+        if (hiddenMaterial.matType === sceneData.MaterialType.RoughMirror || hiddenMaterial.matType === sceneData.MaterialType.RoughDielectric) {
+            matParams.push(hiddenMaterial.roughness);
+        } else if (hiddenMaterial.matType === sceneData.MaterialType.Diffuse) {
+            matParams.push(hiddenMaterial.albedo);
+        }
+        if (hiddenMaterial.matType === sceneData.MaterialType.Dielectric || hiddenMaterial.matType === sceneData.MaterialType.RoughDielectric) {
+            matParams.push(hiddenMaterial.ior);
+        }
+        var wallMatParams = [wallMaterial.albedo];
+        if (wallMaterial.matType === sceneData.MaterialType.RoughMirror || wallMaterial.matType === sceneData.MaterialType.RoughDielectric) {
+            wallMatParams = [wallMaterial.roughness];
+        }
+        var ids = this.generate(verticesList, hiddenMaterial.matType, matParams, wallMaterial.matType, wallMatParams);
+        // TODO: check necessary additional vars
+        var sceneConfig = {
+            'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': wallMaterial.matType,
+            'modifications': {
+                'feature_size': featureSize,
+                'base_scene': baseSceneName,
+                'mat_type': hiddenMaterial.matType,
+                'mat_params': matParams,
+                'wall_mat_type': wallMaterial.matType,
+                'wall_mat_params': wallMatParams
+            }
+        };
+        if (hiddenBox != null) {
+            sceneConfig.modifications.x1 = hiddenBox.x1;
+            sceneConfig.modifications.x2 = hiddenBox.x2;
+            sceneConfig.modifications.y1 = hiddenBox.y1;
+            sceneConfig.modifications.y2 = hiddenBox.y2;
+            sceneConfig.modifications.width = hiddenBox.width;
+        }
+        config.scenes.push(sceneConfig);
+        sceneSelector.addButton(config.scenes[config.scenes.length - 1].name);
+        renderer.addScene(ids[0], verticesList);
+    }
+
     exports.SceneGenerator = SceneGenerator;
 })(window.genScene = window.genScene || {});
