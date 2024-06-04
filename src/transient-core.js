@@ -4574,6 +4574,10 @@
     }
 
     Renderer.prototype.setEmitterPos = function (posA, posB, reset = true) {
+        if (posA[0] < 0 || posA[0] >= this.width || posA[1] < 0 || posA[1] >= this.height) {
+            // Light cannot be set outside the scene
+            return;
+        }
         this.emitterPos = posA;
         this.emitterAngle = this.spreadType == tcore.Renderer.SPREAD_POINT ? 0.0 : Math.atan2(posB[1] - posA[1], posB[0] - posA[0]);
         this.computeSpread();

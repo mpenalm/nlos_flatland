@@ -29,9 +29,19 @@
 
 <body onload="t = new Transient();">
 <!-- <body onload="new Transient();"> -->
-    <div class="tantalum-render2" id="transient-content">
-        <canvas id="transient-canvas" width="1650" height="461"></canvas>
-        <div id="transient-overlay" class="render-loading">Loading...</div>
+    <div class="tantalum-render2-container">
+        <div id="headers" style="position: relative;">
+            <div class="col-6-12">
+                <h1 style="text-align: center;">Simulated scene</h1>
+            </div>
+            <div class="col-6-12" style="position: absolute; left: 50%; top: -50%;">
+                <h1 style="text-align: center;">NLOS imaging reconstruction</h1>
+            </div>
+        </div>
+        <div class="tantalum-render2" id="transient-content">
+            <canvas id="transient-canvas" width="1650" height="461"></canvas>
+            <div id="transient-overlay" class="render-loading">Loading...</div>
+        </div>
     </div>
     <div class="tantalum-controls" id="transient-controls" style="visibility: hidden">
         <div id="render-progress"></div>
@@ -39,7 +49,7 @@
         <div class="control-row clearfix">
             <div class="col-2-12 col-left col-padding">
                 <h3 class="control-title">Download</h3>
-                <div class="button stretch-button active" id="save-button">Download reconstruction</div>
+                <div class="button stretch-button active" id="save-button">Download reconstruction data</div>
             </div>
             <div class="col-2-12 col-left col-padding">
                 <h3 class="control-title">Play/Pause</h3>
@@ -89,7 +99,7 @@
         <div class="control-row clearfix">
             <div class="col-2-12 col-left col-padding">
                 <h3 class="control-title">Scene</h3>
-                <div class="button stretch-button active" id="add-button">Add scene</div>
+                <div class="button stretch-button active" id="add-button">Add custom scene</div>
                 <br>
                 <div id="scene-selector"></div>
             </div>
@@ -132,11 +142,11 @@
                 </div>
             </div>
             <div id="tonemap-div" class="col-2-12 col-left col-padding">
-                <h3 id="tonemap-title" class="control-title">Tone mapper</h3>
+                <h3 id="tonemap-title" class="control-title">Reconstruction tone mapper</h3>
                 <div id="tonemap-selector"></div>
             </div>
             <div class="col-2-12 col-left col-padding">
-                <h3 class="control-title">Geometry visibility</h3>
+                <h3 class="control-title">Scene schematic</h3>
                 <div id="geometry-visibility-selector"></div>
             </div>
 
@@ -201,7 +211,7 @@
                             </div>
                         </div>
                         <div id="import-div">
-                            <h3 class="control-title">Import JSON file</h3>
+                            <h3 class="control-title">Import from JSON file</h3>
                             <input type="file" accept=".json" id="selectFiles" value="Import" /><br />
                         </div>
                     </div>

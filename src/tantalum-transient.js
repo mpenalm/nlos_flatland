@@ -160,7 +160,7 @@ Transient.prototype.setupUI = function () {
             { 'shader': 'scene26-smooth-bunny', 'name': 'Smooth bunny', 'posA': [0.767, 0.75], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': sceneData.MaterialType.Diffuse },
         ],
         "capture_methods": ["Non-confocal", "Confocal"],
-        "camera_models": ["Confocal", "Transient", "Conventional"],
+        "camera_models": ["Confocal", "Transient", "Steady state"],
         "spad_num": [16, 32, 64, 128, 256],
         "filters": ["None", "Laplacian", "Laplacian of Gaussian", "Phasor Fields"],
         "tone_mapper_labels": ["None", "Logarithmic", "Square root"],
@@ -318,7 +318,7 @@ Transient.prototype.setupUI = function () {
         var height = config.reconstruction_resolutions[idx];
         renderer.changeReconstructionResolution(height);
     });
-    recResolutionSelector.select(2);
+    recResolutionSelector.select(4);
     var captureSelector = new tui.ButtonGroup("capture-selector", true, config.capture_methods, function (idx) {
         var isConf = Boolean(idx);
         renderer.setConfocal(isConf);
@@ -438,11 +438,11 @@ Transient.prototype.setupUI = function () {
     bounceSlider.label.className = "slider-label";
     var parent = bounceSlider.parentNode;
     parent.insertBefore(bounceSlider.label, bounceSlider.nextSibling);
-    bounceSlider.label.textContent = "11 light bounces, capturing from bounce 3";
+    bounceSlider.label.textContent = "Capturing from bounce 3, up to 9 light bounces";
     bounceSlider.noUiSlider.on('update', function (values) {
         var low = parseFloat(values[0]);
         var length = parseFloat(values[1]);
-        bounceSlider.label.textContent = (length - 1) + " light bounces, capturing from bounce " + low;
+        bounceSlider.label.textContent = "Capturing from bounce " + low + ", up to " + (length - 1) + " light bounces";
         renderer.setMaxPathLength(length);
         renderer.setMinPathLength(low);
     })
