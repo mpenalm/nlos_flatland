@@ -33,9 +33,23 @@
         <div id="headers" style="position: relative;">
             <div class="col-6-12">
                 <h1 style="text-align: center;">Simulated scene</h1>
+                <h3 class="control-title col-3-12">Scene schematic</h3>
+                <div style="position: absolute; left: 13%; bottom: 0%;">
+                    <div id="geometry-visibility-selector"></div>
+                </div>
+                
             </div>
-            <div class="col-6-12" style="position: absolute; left: 50%; top: -50%;">
+            <div class="col-6-12" style="position: absolute; left: 51%; top: -20%;">
                 <h1 style="text-align: center;">NLOS imaging reconstruction</h1>
+                <div id="magnitude-selector-div">
+                    <h3 class="control-title col-2-12">Magnitude</h3>
+                    <div id="magnitude-div" style="position: absolute; left: 15%; bottom: 1%;">
+                        <div id="magnitude-selector"></div>
+                    </div>
+                    <div class="col-4-12" style="position: absolute; right: 2%; bottom: 1%;">
+                        <div class="button stretch-button active" id="save-button">Download reconstruction data</div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="tantalum-render2" id="transient-content">
@@ -47,10 +61,6 @@
         <div id="render-progress"></div>
         <p class="progress-label" id="render-progress-label"></p>
         <div class="control-row clearfix">
-            <div class="col-2-12 col-left col-padding">
-                <h3 class="control-title">Download</h3>
-                <div class="button stretch-button active" id="save-button">Download reconstruction data</div>
-            </div>
             <div class="col-2-12 col-left col-padding">
                 <h3 class="control-title">Play/Pause</h3>
                 <div class="button stretch-button active" id="play-button">Play/Pause video</div>
@@ -109,10 +119,6 @@
                     <div class="center-tight">
                         <div id="wl-slider"></div>
                         <div id="sigma-slider"></div>
-                        <div id="magnitude-div">
-                            <div id="magnitude-selector"></div>
-                            <br>
-                        </div>
                         <canvas id="filter-canvas" style="border: none;" width="425" height="256"></canvas>
                     </div>
                 </div>
@@ -145,10 +151,7 @@
                 <h3 id="tonemap-title" class="control-title">Reconstruction tone mapper</h3>
                 <div id="tonemap-selector"></div>
             </div>
-            <div class="col-2-12 col-left col-padding">
-                <h3 class="control-title">Scene schematic</h3>
-                <div id="geometry-visibility-selector"></div>
-            </div>
+            
 
             <div class="control-row clearfix">
                 <div class="col-3-12 col-left col-padding">
