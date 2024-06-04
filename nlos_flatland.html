@@ -29,7 +29,7 @@
 
 <body onload="t = new Transient();">
 <!-- <body onload="new Transient();"> -->
-    <div class="tantalum-render2-container">
+    <div class="width-of-canvas">
         <div id="headers" style="position: relative;">
             <div class="col-6-12">
                 <h1 style="text-align: center;">Simulated scene</h1>
@@ -46,7 +46,7 @@
                     <div id="magnitude-div" style="position: absolute; left: 15%; bottom: 1%;">
                         <div id="magnitude-selector"></div>
                     </div>
-                    <div class="col-4-12" style="position: absolute; right: 2%; bottom: 1%;">
+                    <div class="col-4-12" style="position: absolute; right: 3%; bottom: 1%;">
                         <div class="button stretch-button active" id="save-button">Download reconstruction data</div>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
             <div id="transient-overlay" class="render-loading">Loading...</div>
         </div>
     </div>
-    <div class="tantalum-controls" id="transient-controls" style="visibility: hidden">
+    <div class="tantalum-controls width-of-canvas" id="transient-controls" style="visibility: hidden">
         <div id="render-progress"></div>
         <p class="progress-label" id="render-progress-label"></p>
         <div class="control-row clearfix">

@@ -10,17 +10,17 @@ body {
     height: 461px;
 }
 
-.tantalum-render2-container {
+.width-of-canvas {
     margin: 0 auto;
     position: relative;
-    width: 1640px;
+    width: 1650px;
 }
 
 .tantalum-render2 {
     margin: 0 auto;
     margin-bottom: 4px;
     position: relative;
-    width: 1640px;
+    width: 1650px;
     height: 461px;
 }
 
