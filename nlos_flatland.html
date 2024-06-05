@@ -30,17 +30,19 @@
 <body onload="t = new Transient();">
 <!-- <body onload="new Transient();"> -->
     <div class="width-of-canvas">
-        <div id="headers" class="row" style="position: relative; justify-content: space-between;">
+        <div id="headers" class="row" style="position: relative; justify-content: space-between; margin-bottom: 4px;">
             <div style="flex: 0 0 820px;">
                 <h1 style="text-align: center;">Simulated scene (fluence)</h1>
-                <div class="row" style="align-items: baseline;">
-                    <h3 class="control-title col-3-12">Scene schematic</h3>
+                <div class="row" style="align-items: baseline; width: 98%; margin: auto;">
+                    <!-- For the options to align perfectly with image side borders, remove width and margin options -->
+                    <h3 class="control-title col-35-12">Scene schematic</h3>
                     <div id="geometry-visibility-selector"></div>
                 </div>
             </div>
             <div style="flex: 0 0 820px;">
                 <h1 style="text-align: center;">NLOS imaging reconstruction</h1>
-                <div class="row" style="flex: 0 0 820px; align-items: baseline; justify-content: space-between;">
+                <div class="row" style="flex: 0 0 820px; align-items: baseline; justify-content: space-between; width: 98%; margin: auto;">
+                    <!-- For the options to align perfectly with image side borders, remove width and margin options -->
                     <div id="magnitude-div" class="row col-6-12" style="align-items: baseline;">
                         <h3 class="control-title col-4-12">Magnitude</h3>
                         <div id="magnitude-selector"></div>
