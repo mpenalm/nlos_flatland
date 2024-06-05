@@ -30,25 +30,22 @@
 <body onload="t = new Transient();">
 <!-- <body onload="new Transient();"> -->
     <div class="width-of-canvas">
-        <div id="headers" style="position: relative;">
-            <div class="col-6-12">
+        <div id="headers" class="row" style="position: relative; justify-content: space-between;">
+            <div style="flex: 0 0 820px;">
                 <h1 style="text-align: center;">Simulated scene</h1>
-                <h3 class="control-title col-3-12">Scene schematic</h3>
-                <div style="position: absolute; left: 13%; bottom: 0%;">
+                <div class="row" style="align-items: baseline;">
+                    <h3 class="control-title col-3-12">Scene schematic</h3>
                     <div id="geometry-visibility-selector"></div>
                 </div>
-                
             </div>
-            <div class="col-6-12" style="position: absolute; left: 51%; top: -20%;">
+            <div style="flex: 0 0 820px;">
                 <h1 style="text-align: center;">NLOS imaging reconstruction</h1>
-                <div id="magnitude-selector-div">
-                    <h3 class="control-title col-2-12">Magnitude</h3>
-                    <div id="magnitude-div" style="position: absolute; left: 15%; bottom: 1%;">
+                <div class="row" style="flex: 0 0 820px; align-items: baseline; justify-content: space-between;">
+                    <div id="magnitude-div" class="row col-6-12" style="align-items: baseline;">
+                        <h3 class="control-title col-4-12">Magnitude</h3>
                         <div id="magnitude-selector"></div>
                     </div>
-                    <div class="col-4-12" style="position: absolute; right: 3%; bottom: 1%;">
-                        <div class="button stretch-button active" id="save-button">Download reconstruction data</div>
-                    </div>
+                    <div class="button stretch-button active" id="save-button">Download reconstruction data</div>
                 </div>
             </div>
         </div>
@@ -69,7 +66,7 @@
                 <h3 class="control-title">Reconstruction resolution</h3>
                 <div id="reconstruction-resolution-selector"></div>
             </div>
-            <div class="col-2-12 col-left">
+            <div class="col-25-12 col-left">
                 <h3 class="control-title">Number of SPADs</h3>
                 <div id="spad-selector"></div>
             </div>
@@ -77,19 +74,19 @@
                 <h3 class="control-title">Data capture</h3>
                 <div id="capture-selector"></div>
             </div>
+            <div class="col-2-12 col-left col-padding">
+                <h3 class="control-title">Camera model</h3>
+                <div id="camera-selector"></div>
+            </div>
         </div>
         <div class="control-row clearfix">
-            <div class="col-9-12 col-left col-padding">
+            <div class="col-11-12 col-left col-padding">
                 <h3 class="control-title">Time</h3>
                 <div id="instant-selector"></div>
                 <div id="conventional-addition" style="visibility: hidden;">
                     <h3 class="control-title">Conventional camera integration over time</h3>
                     <div id="addition-selector"></div>
                 </div>
-            </div>
-            <div class="col-2-12 col-left col-padding">
-                <h3 class="control-title">Camera model</h3>
-                <div id="camera-selector"></div>
             </div>
         </div>
         <div class="control-row clearfix">

@@ -297,17 +297,17 @@ Transient.prototype.setupUI = function () {
     });
 
     document.getElementById("filter-parameter").style.display = 'none';
-    document.getElementById("magnitude-selector-div").style.display = 'none';
+    document.getElementById("magnitude-div").style.visibility = 'hidden';
 
     var filterSelector = new tui.ButtonGroup("filter-selector", true, config.filters, function (idx) {
         renderer.setFilterType(filterTypes[idx]);
         if (idx < 3) {
             document.getElementById("filter-parameter").style.display = 'none';
-            document.getElementById("magnitude-selector-div").style.display = 'none';
+            document.getElementById("magnitude-div").style.visibility = 'hidden';
             document.getElementById("conventional-addition").style.visibility = 'hidden';
         } else {
             document.getElementById("filter-parameter").style.display = 'block';
-            document.getElementById("magnitude-selector-div").style.display = 'block';
+            document.getElementById("magnitude-div").style.visibility = 'visible';
             document.getElementById("conventional-addition").style.visibility = (renderer.isConvCamera) ? 'visible' : 'hidden';
             wlSlider.show(filterTypes[idx] === 'pf');
         }
