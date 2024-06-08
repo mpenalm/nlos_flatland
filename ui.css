@@ -39,6 +39,20 @@ body {
     line-height: 1.6em;
 }
 
+.controls {
+    padding-right: 5px;
+    padding-left: 5px;
+    margin-right: auto;
+    margin-left: auto;
+    margin-top: 0;
+    margin-bottom: 50px;
+    line-height: 1.6em;
+}
+
+.column {
+    flex: 0 0 810px;
+}
+
 .control-row {
     margin-right: -15px;
     margin-left: -15px;
@@ -148,7 +162,7 @@ body {
 }
 
 .control-title {
-    padding-top: 20px;
+    padding-top: 0px;
     margin: 2px 0 20px;
     font: bold 23px/40px "Helvetica Neue", Helvetica, Arial, sans-serif;
     color: #34495e;
@@ -266,13 +280,13 @@ body {
     text-align: center;
     line-height: 12px;
     background-color: #1F8DD6;
-    float: left;
+    /* float: left; */
     width: 0;
 }
 
-.progress-bar {
-    /*transition: width .2s ease;*/
-}
+/* .progress-bar {
+    transition: width .2s ease;
+} */
 
 .slider-bar {
     border-radius: 30px 0 0 30px;
@@ -369,6 +383,10 @@ body {
 
 .row {
     display: flex;
+}
+
+.justify {
+    justify-content: space-between;
 }
 
 .slider-styled,

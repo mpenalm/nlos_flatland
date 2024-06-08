@@ -304,11 +304,11 @@ Transient.prototype.setupUI = function () {
         if (idx < 3) {
             document.getElementById("filter-parameter").style.display = 'none';
             document.getElementById("magnitude-div").style.visibility = 'hidden';
-            document.getElementById("conventional-addition").style.visibility = 'hidden';
+            // document.getElementById("conventional-addition").style.visibility = 'hidden';
         } else {
             document.getElementById("filter-parameter").style.display = 'block';
             document.getElementById("magnitude-div").style.visibility = 'visible';
-            document.getElementById("conventional-addition").style.visibility = (renderer.isConvCamera) ? 'visible' : 'hidden';
+            // document.getElementById("conventional-addition").style.visibility = (renderer.isConvCamera) ? 'visible' : 'hidden';
             wlSlider.show(filterTypes[idx] === 'pf');
         }
     })
@@ -344,9 +344,9 @@ Transient.prototype.setupUI = function () {
     }
 
 
-    new tui.ButtonGroup("addition-selector", false, config.addition_modes, function (idx) {
-        renderer.setAddModules(!idx);
-    });
+    // new tui.ButtonGroup("addition-selector", false, config.addition_modes, function (idx) {
+    //     renderer.setAddModules(!idx);
+    // });
     var camSelector = new tui.ButtonGroup("camera-selector", true, config.camera_models, function (idx) {
         var prev = renderer.isConvCamera;
         renderer.setCameraModel(idx);
@@ -370,7 +370,7 @@ Transient.prototype.setupUI = function () {
                 document.getElementById("tonemap-div").style.display = display;
 
                 // Hide Module/Complex addition selector
-                document.getElementById("conventional-addition").style.visibility = 'hidden';
+                // document.getElementById("conventional-addition").style.visibility = 'hidden';
             } else if (current) {
                 // Hide Amplitude/Phase selector
                 document.getElementById("magnitude-div").style.visibility = 'hidden';
@@ -382,7 +382,7 @@ Transient.prototype.setupUI = function () {
                 }
 
                 // Show Module/Complex addition selector
-                document.getElementById("conventional-addition").style.visibility = 'visible';
+                // document.getElementById("conventional-addition").style.visibility = 'visible';
             }
         }
     });

@@ -30,23 +30,27 @@
 <body onload="t = new Transient();">
 <!-- <body onload="new Transient();"> -->
     <div class="width-of-canvas">
-        <div id="headers" class="row" style="position: relative; justify-content: space-between; margin-bottom: 4px;">
-            <div style="flex: 0 0 820px;">
+        <div id="headers" class="controls row justify" style="position: relative; margin-bottom: 4px;">
+            <div class="column">
                 <h1 style="text-align: center;">Simulated scene (fluence)</h1>
-                <div class="row" style="align-items: baseline; width: 98%; margin: auto;">
+                <div class="row" style="align-items: baseline; margin: auto;">
                     <!-- For the options to align perfectly with image side borders, remove width and margin options -->
-                    <h3 class="control-title col-35-12">Scene schematic</h3>
+                    <h3 class="control-title" style="padding-right: 15px;">Scene schematic</h3>
                     <div id="geometry-visibility-selector"></div>
                 </div>
             </div>
-            <div style="flex: 0 0 820px;">
+            <div class="column">
                 <h1 style="text-align: center;">NLOS imaging reconstruction</h1>
-                <div class="row" style="flex: 0 0 820px; align-items: baseline; justify-content: space-between; width: 98%; margin: auto;">
+                <div class="row justify" style="align-items: baseline; margin: auto;">
                     <!-- For the options to align perfectly with image side borders, remove width and margin options -->
                     <div id="magnitude-div" class="row col-6-12" style="align-items: baseline;">
-                        <h3 class="control-title col-4-12">Magnitude</h3>
+                        <h3 class="control-title" style="padding-right: 15px;">Magnitude</h3>
                         <div id="magnitude-selector"></div>
                     </div>
+                    <!-- <div id="conventional-addition" style="visibility: hidden;">
+                        <h3 class="control-title">Conventional camera integration over time</h3>
+                        <div id="addition-selector"></div>
+                    </div> -->
                     <div class="button stretch-button active" id="save-button">Download reconstruction data</div>
                 </div>
             </div>
@@ -56,181 +60,175 @@
             <div id="transient-overlay" class="render-loading">Loading...</div>
         </div>
     </div>
-    <div class="tantalum-controls width-of-canvas" id="transient-controls" style="visibility: hidden">
-        <div id="render-progress"></div>
-        <p class="progress-label" id="render-progress-label"></p>
-        <div class="control-row clearfix">
-            <div class="col-2-12 col-left col-padding">
-                <h3 class="control-title">Play/Pause</h3>
-                <div class="button stretch-button active" id="play-button">Play/Pause video</div>
-            </div>
-            <div class="col-3-12 col-left col-padding">
-                <h3 class="control-title">Reconstruction resolution</h3>
-                <div id="reconstruction-resolution-selector"></div>
-            </div>
-            <div class="col-25-12 col-left">
-                <h3 class="control-title">Number of SPADs</h3>
-                <div id="spad-selector"></div>
-            </div>
-            <div class="col-15-12 col-left col-padding">
-                <h3 class="control-title">Data capture</h3>
-                <div id="capture-selector"></div>
-            </div>
-            <div class="col-2-12 col-left col-padding">
-                <h3 class="control-title">Camera model</h3>
-                <div id="camera-selector"></div>
-            </div>
-        </div>
-        <div class="control-row clearfix">
-            <div class="col-11-12 col-left col-padding">
-                <h3 class="control-title">Time</h3>
-                <div id="instant-selector"></div>
-                <div id="conventional-addition" style="visibility: hidden;">
-                    <h3 class="control-title">Conventional camera integration over time</h3>
-                    <div id="addition-selector"></div>
+    <div class="width-of-canvas" id="transient-controls" style="visibility: hidden">
+        <div class="controls row justify" style="position: relative; margin-bottom: 4px;">
+            <div class="column" id="capture-controls">
+                <div style="padding-top: 15px;">
+                    <div id="render-progress"></div>
+                    <p class="progress-label" id="render-progress-label"></p>
+                </div>
+                <div class="row justify">
+                    <div class="col-35-12">
+                        <h3 class="control-title">Light Path Length</h3>
+                        <div class="slider-styled" id="path-length"></div>
+                    </div>
+                    <div style="width: 70%;">
+                        <h3 class="control-title">Sample Count</h3>
+                        <div id="sample-count"></div>
+                    </div>
+                </div>
+                <div class="row justify">
+                    <div class="col-35-12">
+                        <h3 class="control-title">Max time captured</h3>
+                        <div id="tmax"></div>
+                        <h3 class="control-title">Temporal resolution</h3> <!--  (Δt) -->
+                        <div id="delta-t"></div>
+                    </div>
+                    <div class="col-45-12">
+                        <h3 class="control-title">SPAD aperture (m)</h3>
+                        <div class="slider-styled" id="spad-positions-selector"></div>
+                        <h3 class="control-title">Number of SPADs</h3>
+                        <div id="spad-selector"></div>
+                    </div>
+                    <div class="col-22-12">
+                        <h3 class="control-title">Data capture</h3>
+                        <div id="capture-selector"></div>
+                    </div>
+                </div>
+                <div class="row justify" style="padding-top: 15px;">
+                    <div class="col-35-12">
+                        <h3 class="control-title">Scene</h3>
+                        <div class="button stretch-button active" id="add-button">Add custom scene</div>
+                        <br>
+                        <div id="scene-selector"></div>
+                    </div>
+                    <div class="col-8-12" id="spread-type">
+                        <h3 class="control-title">Emitter spread</h3>
+                        <div id="spread-selector"></div>
+                        <div id="light-parameters" class="row" style="padding-top: 10px;">
+                            <div class="col-6-12">
+                                <h3 class="control-title">Emitter position</h3>
+                                <label for="xa">x: </label>
+                                <input type="number" id="xa" placeholder="0.0" class="col-2-12 number-input" step="0.1" max="1.78"
+                                    min="-1.78"> m<br>
+                                <label for="ya">y: </label>
+                                <input type="number" id="ya" placeholder="-0.6" class="col-2-12 number-input" step="0.1" max="1.0"
+                                    min="-1.0"> m<br />
+                            </div>
+                            <div class="col-6-12">
+                                <h3 class="control-title">Emitter pointing at</h3>
+                                <label for="xb">x: </label>
+                                <input type="number" id="xb" placeholder="1.2" class="col-2-12 number-input" step="0.1" max="1.78"
+                                    min="-1.78"> m<br>
+                                <label for="yb">y: </label>
+                                <input type="number" id="yb" placeholder="0.0" class="col-2-12 number-input" step="0.1" max="1.0"
+                                    min="-1.0"> m<br />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="control-row clearfix">
-            <div class="col-3-12 col-left col-padding">
-                <h3 class="control-title">SPAD aperture (m)</h3>
-                <div class="slider-styled" id="spad-positions-selector"></div>
-            </div>
-            <div class="col-4-12 col-left col-padding">
-                <h3 class="control-title">Temporal resolution</h3> <!--  (Δt) -->
-                <div id="delta-t"></div>
-            </div>
-            <div class="col-4-12 col-left col-padding">
-                <h3 class="control-title">Max time captured</h3>
-                <div id="tmax"></div>
-            </div>
-        </div>
-        <div class="control-row clearfix">
-            <div class="col-2-12 col-left col-padding">
-                <h3 class="control-title">Scene</h3>
-                <div class="button stretch-button active" id="add-button">Add custom scene</div>
-                <br>
-                <div id="scene-selector"></div>
-            </div>
-            <div class="col-4-12 col-left col-padding">
-                <div id="filter-parameter">
+            <div class="column" id="nlos-controls">
+                <div class="row justify" style="align-items: start; margin: auto;">
+                    <h3 class="control-title">Time</h3>
+                    <div style="padding-top: 15px; width: 70%;">
+                        <div id="instant-selector"></div>
+                    </div>
+                    <div class="button stretch-button active" id="play-button">Play/Pause video</div>
+                </div>
+                <div class="row" style="padding-top: 10px;">
+                    <h3 class="control-title" style="padding-right: 15px;">Resolution</h3>
+                    <div id="reconstruction-resolution-selector"></div>
+                </div>
+                <div class="row justify" style="padding-top: 10px;">
+                    <div class="col-35-12">
+                        <h3 class="control-title">Camera model</h3>
+                        <div id="camera-selector"></div>
+                    </div>
+                    <div id="tonemap-div" class="col-35-12">
+                        <h3 id="tonemap-title" class="control-title">Tone mapper</h3>
+                        <div id="tonemap-selector"></div>
+                    </div>
+                    <div class="col-35-12">
+                        <h3 class="control-title">Filtering strategy</h3>
+                        <div id="filter-selector"></div>
+                    </div>
+                </div>
+                <div style="margin: auto;" id="filter-parameter" class="col-9-12">
                     <h3 class="control-title">Filter parameters</h3>
                     <div class="center-tight">
                         <div id="wl-slider"></div>
                         <div id="sigma-slider"></div>
-                        <canvas id="filter-canvas" style="border: none;" width="425" height="256"></canvas>
+                        <canvas id="filter-canvas" style="border: none; padding-top: 10px;" width="425" height="256"></canvas>
                     </div>
-                </div>
-                <div id="spread-type">
-                    <h3 class="control-title">Emitter spread</h3>
-                    <div id="spread-selector"></div>
-                </div>
-            </div>
-            <div class="col-2-12 col-left col-padding">
-                <h3 class="control-title">Filtering strategy</h3>
-                <div id="filter-selector"></div>
-                <div id="light-parameters">
-                    <h3 class="control-title">Emitter position</h3>
-                    <label for="xa">x: </label>
-                    <input type="number" id="xa" placeholder="0.0" class="col-2-12 number-input" step="0.1" max="1.78"
-                        min="-1.78"> m<br>
-                    <label for="ya">y: </label>
-                    <input type="number" id="ya" placeholder="-0.6" class="col-2-12 number-input" step="0.1" max="1.0"
-                        min="-1.0"> m<br />
-                    <h3 class="control-title">Emitter pointing at</h3>
-                    <label for="xb">x: </label>
-                    <input type="number" id="xb" placeholder="1.2" class="col-2-12 number-input" step="0.1" max="1.78"
-                        min="-1.78"> m<br>
-                    <label for="yb">y: </label>
-                    <input type="number" id="yb" placeholder="0.0" class="col-2-12 number-input" step="0.1" max="1.0"
-                        min="-1.0"> m<br />
-                </div>
-            </div>
-            <div id="tonemap-div" class="col-2-12 col-left col-padding">
-                <h3 id="tonemap-title" class="control-title">Reconstruction tone mapper</h3>
-                <div id="tonemap-selector"></div>
-            </div>
-            
-
-            <div class="control-row clearfix">
-                <div class="col-3-12 col-left col-padding">
-                    <h3 class="control-title">Light Path Length</h3>
-                    <div class="slider-styled" id="path-length"></div>
-                </div>
-                <div class="col-8-12 col-left col-padding">
-                    <h3 class="control-title">Sample Count</h3>
-                    <div id="sample-count"></div>
                 </div>
             </div>
         </div>
-
-
-        <!-- The Modal -->
-        <div id="myModal" class="modal">
-            <!-- Modal content -->
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Select the new scene parameters</h2>
-                <div class="control-row clearfix">
-                    <div class="col-2-12 col-padding col-left">
-                        <h3 class="control-title">Type of scene</h3>
-                        <div id="type-of-scene"></div>
-                        <div class="custom-scene">
-                            <h3 class="control-title">Material type</h3>
-                            <div id="material-types"></div>
-                        </div>
-                    </div>
-                    <div class="col-3-12 col-padding col-left">
-                        <div class="custom-scene">
-                            <h3 class="control-title">Feature size</h3>
-                            <div id="feature-size"></div>
-                            <h3 class="control-title">Object roughness</h3>
-                            <div id="roughness-slider"></div>
-                            <h3 class="control-title">Object's index of refraction</h3>
-                            <input type="number" id="ior" placeholder="1.3" class="col-2-12 number-input" step="0.1"
-                                max="20.0" min="1.0">
-                            <div id="segment-div">
-                                <h3 class="control-title">Vertices (m)</h3>
-                                <label for="x1">x1: </label>
-                                <input type="number" id="x1" placeholder="0.0" class="col-2-12 number-input" step="0.1"
-                                    max="1.78" min="-1.78">
-                                <label for="y1">y1: </label>
-                                <input type="number" id="y1" placeholder="0.8" class="col-2-12 number-input" step="0.1"
-                                    max="1.0" min="-1.0"><br />
-                                <label for="x2">x2: </label>
-                                <input type="number" id="x2" placeholder="-1.5" class="col-2-12 number-input" step="0.1"
-                                    max="1.78" min="-1.78">
-                                <label for="y2">y2: </label>
-                                <input type="number" id="y2" placeholder="0.8" class="col-2-12 number-input" step="0.1"
-                                    max="1.0" min="-1.0"><br /><br>
-                                <label for="box-width">Box width (m): </label>
-                                <input type="number" id="box-width" placeholder="0.0" class="col-2-12 number-input"
-                                    step="0.1" max="1.0" min="0.0">
-                            </div>
-                            <div id="scene-div">
-                                <h3 class="control-title">Scene to modify</h3>
-                                <div id="mod-scene-selector"></div>
-                            </div>
-                        </div>
-                        <div id="import-div">
-                            <h3 class="control-title">Import from JSON file</h3>
-                            <input type="file" accept=".json" id="selectFiles" value="Import" /><br />
-                        </div>
-                    </div>
+    </div>
+    <div id="myModal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Select the new scene parameters</h2>
+            <div class="control-row clearfix">
+                <div class="col-2-12 col-padding col-left">
+                    <h3 class="control-title">Type of scene</h3>
+                    <div id="type-of-scene"></div>
                     <div class="custom-scene">
-                        <div class="col-3-12 col-padding col-left">
-                            <h3 class="control-title">Relay wall roughness</h3>
-                            <div id="rwall-roughness"></div>
-                        </div>
-                        <div class="col-2-12 col-padding col-left">
-                            <h3 class="control-title">Material type of the relay wall</h3>
-                            <div id="rwall-mat-types"></div>
-                        </div>
+                        <h3 class="control-title">Material type</h3>
+                        <div id="material-types"></div>
                     </div>
                 </div>
-                <br>
-                <div class="col-2-12 col-padding button stretch-button active" id="create-button">Add</div>
+                <div class="col-3-12 col-padding col-left">
+                    <div class="custom-scene">
+                        <h3 class="control-title">Feature size</h3>
+                        <div id="feature-size"></div>
+                        <h3 class="control-title">Object roughness</h3>
+                        <div id="roughness-slider"></div>
+                        <h3 class="control-title">Object's index of refraction</h3>
+                        <input type="number" id="ior" placeholder="1.3" class="col-2-12 number-input" step="0.1"
+                            max="20.0" min="1.0">
+                        <div id="segment-div">
+                            <h3 class="control-title">Vertices (m)</h3>
+                            <label for="x1">x1: </label>
+                            <input type="number" id="x1" placeholder="0.0" class="col-2-12 number-input" step="0.1"
+                                max="1.78" min="-1.78">
+                            <label for="y1">y1: </label>
+                            <input type="number" id="y1" placeholder="0.8" class="col-2-12 number-input" step="0.1"
+                                max="1.0" min="-1.0"><br />
+                            <label for="x2">x2: </label>
+                            <input type="number" id="x2" placeholder="-1.5" class="col-2-12 number-input" step="0.1"
+                                max="1.78" min="-1.78">
+                            <label for="y2">y2: </label>
+                            <input type="number" id="y2" placeholder="0.8" class="col-2-12 number-input" step="0.1"
+                                max="1.0" min="-1.0"><br /><br>
+                            <label for="box-width">Box width (m): </label>
+                            <input type="number" id="box-width" placeholder="0.0" class="col-2-12 number-input"
+                                step="0.1" max="1.0" min="0.0">
+                        </div>
+                        <div id="scene-div">
+                            <h3 class="control-title">Scene to modify</h3>
+                            <div id="mod-scene-selector"></div>
+                        </div>
+                    </div>
+                    <div id="import-div">
+                        <h3 class="control-title">Import from JSON file</h3>
+                        <input type="file" accept=".json" id="selectFiles" value="Import" /><br />
+                    </div>
+                </div>
+                <div class="custom-scene">
+                    <div class="col-3-12 col-padding col-left">
+                        <h3 class="control-title">Relay wall roughness</h3>
+                        <div id="rwall-roughness"></div>
+                    </div>
+                    <div class="col-2-12 col-padding col-left">
+                        <h3 class="control-title">Material type of the relay wall</h3>
+                        <div id="rwall-mat-types"></div>
+                    </div>
+                </div>
             </div>
+            <br>
+            <div class="col-2-12 col-padding button stretch-button active" id="create-button">Add</div>
         </div>
     </div>
 </body>
