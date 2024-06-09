@@ -70,6 +70,7 @@
         this.hConfProgram = new tgl.Shader(Shaders, "h-conf-vert", "h-frag"); // hProgram added in setSpadPositions
         this.geometryProgram = new tgl.Shader(Shaders, "geometry-vert", "geometry-frag");
         this.rwallProgram = new tgl.Shader(Shaders, "bp-vert", "rwall-frag");
+        this.sensorProgram = new tgl.Shader(Shaders, "sensor-vert", "geometry-frag");
         this.tracePrograms = [];
         for (var i = 0; i < scenes.length; ++i)
             this.tracePrograms.push(null)
@@ -176,6 +177,28 @@
     }
 
     Renderer.prototype.createSceneVBOs = function () {
+        this.cameraVBO = new tgl.VertexBuffer();
+        this.cameraVBO.addAttribute("Position", 2, this.gl.FLOAT, false);
+        this.cameraVBO.init(8);
+        var vboData = new Float32Array(8 * 2);
+        vboData[0] = 0.0;
+        vboData[1] = 0.05;
+        vboData[2] = 0.0;
+        vboData[3] = -0.05;
+        vboData[4] = -0.05;
+        vboData[5] = -0.025;
+        vboData[6] = -0.05;
+        vboData[7] = -0.05;
+        vboData[8] = -0.175;
+        vboData[9] = -0.05;
+        vboData[10] = -0.175;
+        vboData[11] = 0.05;
+        vboData[12] = -0.05;
+        vboData[13] = 0.05;
+        vboData[14] = -0.05;
+        vboData[15] = 0.025;
+        this.cameraVBO.copy(vboData);
+
         this.sceneVBOs = [];
         var i = 0;
 
@@ -183,7 +206,7 @@
         this.sceneVBOs.push(new tgl.VertexBuffer());
         this.sceneVBOs[i].addAttribute("Position", 2, this.gl.FLOAT, false);
         this.sceneVBOs[i].init(4);
-        var vboData = new Float32Array(4 * 2);
+        vboData = new Float32Array(4 * 2);
         addRelayWallVertices(vboData, this.aspect);
         vboData[4] = 0.0;
         vboData[5] = 0.2;
@@ -4772,6 +4795,15 @@
         //     this.quadVbo.bind();
         //     this.quadVbo.draw(this.compositeProgram, this.gl.TRIANGLE_FAN);
         // }
+        this.sensorProgram.bind();
+        this.sensorProgram.uniform4F("uColor", 0.16796875, 0.5, 1.0, 1.0);
+        this.sensorProgram.uniform2F("spadPos", this.spadPos[0], this.spadPos[1]);
+        var relayCenter = [1.2, (this.spadBoundaries[0]+this.spadBoundaries[1]) / 2];
+        var angle = Math.atan2(relayCenter[1]-this.spadPos[1], relayCenter[0]-this.spadPos[0]);
+        this.sensorProgram.uniformF("angle", angle);
+        this.sensorProgram.uniformF("aspect", this.aspect);
+        this.cameraVBO.bind();
+        this.cameraVBO.draw(this.sensorProgram, this.gl.LINE_LOOP);
 
 
         this.rwallProgram.bind();

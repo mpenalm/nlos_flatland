@@ -868,7 +868,6 @@ var Shaders = {
         '	}\n\n'                                                                           +
 
         '	gl_FragColor = vec4(result, result2, oddY && (y == np.y - 1.0), 1.0);\n'         +
-        '	// gl_FragColor = vec4(mPos, oddX && (x == np.x - 1.0), 1.0);\n'                 +
         '}\n',
 
     'max-vert':
@@ -3879,6 +3878,22 @@ var Shaders = {
         '        throughput *= vec3(0.5);\n'                                               +
         '        return sampleDiffuse(state, wiLocal);\n'                                  +
         '    }\n'                                                                          +
+        '}\n',
+
+    'sensor-vert':
+        '#include "preamble"\n\n'                                                   +
+
+        'attribute vec3 Position;\n\n'                                              +
+
+        'uniform vec2 spadPos;\n'                                                   +
+        'uniform float angle;\n'                                                    +
+        'uniform float aspect;\n\n'                                                 +
+
+        'void main() {\n'                                                           +
+        '    float rotatedX = Position.x * cos(angle) - Position.y * sin(angle);\n' +
+        '    float rotatedY = Position.x * sin(angle) + Position.y * cos(angle);\n' +
+        '    vec2 pos = vec2(rotatedX, rotatedY) + spadPos;\n'                      +
+        '    gl_Position = vec4(pos.x / aspect, pos.y, Position.z, 1.0);\n'         +
         '}\n',
 
     'show-frag':

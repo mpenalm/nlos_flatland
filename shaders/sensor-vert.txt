@@ -1,0 +1,14 @@
+#include "preamble"
+
+attribute vec3 Position;
+
+uniform vec2 spadPos;
+uniform float angle;
+uniform float aspect;
+
+void main() {
+    float rotatedX = Position.x * cos(angle) - Position.y * sin(angle);
+    float rotatedY = Position.x * sin(angle) + Position.y * cos(angle);
+    vec2 pos = vec2(rotatedX, rotatedY) + spadPos;
+    gl_Position = vec4(pos.x / aspect, pos.y, Position.z, 1.0);
+}
