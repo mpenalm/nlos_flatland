@@ -1,19 +1,22 @@
-![Tantalum Sample Render](https://raw.githubusercontent.com/tunabrain/tantalum/master/Header.jpg "Tantalum Sample Render")
-
-# The Tantalum Renderer #
+# Looking Around Flatland #
 
 ## About ##
 
-Tantalum is a physically based 2D renderer written out of personal interest. The idea of this project was to build a light transport simulation using the same mathematical tools used in academic and movie production renderers, but in a simplified 2D setting. The 2D setting allows for faster render times and a more accessible way of understanding and interacting with light, even for people with no prior knowledge or interest in rendering.
+This system is an end-to-end simulation pipeline for 2D NLOS imaging.
+The 2D setting allows for faster render and imaging times, which is useful for prototyping, and a more accessible way of understanding and interacting with multiple parameters.
 
-Tantalum is written in JavaScript and WebGL.
+It is based on the [Tantalum](https://github.com/tunabrain/tantalum) renderer and written in JavaScript and WebGL.
 
-## License ##
+## Use ##
 
-To give developers as much freedom as is reasonable, Tantalum is distributed under the [libpng/zlib](http://opensource.org/licenses/Zlib) license. This allows you to modify, redistribute and sell all or parts of the code without attribution.
+The system can run locally. To launch it, open the [`nlos_flatland.html`](nlos_flatland.html) file on a browser.
 
-Note that Tantalum includes several third-party libraries in the `src/thirdparty` folder that come with their own licenses. Please see the `LICENSE.txt` file for more information.
+In the left of the window, it shows the current scene being rendered, and scene and capture parameters that can be modified.
+- The visualization shows fluence in the whole scene instead of radiance. That is, the amount of light passing through each point. There is no participating medium.
+- You can move the emitter position and orientation by clicking and dragging over the scene or using the textboxes.
+- The sensor always looks at the blue dots in the right of the scene, representing SPAD aperture.
+- We didn't have time to add a scale ruler yet: the scene is around 3.5 meters long in the horizontal (x) direction, and 2 meters long in the vertical (y) direction.
 
-## Compilation ##
-
-The only thing that needs to be compiled are the shaders, contained in the `shaders` subfolder. The `compile_shaders.py` script will turn those text files into a list of strings in a JS file (needs Python 3).
+In the right of the window, it shows the image obtained by the NLOS imaging method, and its parameters.
+- Confocal and Transient camera models can be evaluated at different instants with the time slider or Play/Pause button. 
+- Please note that the Steady-state camera model is not affected by the Time slider but it's still recomputed, and it can take a couple of seconds.

@@ -4750,6 +4750,13 @@
         }
     }
 
+    Renderer.prototype.getETA = function () {
+        var elapsedTime = this.nlosElapsedTimes[this.nlosElapsedTimes.length-1] - this.nlosElapsedTimes[0];
+        var completed = this.confCounter + this.progress();
+        if (this.isConf) completed /= this.numSpads;
+        return Math.max((1 - completed) * elapsedTime / completed / 1000, 0);
+    }
+
     Renderer.prototype.partialReset = function () {
         this.wavesTraced = 0;
         this.raysTraced = 0;

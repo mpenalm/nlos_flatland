@@ -779,7 +779,7 @@ Transient.prototype.setupUI = function () {
     this.overlay.className = "render-help";
     this.overlay.offsetHeight; /* Flush CSS changes */
     this.overlay.className += " render-help-transition";
-    this.overlay.textContent = "Click and drag!"
+    this.overlay.innerHTML = '<p style="margin: 20px">Click and drag to move and orient the light source</p>';
     this.overlay.addEventListener("mousedown", function (event) {
         this.parentNode.removeChild(this);
         mouseListener.mouseDown(event);
@@ -819,9 +819,13 @@ Transient.prototype.fail = function (message) {
 Transient.prototype.renderLoop = function (timestamp) {
     window.requestAnimationFrame(this.boundRenderLoop);
 
-    if (!this.renderer.finished())
+    if (!this.renderer.finished()) {
         this.renderer.render(timestamp);
-    else if (this.changePlayState) {
+        this.progressBar.setProgress(this.renderer.progress());
+        this.progressBar.setLabel(Math.min(this.renderer.totalRaysTraced(), this.renderer.maxRayCount()) +
+            "/" + this.renderer.maxRayCount() + " rays traced; Progress: " +
+            this.progressBar.getProgressPercentage()+ "%; ETA: " + this.renderer.getETA().toFixed(3) + "s");
+    } else if (this.changePlayState) {
         this.playVideo = !this.playVideo;
         this.changePlayState = false;
         if (!this.playVideo)
@@ -867,11 +871,6 @@ Transient.prototype.renderLoop = function (timestamp) {
         this.savedImages++;
         this.saveImageData = false;
     }
-
-    this.progressBar.setProgress(this.renderer.progress());
-    this.progressBar.setLabel(Math.min(this.renderer.totalRaysTraced(), this.renderer.maxRayCount()) +
-        "/" + this.renderer.maxRayCount() + " rays traced; Progress: " +
-        this.progressBar.getProgressPercentage() + "%");
 }
 
 Transient.prototype.saveParameters = function (fileName) {
