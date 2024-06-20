@@ -270,14 +270,14 @@ Transient.prototype.setupUI = function () {
         sigma = sigma / 1000;
         renderer.setSigma(sigma);
     })
-    sigmaSlider.setValue(20);
+    sigmaSlider.setValue(30);
 
     var wlSlider = new tui.Slider("wl-slider", 1, 20, true, function (wl) {
         this.setLabel(`Wavelength: ${wl} cm`);
         wl = wl / 100;
         renderer.setWavelength(wl);
     });
-    wlSlider.setValue(2);
+    wlSlider.setValue(3);
 
     new tui.ButtonGroup("magnitude-selector", false, config.magnitudes, function (idx) {
         var usePhase = Boolean(idx);
