@@ -750,7 +750,8 @@ Transient.prototype.setupUI = function () {
             roughness: wallRoughness,
             albedo: 0.5,
         };
-        generator.generateAndAddScene(renderer, config, sceneSelector, verticesList, hiddenMaterial, wallMaterial, featureSizeSlider.label.innerHTML, (typeOfScene == 1) ? modSceneNames[modSceneSelector.selectedButton] : 'Custom', hiddenBox);
+        if (typeOfScene != 2)
+            generator.generateAndAddScene(renderer, config, sceneSelector, verticesList, hiddenMaterial, wallMaterial, featureSizeSlider.label.innerHTML, (typeOfScene == 1) ? modSceneNames[modSceneSelector.selectedButton] : 'Custom', hiddenBox);
 
         modal.style.display = "none";
         showSliderHandles();

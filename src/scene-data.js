@@ -75,7 +75,7 @@
             this.featureSize = parseFloat(jsonScene.scene.feature_size.split(' ')[0]); // assuming cm
             var length = (this.typeOfScene == LoadedSceneType.ModifiedDefault) ? getSceneGeometryLength(this.baseSceneIdx) : getSegmentLength(this.v1, this.v2);
             this.nFeatures = parseInt(length*100 / this.featureSize); // Length is in m, feature size in cm
-            console.log(`Feature size: ${this.featureSize}\nLength: ${length}\n#features: ${this.nFeatures}`);
+            // console.log(`Feature size: ${this.featureSize}\nLength: ${length}\n#features: ${this.nFeatures}`);
             // this.nFeatures = 1; // TODO: compute from featureSize or save this in JSON
             if (this.hiddenMat === MaterialType.Dielectric|| this.hiddenMat === MaterialType.RoughDielectric) {
                 this.hiddenIor = jsonScene.scene.hidden_ior;
