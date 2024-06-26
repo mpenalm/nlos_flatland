@@ -163,7 +163,7 @@ Transient.prototype.setupUI = function () {
         "camera_models": ["Confocal", "Time-gated", "Steady-state"],
         "spad_num": [16, 32, 64, 128, 256],
         "filters": ["None", "Laplacian", "Laplacian of Gaussian", "Phasor Fields"], // TODO: Phasor-based instead, careful with type='pf'
-        "tone_mapper_labels": ["None", "Logarithmic", "Square root"],
+        "tone_mapper_labels": ["Linear", "Logarithmic", "Square root"],
         "tone_mapper_ids": ["none", "log(1.0+", "sqrt("],
         "magnitudes": ["Amplitude", "Phase"],
         "material_types": ["Diffuse", "Mirror", "Dielectric", "RoughMirror", "RoughDielectric"],
