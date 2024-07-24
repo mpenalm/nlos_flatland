@@ -539,6 +539,43 @@ body {
 
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+  
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 600px;
+    background-color: black;
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 5px 5px;
+  
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+  
+    top: 100%;
+    left: 0%;
+}
+  
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+.tooltip .tooltiptext::after {
+    content: " ";
+    position: absolute;
+    bottom: 100%;  /* At the top of the tooltip */
+    left: 0%;
+    margin-left: 15px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent black transparent;
 }

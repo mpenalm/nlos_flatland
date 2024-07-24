@@ -16,18 +16,19 @@
     function getSceneGeometryLength(sceneIdx) {
         var d;
         if (sceneIdx < 4) {
-            // Line, Box, Visibility test, and Virtual mirror
+            // Line, Box, Three segments, and Virtual mirror
             d = 0.4;
         } else if (sceneIdx == 4) {
             // Rotated segment
-            d = Math.sqrt(0.17);
+            // d = Math.sqrt(0.17);
+            d = 0.5;
         } else if (sceneIdx == 5) {
             // Two boxes
             d = 0.5;
-        } else {
+        } /*else {
             // Triangle
             d = Math.sqrt(0.2);
-        }
+        }*/
 
         return d;
     }

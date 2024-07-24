@@ -26,7 +26,25 @@
 </head>
 
 <body onload="t = new Transient();">
-<!-- <body onload="new Transient();"> -->
+    <div class="tooltip">
+        <img src="info.png" alt="Information button" style="height: 40px;">
+        <span class="tooltiptext">
+            In the left of the window, the system shows the current scene being rendered, and scene and capture parameters that can be modified.
+            <ul>
+                <li>The visualization shows fluence in the whole scene instead of radiance. That is, the amount of light passing through each point. There is no participating medium.</li>
+                <li>You can move the emitter position and orientation by clicking and dragging over the scene or using the textboxes.</li>
+                <li>The sensor always looks at the blue dots in the right of the scene, representing SPAD aperture.</li>
+                <li>The scene is around 3.5 meters long in the horizontal (x) direction, and 2 meters long in the vertical (y) direction.</li>
+                <li>Please note that compiling scenes with many segments, such as the Bunny can take a few seconds, but they will only need to be compiled the first time you select them.</li>
+            </ul>
+            
+            In the right of the window, it shows the image obtained by the NLOS imaging method, and its parameters.
+            <ul>
+                <li>Confocal and Time-gated camera models can be evaluated at different instants with the time slider or Play/Pause button. </li>
+                <li>Please note that the Steady-state camera model is not affected by the Time slider but it's still recomputed, and it can take a couple of seconds.</li>
+            </ul>
+        </span>
+    </div>
     <div class="width-of-canvas">
         <div id="headers" class="controls row justify" style="position: relative; margin-bottom: 4px;">
             <div class="column">
@@ -45,10 +63,6 @@
                         <h3 class="control-title" style="padding-right: 15px;">Magnitude</h3>
                         <div id="magnitude-selector"></div>
                     </div>
-                    <!-- <div id="conventional-addition" style="visibility: hidden;">
-                        <h3 class="control-title">Conventional camera integration over time</h3>
-                        <div id="addition-selector"></div>
-                    </div> -->
                     <div class="button stretch-button active" id="save-button">Download reconstruction data</div>
                 </div>
             </div>
