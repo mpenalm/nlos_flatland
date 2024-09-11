@@ -29,6 +29,9 @@ var Transient = function () {
     /* Ok, all seems well. Time to show the controls */
     this.controls.style.visibility = "visible";
 
+    this.fpsElem = document.querySelector("#fps");
+    this.avgElem = document.querySelector("#avg");
+
     window.requestAnimationFrame(this.boundRenderLoop);
 }
 
@@ -817,8 +820,31 @@ Transient.prototype.fail = function (message) {
     this.overlay.style.display = this.canvas.style.display = 'none';
 }
 
+const frameTimes = [];
+let   frameCursor = 0;
+let   numFrames = 0;   
+const maxFrames = 20;
+let   totalFPS = 0;
+
+let then = 0
 Transient.prototype.renderLoop = function (timestamp) {
     window.requestAnimationFrame(this.boundRenderLoop);
+    now = timestamp * 0.001;                   // convert to seconds
+    const deltaTime = now - then;              // compute time since last frame
+    then = now;                                // remember time for next frame
+    const fps = 1 / deltaTime;                 // compute frames per second
+    this.fpsElem.textContent = fps.toFixed(1); // update fps display
+
+    // add the current fps and remove the oldest fps
+    totalFPS += fps - (frameTimes[frameCursor] || 0);
+    // record the newest fps
+    frameTimes[frameCursor++] = fps;
+    // needed so the first N frames, before we have maxFrames, is correct.
+    numFrames = Math.max(numFrames, frameCursor);
+    // wrap the cursor
+    frameCursor %= maxFrames;
+    const averageFPS = totalFPS / numFrames;
+    this.avgElem.textContent = averageFPS.toFixed(1);  // update avg display
 
     if (!this.renderer.finished()) {
         this.renderer.render(timestamp);
