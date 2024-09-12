@@ -959,6 +959,7 @@ Transient.prototype.saveParameters = function (fileName) {
 }
 
 Transient.prototype.saveRaw = function (fileName) {
+    // Important: this function is saving the transposed reconstruction, and ending lines with commas, which makes python's numpy.loadtxt() break
     var values = this.renderer.getReconstructionValues();
 
     var text = ``;
@@ -977,6 +978,23 @@ Transient.prototype.saveRaw = function (fileName) {
         text += `\n`;
     }
 
+    var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+    saveAs(blob, fileName);
+}
+
+Transient.prototype.saveTransientWaveform = function (fileName) {
+    var values = this.renderer.getTransientValues();
+
+    var text = ``;
+    var k = 0;
+    for (var i = 0; i < this.renderer.numSpads; i++) {
+        for (var j = 0; j < this.renderer.numIntervals; j++) {
+            text += `${(j == 0) ? '' : ','}${values[k]}`;
+            k++;
+        }
+        text += `\n`;
+    }
+    
     var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
     saveAs(blob, fileName);
 }
