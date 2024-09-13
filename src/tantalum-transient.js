@@ -955,7 +955,7 @@ Transient.prototype.saveParameters = function (fileName) {
 }`;
 
     var blob = new Blob([text], { type: "text/json;charset=utf-8" });
-    saveAs(blob, fileName);
+    saveAs(blob, fileName, true); // Avoid the BOM byte at the beginning
 }
 
 Transient.prototype.saveRaw = function (fileName) {
@@ -979,7 +979,7 @@ Transient.prototype.saveRaw = function (fileName) {
     }
 
     var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
-    saveAs(blob, fileName);
+    saveAs(blob, fileName, true); // Avoid the BOM byte at the beginning
 }
 
 Transient.prototype.saveTransientWaveform = function (fileName) {
@@ -996,5 +996,5 @@ Transient.prototype.saveTransientWaveform = function (fileName) {
     }
     
     var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
-    saveAs(blob, fileName);
+    saveAs(blob, fileName, true); // Avoid the BOM byte at the beginning
 }
