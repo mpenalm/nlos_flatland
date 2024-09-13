@@ -165,6 +165,10 @@
         this.addModules = true;
         this.showGeometry = false;
         this.createSceneVBOs();
+
+        this.renderQueries = []
+        this.nlosQueries = []
+        this.timerExt = this.gl.getExtension('EXT_disjoint_timer_query');
     }
 
     Renderer.prototype.scene2canvas = function (pos) {
@@ -3876,6 +3880,20 @@
     Renderer.prototype.setCameraModel = function (id) {
         this.isVirtualConf = (id == 0);
         this.isConvCamera = (id == 2);
+        // Clean previous camera model times to avoid mixing different models
+        if (this.nlosQueries) {
+            for (var i = this.nlosQueries.length-1; i >= 0; i--) {
+                var query = this.nlosQueries[i];
+                let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
+                let disjoint = this.gl.getParameter(this.timerExt.GPU_DISJOINT_EXT);
+
+                if (available || disjoint) {
+                    // Clean up the query object.
+                    this.timerExt.deleteQueryEXT(query);
+                }
+                this.nlosQueries.pop();
+            }
+        }
         if (this.finished())
             this.redraw();
     }
@@ -4264,7 +4282,9 @@
         var instant = (this.isConvCamera) ? 0 : this.instant;
         var n = (this.isConvCamera) ? this.numIntervals : 1;
 
-        var start = Date.now();
+        var q = this.nlosQueries.length;
+        this.nlosQueries.push(this.timerExt.createQueryEXT());
+        this.timerExt.beginQueryEXT(this.timerExt.TIME_ELAPSED_EXT, this.nlosQueries[q]);
         for (var i = 0; i < n; i++) {
             if (this.isConf) {
                 // Confocal data
@@ -4303,8 +4323,7 @@
             }
             instant++;
         }
-        var finish = Date.now();
-        if (this.isConvCamera) console.log(`${finish - start} ms`);
+        this.timerExt.endQueryEXT(this.timerExt.TIME_ELAPSED_EXT);
         gl.disable(gl.BLEND);
     }
 
@@ -4522,6 +4541,34 @@
         this.msPerFrame = 1000 / 100;
         this.currentCall = 0;
         this.nlosElapsedTimes = [];
+
+        if (this.renderQueries) {
+            for (var i = this.renderQueries.length-1; i >= 0; i--) {
+                var query = this.renderQueries[i];
+                let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
+                let disjoint = this.gl.getParameter(this.timerExt.GPU_DISJOINT_EXT);
+
+                if (available || disjoint) {
+                    // Clean up the query object.
+                    this.timerExt.deleteQueryEXT(query);
+                }
+                this.renderQueries.pop();
+            }
+        }
+        if (this.nlosQueries) {
+            for (var i = this.nlosQueries.length-1; i >= 0; i--) {
+                var query = this.nlosQueries[i];
+                let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
+                let disjoint = this.gl.getParameter(this.timerExt.GPU_DISJOINT_EXT);
+
+                if (available || disjoint) {
+                    // Clean up the query object.
+                    this.timerExt.deleteQueryEXT(query);
+                }
+                this.nlosQueries.pop();
+            }
+        }
+
         this.confCounter = 0;
         if (this.isConf) {
             this.laserGrid = [this.spadPoints[0], this.spadPoints[1]];
@@ -4871,6 +4918,10 @@
         this.rayStates[next].attach(this.fbo);
         this.quadVbo.bind();
 
+        var q = this.renderQueries.length;
+        this.renderQueries.push(this.timerExt.createQueryEXT());
+        this.timerExt.beginQueryEXT(this.timerExt.TIME_ELAPSED_EXT, this.renderQueries[q]);
+
         if (this.pathLength == 0) {
             this.initProgram.bind();
             this.rayStates[current].rngTex.bind(0);
@@ -4973,6 +5024,7 @@
                 this.elapsedTimes = [];
             }
         }
+        this.timerExt.endQueryEXT(this.timerExt.TIME_ELAPSED_EXT);
 
         gl.disable(gl.BLEND);
 
@@ -5159,6 +5211,54 @@
             result.push(h[i]);
         }
         return result;
+    }
+
+    Renderer.prototype.getRenderTime = function () {
+        var count = 0;
+        var total = 0;
+        for (var i = 0; i < this.renderQueries.length; i++) {
+            query = this.renderQueries[i];
+            if (query) {
+                let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
+                let disjoint = this.gl.getParameter(t.renderer.timerExt.GPU_DISJOINT_EXT);
+                if (available && !disjoint) {
+                    // See how much time the rendering of the object took in nanoseconds.
+                    let timeElapsed = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_EXT);
+                    count++;
+                    total += timeElapsed;
+                } else {
+                    console.log('Unable to read a query, exiting loop');
+                    break;
+                }
+            }
+        }
+
+        console.log(`Total time reconstructing: ${1e-6 * total} ms`);
+        console.log(`Mean time reconstructing: ${1e-6 * total / count} ms`);
+    }
+
+    Renderer.prototype.getReconstructionTime = function () {
+        var count = 0;
+        var total = 0;
+        for (var i = 0; i < this.nlosQueries.length; i++) {
+            query = this.nlosQueries[i];
+            if (query) {
+                let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
+                let disjoint = this.gl.getParameter(t.renderer.timerExt.GPU_DISJOINT_EXT);
+                if (available && !disjoint) {
+                    // See how much time the rendering of the object took in nanoseconds.
+                    let timeElapsed = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_EXT);
+                    count++;
+                    total += timeElapsed;
+                } else {
+                    console.log('Unable to read a query, exiting loop');
+                    break;
+                }
+            }
+        }
+
+        console.log(`Total time reconstructing: ${1e-6 * total} ms`);
+        console.log(`Mean time reconstructing: ${1e-6 * total / count} ms`);
     }
 
     exports.Renderer = Renderer;
