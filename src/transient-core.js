@@ -5214,8 +5214,7 @@
     }
 
     Renderer.prototype.getRenderTime = function () {
-        var count = 0;
-        var total = 0;
+        var measures = [];
         for (var i = 0; i < this.renderQueries.length; i++) {
             query = this.renderQueries[i];
             if (query) {
@@ -5224,22 +5223,33 @@
                 if (available && !disjoint) {
                     // See how much time the rendering of the object took in nanoseconds.
                     let timeElapsed = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_EXT);
-                    count++;
-                    total += timeElapsed;
+                    measures.push(timeElapsed);
                 } else {
-                    console.log('Unable to read a query, exiting loop');
+                    // console.log('Unable to read a query, exiting loop');
                     break;
                 }
             }
         }
 
-        console.log(`Total time reconstructing: ${1e-6 * total} ms`);
-        console.log(`Mean time reconstructing: ${1e-6 * total / count} ms`);
+        var mean = 0;
+        var std = 0;
+        var total = 0;
+        var n = measures.length;
+        measures.forEach(x => {
+            mean += x;
+            total += x;
+        });
+        if (n > 0) mean /= n;
+        if (n < 2) std = undefined;
+        else {
+            for (var i = 0; i < measures.length; i++) std += (measures[i] - mean) * (measures[i] - mean);
+            std = 1e-6 * Math.sqrt(std / (n - 1));
+        }
+        return [1e-6 * total, 1e-6 * mean, std];
     }
 
     Renderer.prototype.getReconstructionTime = function () {
-        var count = 0;
-        var total = 0;
+        var measures = [];
         for (var i = 0; i < this.nlosQueries.length; i++) {
             query = this.nlosQueries[i];
             if (query) {
@@ -5248,17 +5258,32 @@
                 if (available && !disjoint) {
                     // See how much time the rendering of the object took in nanoseconds.
                     let timeElapsed = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_EXT);
-                    count++;
-                    total += timeElapsed;
+                    measures.push(timeElapsed);
                 } else {
-                    console.log('Unable to read a query, exiting loop');
+                    // console.log('Unable to read a query, exiting loop');
                     break;
                 }
             }
         }
 
-        console.log(`Total time reconstructing: ${1e-6 * total} ms`);
-        console.log(`Mean time reconstructing: ${1e-6 * total / count} ms`);
+        // console.log(`Total time reconstructing: ${1e-6 * total} ms`);
+        // console.log(`Mean time reconstructing: ${1e-6 * total / count} ms`);
+        
+        var mean = 0;
+        var std = 0;
+        var total = 0;
+        var n = measures.length;
+        measures.forEach(x => {
+            mean += x;
+            total += x;
+        });
+        if (n > 0) mean /= n;
+        if (n < 2) std = undefined;
+        else {
+            for (var i = 0; i < measures.length; i++) std += (measures[i] - mean) * (measures[i] - mean);
+            std = 1e-6 * Math.sqrt(std / (n - 1));
+        }
+        return [1e-6 * total, 1e-6 * mean, std];
     }
 
     exports.Renderer = Renderer;

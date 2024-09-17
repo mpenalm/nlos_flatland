@@ -579,3 +579,7 @@ input::-webkit-inner-spin-button {
     border-style: solid;
     border-color: transparent transparent black transparent;
 }
+
+td {
+    padding-right: 10px;
+}
