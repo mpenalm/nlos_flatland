@@ -4257,6 +4257,22 @@
         if (this.numPixels === undefined || this.numPixels[1] != height) {
             this.numPixels = [parseInt(height * this.aspect), height];
             this.createNLOSBuffers(ModifiedAttributes.NumPixels);
+
+            // Clear previous reconstruction time measurements
+            if (this.nlosQueries) {
+                for (var i = this.nlosQueries.length-1; i >= 0; i--) {
+                    var query = this.nlosQueries[i];
+                    let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
+                    let disjoint = this.gl.getParameter(this.timerExt.GPU_DISJOINT_EXT);
+    
+                    if (available || disjoint) {
+                        // Clean up the query object.
+                        this.timerExt.deleteQueryEXT(query);
+                    }
+                    this.nlosQueries.pop();
+                }
+            }
+
             if (this.finished())
                 this.redraw();
         }
