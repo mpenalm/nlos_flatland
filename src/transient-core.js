@@ -166,13 +166,16 @@
         this.showGeometry = false;
         this.createSceneVBOs();
 
-        this.renderQueries = [];
-        this.nlosQueries = [];
         this.timerExt = this.gl.getExtension('EXT_disjoint_timer_query');
+        if (this.timerExt === null) {
+            alert("Your browser does not support the EXT_disjoint_timer_query extension, separate render and reconstruction times will not be shown.");
+        } else {
+            this.renderQueries = [];
+            this.nlosQueries = [];
+        }
 
         this.frameTimestamps = [];
         this.totalFPS = 0;
-        console.log(this.totalFPS);
     }
 
     Renderer.prototype.scene2canvas = function (pos) {
@@ -4303,9 +4306,11 @@
         var instant = (this.isConvCamera) ? 0 : this.instant;
         var n = (this.isConvCamera) ? this.numIntervals : 1;
 
-        var q = this.nlosQueries.length;
-        this.nlosQueries.push(this.timerExt.createQueryEXT());
-        this.timerExt.beginQueryEXT(this.timerExt.TIME_ELAPSED_EXT, this.nlosQueries[q]);
+        if (this.nlosQueries) {
+            var q = this.nlosQueries.length;
+            this.nlosQueries.push(this.timerExt.createQueryEXT());
+            this.timerExt.beginQueryEXT(this.timerExt.TIME_ELAPSED_EXT, this.nlosQueries[q]);
+        }
         for (var i = 0; i < n; i++) {
             if (this.isConf) {
                 // Confocal data
@@ -4344,7 +4349,7 @@
             }
             instant++;
         }
-        this.timerExt.endQueryEXT(this.timerExt.TIME_ELAPSED_EXT);
+        if (this.nlosQueries) this.timerExt.endQueryEXT(this.timerExt.TIME_ELAPSED_EXT);
         gl.disable(gl.BLEND);
     }
 
@@ -4564,7 +4569,6 @@
         this.nlosElapsedTimes = [];
         this.frameTimestamps = [];
         this.totalFPS = 0;
-        console.log(this.totalFPS);
 
         if (this.renderQueries) {
             for (var i = this.renderQueries.length-1; i >= 0; i--) {
@@ -4948,9 +4952,11 @@
         this.rayStates[next].attach(this.fbo);
         this.quadVbo.bind();
 
-        var q = this.renderQueries.length;
-        this.renderQueries.push(this.timerExt.createQueryEXT());
-        this.timerExt.beginQueryEXT(this.timerExt.TIME_ELAPSED_EXT, this.renderQueries[q]);
+        if (this.renderQueries) {
+            var q = this.renderQueries.length;
+            this.renderQueries.push(this.timerExt.createQueryEXT());
+            this.timerExt.beginQueryEXT(this.timerExt.TIME_ELAPSED_EXT, this.renderQueries[q]);
+        }
 
         if (this.pathLength == 0) {
             this.initProgram.bind();
@@ -5054,7 +5060,7 @@
                 this.elapsedTimes = [];
             }
         }
-        this.timerExt.endQueryEXT(this.timerExt.TIME_ELAPSED_EXT);
+        if (this.renderQueries) this.timerExt.endQueryEXT(this.timerExt.TIME_ELAPSED_EXT);
 
         gl.disable(gl.BLEND);
 
@@ -5244,36 +5250,38 @@
     }
 
     Renderer.prototype.getRenderTime = function () {
-        var measures = [];
-        for (var i = 0; i < this.renderQueries.length; i++) {
-            query = this.renderQueries[i];
-            if (query) {
-                let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
-                let disjoint = this.gl.getParameter(t.renderer.timerExt.GPU_DISJOINT_EXT);
-                if (available && !disjoint) {
-                    // See how much time the rendering of the object took in nanoseconds.
-                    let timeElapsed = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_EXT);
-                    measures.push(timeElapsed);
-                } else {
-                    // console.log('Unable to read a query, exiting loop');
-                    break;
+        if (this.renderQueries) { // Check separate time only if the timer extension is available
+            var measures = [];
+            for (var i = 0; i < this.renderQueries.length; i++) {
+                query = this.renderQueries[i];
+                if (query) {
+                    let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
+                    let disjoint = this.gl.getParameter(t.renderer.timerExt.GPU_DISJOINT_EXT);
+                    if (available && !disjoint) {
+                        // See how much time the rendering of the object took in nanoseconds.
+                        let timeElapsed = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_EXT);
+                        measures.push(timeElapsed);
+                    } else {
+                        // console.log('Unable to read a query, exiting loop');
+                        break;
+                    }
                 }
             }
-        }
 
-        var mean = 0;
-        var std = 0;
-        var total = 0;
-        var n = measures.length;
-        measures.forEach(x => {
-            mean += x;
-            total += x;
-        });
-        if (n > 0) mean /= n;
-        if (n < 2) std = undefined;
-        else {
-            for (var i = 0; i < measures.length; i++) std += (measures[i] - mean) * (measures[i] - mean);
-            std = 1e-6 * Math.sqrt(std / (n - 1));
+            var mean = 0;
+            var std = 0;
+            var total = 0;
+            var n = measures.length;
+            measures.forEach(x => {
+                mean += x;
+                total += x;
+            });
+            if (n > 0) mean /= n;
+            if (n < 2) std = undefined;
+            else {
+                for (var i = 0; i < measures.length; i++) std += (measures[i] - mean) * (measures[i] - mean);
+                std = 1e-6 * Math.sqrt(std / (n - 1));
+            }
         }
         var numFrames = this.frameTimestamps.length;
         var meanFPS = this.totalFPS / numFrames;
@@ -5281,39 +5289,41 @@
     }
 
     Renderer.prototype.getReconstructionTime = function () {
-        var measures = [];
-        for (var i = 0; i < this.nlosQueries.length; i++) {
-            query = this.nlosQueries[i];
-            if (query) {
-                let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
-                let disjoint = this.gl.getParameter(t.renderer.timerExt.GPU_DISJOINT_EXT);
-                if (available && !disjoint) {
-                    // See how much time the rendering of the object took in nanoseconds.
-                    let timeElapsed = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_EXT);
-                    measures.push(timeElapsed);
-                } else {
-                    // console.log('Unable to read a query, exiting loop');
-                    break;
+        if (this.renderQueries) { // Check separate time only if the timer extension is available
+            var measures = [];
+            for (var i = 0; i < this.nlosQueries.length; i++) {
+                query = this.nlosQueries[i];
+                if (query) {
+                    let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
+                    let disjoint = this.gl.getParameter(t.renderer.timerExt.GPU_DISJOINT_EXT);
+                    if (available && !disjoint) {
+                        // See how much time the rendering of the object took in nanoseconds.
+                        let timeElapsed = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_EXT);
+                        measures.push(timeElapsed);
+                    } else {
+                        // console.log('Unable to read a query, exiting loop');
+                        break;
+                    }
                 }
             }
-        }
 
-        // console.log(`Total time reconstructing: ${1e-6 * total} ms`);
-        // console.log(`Mean time reconstructing: ${1e-6 * total / count} ms`);
-        
-        var mean = 0;
-        var std = 0;
-        var total = 0;
-        var n = measures.length;
-        measures.forEach(x => {
-            mean += x;
-            total += x;
-        });
-        if (n > 0) mean /= n;
-        if (n < 2) std = undefined;
-        else {
-            for (var i = 0; i < measures.length; i++) std += (measures[i] - mean) * (measures[i] - mean);
-            std = 1e-6 * Math.sqrt(std / (n - 1));
+            // console.log(`Total time reconstructing: ${1e-6 * total} ms`);
+            // console.log(`Mean time reconstructing: ${1e-6 * total / count} ms`);
+            
+            var mean = 0;
+            var std = 0;
+            var total = 0;
+            var n = measures.length;
+            measures.forEach(x => {
+                mean += x;
+                total += x;
+            });
+            if (n > 0) mean /= n;
+            if (n < 2) std = undefined;
+            else {
+                for (var i = 0; i < measures.length; i++) std += (measures[i] - mean) * (measures[i] - mean);
+                std = 1e-6 * Math.sqrt(std / (n - 1));
+            }
         }
         return [1e-6 * total, 1e-6 * mean, std];
     }

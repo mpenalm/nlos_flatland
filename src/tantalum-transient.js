@@ -859,11 +859,11 @@ Transient.prototype.renderLoop = function (timestamp) {
     // Display render and reconstruction time statistics
     var renderTimes = this.renderer.getRenderTime();
     var recTimes = this.renderer.getReconstructionTime();
-    this.timeElems['totalRender'].textContent = `${renderTimes[0].toFixed(1)} ms`;
-    this.timeElems['meanRender'].textContent = `${renderTimes[1].toFixed(1)} ms`;
+    this.timeElems['totalRender'].textContent = (renderTimes[0]) ? `${renderTimes[0].toFixed(1)} ms` : `Undefined`;
+    this.timeElems['meanRender'].textContent = (renderTimes[1]) ? `${renderTimes[1].toFixed(1)} ms` : `Undefined`;
     this.timeElems['stdRender'].textContent = (renderTimes[2]) ? `${renderTimes[2].toFixed(1)} ms` : `Undefined`;
-    this.timeElems['totalRec'].textContent = `${recTimes[0].toFixed(1)} ms`;
-    this.timeElems['meanRec'].textContent = `${recTimes[1].toFixed(1)} ms`;
+    this.timeElems['totalRec'].textContent = (recTimes[0]) ? `${recTimes[0].toFixed(1)} ms` : `Undefined`;
+    this.timeElems['meanRec'].textContent = (recTimes[1]) ? `${recTimes[1].toFixed(1)} ms` : `Undefined`;
     this.timeElems['stdRec'].textContent = (recTimes[2]) ? `${recTimes[2].toFixed(1)} ms` : `Undefined`;
     this.timeElems['meanFPS'].textContent = `${renderTimes[3].toFixed(1)}`;
     this.timeElems['numFrames'].textContent = `${renderTimes[4].toFixed(1)}`;
