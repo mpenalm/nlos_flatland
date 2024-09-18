@@ -95,6 +95,7 @@
         this.lightLookAt = jsonScene.light_source.look_at; // Ignored if capture is confocal
 
         // Capture parameters
+        this.sensorOrigin = jsonScene.capture.origin;
         this.captureIdx = config.capture_methods.findIndex((method) => method === jsonScene.capture.method);
         this.nSpadIdx = config.spad_num.findIndex((num) => num == jsonScene.capture.num_spads);
         this.spadBoundaries = jsonScene.capture.spad_boundaries;
@@ -121,7 +122,7 @@
         this.geometryVisibilityIdx = jsonScene.superimpose_geometry ? 1 : 0;
     }
 
-    SceneData.prototype.applyCaptureParameters = function (sampleSlider, captureSelector, nSpadSelector, spadBoundsSlider, deltaTSlider, tmaxSlider, bounceSlider) {
+    SceneData.prototype.applyCaptureParameters = function (sampleSlider, captureSelector, nSpadSelector, spadBoundsSlider, deltaTSlider, tmaxSlider, bounceSlider, renderer) {
         sampleSlider.setValue(100 * Math.log10(this.sampleCount));
         captureSelector.select(this.captureIdx);
         nSpadSelector.select(this.nSpadIdx);
@@ -129,6 +130,7 @@
         deltaTSlider.setValue(parseInt(this.deltaT * 1000));
         tmaxSlider.setValue(parseInt(this.tmax / this.deltaT));
         bounceSlider.noUiSlider.set(this.bounces);
+        renderer.setSpadPos(this.sensorOrigin);
     }
 
     SceneData.prototype.applyEmitterParameters = function (spreadSelector, renderer) {

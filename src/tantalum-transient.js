@@ -673,12 +673,12 @@ Transient.prototype.setupUI = function () {
                     modal.style.display = "none";
                     showSliderHandles();
                     sceneSelector.select(data.sceneIdx);
-
-                    // Capture parameters
-                    data.applyCaptureParameters(sampleSlider, captureSelector, nSpadSelector, spadPositionsSlider, deltaTSlider, tmaxSlider, bounceSlider);
-
+                    
                     // Emitter parameters
                     data.applyEmitterParameters(spreadSelector, renderer);
+
+                    // Capture parameters
+                    data.applyCaptureParameters(sampleSlider, captureSelector, nSpadSelector, spadPositionsSlider, deltaTSlider, tmaxSlider, bounceSlider, renderer);                    
 
                     // Show geometry over the scene
                     geomVisSelector.select(data.geometryVisibilityIdx);
@@ -969,6 +969,7 @@ Transient.prototype.saveParameters = function (fileName) {
     text += `
 "capture": {
     "method": "${config.capture_methods[Number(renderer.isConf)]}",
+    "origin": [${renderer.spadPos[0]}, ${renderer.spadPos[1]}],
     "num_spads": ${renderer.numSpads},
     "spad_boundaries": [${renderer.spadBoundaries[0]}, ${renderer.spadBoundaries[1]}],
     "delta_t": ${renderer.deltaT},
