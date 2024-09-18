@@ -166,9 +166,13 @@
         this.showGeometry = false;
         this.createSceneVBOs();
 
-        this.renderQueries = []
-        this.nlosQueries = []
+        this.renderQueries = [];
+        this.nlosQueries = [];
         this.timerExt = this.gl.getExtension('EXT_disjoint_timer_query');
+
+        this.frameTimestamps = [];
+        this.totalFPS = 0;
+        console.log(this.totalFPS);
     }
 
     Renderer.prototype.scene2canvas = function (pos) {
@@ -3880,6 +3884,7 @@
     Renderer.prototype.setCameraModel = function (id) {
         this.isVirtualConf = (id == 0);
         this.isConvCamera = (id == 2);
+        
         // Clean previous camera model times to avoid mixing different models
         if (this.nlosQueries) {
             for (var i = this.nlosQueries.length-1; i >= 0; i--) {
@@ -4557,6 +4562,9 @@
         this.msPerFrame = 1000 / 100;
         this.currentCall = 0;
         this.nlosElapsedTimes = [];
+        this.frameTimestamps = [];
+        this.totalFPS = 0;
+        console.log(this.totalFPS);
 
         if (this.renderQueries) {
             for (var i = this.renderQueries.length-1; i >= 0; i--) {
@@ -4917,9 +4925,15 @@
     Renderer.prototype.render = function (timestamp) {
         this.needsReset = true;
         this.elapsedTimes.push(timestamp);
+        this.frameTimestamps.push(timestamp * 1e-3);
         if (this.nlosElapsedTimes.length == 0) {
             this.nlosElapsedTimes.push(timestamp);
         }
+
+        var n = this.frameTimestamps.length - 1;
+        var deltaTime = this.frameTimestamps[n] - ((n > 0) ? this.frameTimestamps[n-1] : 0);
+        var fps = 1 / deltaTime;
+        this.totalFPS += fps;
 
         var current = this.currentState;
         var next = 1 - current;
@@ -5261,7 +5275,9 @@
             for (var i = 0; i < measures.length; i++) std += (measures[i] - mean) * (measures[i] - mean);
             std = 1e-6 * Math.sqrt(std / (n - 1));
         }
-        return [1e-6 * total, 1e-6 * mean, std];
+        var numFrames = this.frameTimestamps.length;
+        var meanFPS = this.totalFPS / numFrames;
+        return [1e-6 * total, 1e-6 * mean, std, meanFPS, numFrames];
     }
 
     Renderer.prototype.getReconstructionTime = function () {

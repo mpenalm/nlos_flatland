@@ -33,12 +33,14 @@ var Transient = function () {
     this.avgElem = document.querySelector("#avg");
 
     this.timeElems = [];
-    this.timeElems['totalRender'] = document.getElementById("total-render-time")
-    this.timeElems['meanRender'] = document.getElementById("mean-render-time")
-    this.timeElems['stdRender'] = document.getElementById("std-render-time")
-    this.timeElems['totalRec'] = document.getElementById("total-rec-time")
-    this.timeElems['meanRec'] = document.getElementById("mean-rec-time")
-    this.timeElems['stdRec'] = document.getElementById("std-rec-time")
+    this.timeElems['totalRender'] = document.getElementById("total-render-time");
+    this.timeElems['meanRender'] = document.getElementById("mean-render-time");
+    this.timeElems['stdRender'] = document.getElementById("std-render-time");
+    this.timeElems['totalRec'] = document.getElementById("total-rec-time");
+    this.timeElems['meanRec'] = document.getElementById("mean-rec-time");
+    this.timeElems['stdRec'] = document.getElementById("std-rec-time");
+    this.timeElems['meanFPS'] = document.getElementById("avg-render-fps");
+    this.timeElems['numFrames'] = document.getElementById("render-frames");
 
     window.requestAnimationFrame(this.boundRenderLoop);
 }
@@ -863,6 +865,8 @@ Transient.prototype.renderLoop = function (timestamp) {
     this.timeElems['totalRec'].textContent = `${recTimes[0].toFixed(1)} ms`;
     this.timeElems['meanRec'].textContent = `${recTimes[1].toFixed(1)} ms`;
     this.timeElems['stdRec'].textContent = (recTimes[2]) ? `${recTimes[2].toFixed(1)} ms` : `Undefined`;
+    this.timeElems['meanFPS'].textContent = `${renderTimes[3].toFixed(1)}`;
+    this.timeElems['numFrames'].textContent = `${renderTimes[4].toFixed(1)}`;
 
     if (!this.renderer.finished()) {
         this.renderer.render(timestamp);
