@@ -167,9 +167,7 @@
         this.createSceneVBOs();
 
         this.timerExt = this.gl.getExtension('EXT_disjoint_timer_query');
-        if (this.timerExt === null) {
-            alert("Your browser does not support the EXT_disjoint_timer_query extension, separate render and reconstruction times will not be shown.");
-        } else {
+        if (this.timerExt) {
             this.renderQueries = [];
             this.nlosQueries = [];
         }

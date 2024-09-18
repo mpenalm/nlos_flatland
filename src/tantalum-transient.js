@@ -56,11 +56,16 @@ Transient.prototype.setupGL = function () {
     var floatLinExt = gl.getExtension("OES_texture_float_linear");
     var floatBufExt = gl.getExtension("WEBGL_color_buffer_float");
     var multiBufExt = gl.getExtension("WEBGL_draw_buffers");
+    var timerExt = gl.getExtension('EXT_disjoint_timer_query');
 
     if (!floatExt || !floatLinExt)
         throw new Error("Your platform does not support float textures");
     if (!multiBufExt)
         throw new Error("Your platform does not support the draw buffers extension");
+    if (!timerExt) {
+        alert("Your browser does not support the EXT_disjoint_timer_query extension, separate render and reconstruction times will not be shown.");
+        document.getElementById("latency-table").style.display= 'none';
+    }
 
     tgl.init(gl, multiBufExt);
 
