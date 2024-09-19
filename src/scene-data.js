@@ -95,7 +95,11 @@
         this.lightLookAt = jsonScene.light_source.look_at; // Ignored if capture is confocal
 
         // Capture parameters
-        this.sensorOrigin = jsonScene.capture.origin;
+        if (jsonScene.capture.hasOwnProperty('origin')) {
+            this.sensorOrigin = jsonScene.capture.origin;
+        } else {
+            this.sensorOrigin = this.lightOrigin;
+        }
         this.captureIdx = config.capture_methods.findIndex((method) => method === jsonScene.capture.method);
         this.nSpadIdx = config.spad_num.findIndex((num) => num == jsonScene.capture.num_spads);
         this.spadBoundaries = jsonScene.capture.spad_boundaries;

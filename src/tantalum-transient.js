@@ -724,7 +724,7 @@ Transient.prototype.setupUI = function () {
                 sceneSelector.select(config.scenes.length - 1);
 
                 // Capture parameters
-                data.applyCaptureParameters(sampleSlider, captureSelector, nSpadSelector, spadPositionsSlider, deltaTSlider, tmaxSlider, bounceSlider);
+                data.applyCaptureParameters(sampleSlider, captureSelector, nSpadSelector, spadPositionsSlider, deltaTSlider, tmaxSlider, bounceSlider, renderer);
 
                 // Emitter parameters
                 data.applyEmitterParameters(spreadSelector, renderer);
