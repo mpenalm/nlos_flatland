@@ -170,6 +170,8 @@
         if (this.timerExt) {
             this.renderQueries = [];
             this.nlosQueries = [];
+            this.renderMeasures = [];
+            this.nlosMeasures = [];
         }
 
         this.frameTimestamps = [];
@@ -4276,6 +4278,7 @@
                         this.timerExt.deleteQueryEXT(query);
                     }
                     this.nlosQueries.pop();
+                    this.nlosMeasures = [];
                 }
             }
 
@@ -4580,6 +4583,7 @@
                 }
                 this.renderQueries.pop();
             }
+            this.renderMeasures = [];
         }
         if (this.nlosQueries) {
             for (var i = this.nlosQueries.length-1; i >= 0; i--) {
@@ -4593,6 +4597,7 @@
                 }
                 this.nlosQueries.pop();
             }
+            this.nlosMeasures = [];
         }
 
         this.confCounter = 0;
@@ -5249,8 +5254,8 @@
 
     Renderer.prototype.getRenderTime = function () {
         if (this.renderQueries) { // Check separate time only if the timer extension is available
-            var measures = [];
-            for (var i = 0; i < this.renderQueries.length; i++) {
+            var i = 0;
+            while (i < this.renderQueries.length) {
                 query = this.renderQueries[i];
                 if (query) {
                     let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
@@ -5258,10 +5263,16 @@
                     if (available && !disjoint) {
                         // See how much time the rendering of the object took in nanoseconds.
                         let timeElapsed = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_EXT);
-                        measures.push(timeElapsed);
+                        this.renderMeasures.push(timeElapsed);
+                        
+                        // Clean up the query object.
+                        this.timerExt.deleteQueryEXT(query);
+
+                        this.nlosQueries.splice(i, 1);
                     } else {
                         // console.log('Unable to read a query, exiting loop');
-                        break;
+                        i++;
+                        // console.log(`unable to read the query: ${i}`);
                     }
                 }
             }
@@ -5269,15 +5280,15 @@
             var mean = 0;
             var std = 0;
             var total = 0;
-            var n = measures.length;
-            measures.forEach(x => {
+            var n = this.renderMeasures.length;
+            this.renderMeasures.forEach(x => {
                 mean += x;
                 total += x;
             });
             if (n > 0) mean /= n;
             if (n < 2) std = undefined;
             else {
-                for (var i = 0; i < measures.length; i++) std += (measures[i] - mean) * (measures[i] - mean);
+                for (var i = 0; i < n; i++) std += (this.renderMeasures[i] - mean) * (this.renderMeasures[i] - mean);
                 std = 1e-6 * Math.sqrt(std / (n - 1));
             }
         }
@@ -5287,9 +5298,9 @@
     }
 
     Renderer.prototype.getReconstructionTime = function () {
-        if (this.renderQueries) { // Check separate time only if the timer extension is available
-            var measures = [];
-            for (var i = 0; i < this.nlosQueries.length; i++) {
+        if (this.nlosQueries) { // Check separate time only if the timer extension is available
+            var i = 0;
+            while (i < this.nlosQueries.length) {
                 query = this.nlosQueries[i];
                 if (query) {
                     let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
@@ -5297,10 +5308,15 @@
                     if (available && !disjoint) {
                         // See how much time the rendering of the object took in nanoseconds.
                         let timeElapsed = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_EXT);
-                        measures.push(timeElapsed);
+                        this.nlosMeasures.push(timeElapsed);
+                        
+                        // Clean up the query object.
+                        this.timerExt.deleteQueryEXT(query);
+
+                        this.nlosQueries.splice(i, 1);
                     } else {
                         // console.log('Unable to read a query, exiting loop');
-                        break;
+                        i++;
                     }
                 }
             }
@@ -5311,15 +5327,15 @@
             var mean = 0;
             var std = 0;
             var total = 0;
-            var n = measures.length;
-            measures.forEach(x => {
+            var n = this.nlosMeasures.length;
+            this.nlosMeasures.forEach(x => {
                 mean += x;
                 total += x;
             });
             if (n > 0) mean /= n;
             if (n < 2) std = undefined;
             else {
-                for (var i = 0; i < measures.length; i++) std += (measures[i] - mean) * (measures[i] - mean);
+                for (var i = 0; i < n; i++) std += (this.nlosMeasures[i] - mean) * (this.nlosMeasures[i] - mean);
                 std = 1e-6 * Math.sqrt(std / (n - 1));
             }
         }
