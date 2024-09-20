@@ -4084,7 +4084,7 @@
 
             var dist = Math.abs(this.spadHeights[1] - this.spadHeights[0]);
             if (this.spadRadius > dist / 2) {
-                this.spadRadius = dist / 2;
+                this.spadRadius = Math.max(1e-5, dist / 2);
             } else if (dist / 2 >= 0.0035) {
                 this.spadRadius = 0.0035;
             }
