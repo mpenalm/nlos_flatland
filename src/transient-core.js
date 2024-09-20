@@ -3901,6 +3901,7 @@
                 }
                 this.nlosQueries.pop();
             }
+            this.nlosMeasures = [];
         }
         if (this.finished())
             this.redraw();
@@ -4278,8 +4279,8 @@
                         this.timerExt.deleteQueryEXT(query);
                     }
                     this.nlosQueries.pop();
-                    this.nlosMeasures = [];
                 }
+                this.nlosMeasures = [];
             }
 
             if (this.finished())
@@ -5268,7 +5269,7 @@
                         // Clean up the query object.
                         this.timerExt.deleteQueryEXT(query);
 
-                        this.nlosQueries.splice(i, 1);
+                        this.renderQueries.splice(i, 1);
                     } else {
                         // console.log('Unable to read a query, exiting loop');
                         i++;
