@@ -49,17 +49,20 @@
         <div id="headers" class="controls row justify" style="position: relative; margin-bottom: 4px;">
             <div class="column">
                 <h1 style="text-align: center;">Simulated scene (fluence)</h1>
-                <div class="row" style="align-items: baseline; margin: auto;">
-                    <!-- For the options to align perfectly with image side borders, remove width and margin options -->
-                    <h3 class="control-title" style="padding-right: 15px;">Scene schematic</h3>
-                    <div id="geometry-visibility-selector"></div>
+                <div class="row justify" style="align-items: baseline; margin: auto;">
+                    <div class="row" style="align-items: baseline;">
+                        <!-- For the options to align perfectly with image side borders, remove width and margin options -->
+                        <h3 class="control-title" style="padding-right: 15px;">Scene schematic</h3>
+                        <div id="geometry-visibility-selector"></div>
+                    </div>
+                    <div class="button stretch-button active" id="save-transient-button">Download transient signal</div>
                 </div>
             </div>
             <div class="column">
                 <h1 style="text-align: center;">NLOS imaging reconstruction</h1>
                 <div class="row justify" style="align-items: baseline; margin: auto;">
                     <!-- For the options to align perfectly with image side borders, remove width and margin options -->
-                    <div id="magnitude-div" class="row col-6-12" style="align-items: baseline;">
+                    <div id="magnitude-div" class="row" style="align-items: baseline;">
                         <h3 class="control-title" style="padding-right: 15px;">Magnitude</h3>
                         <div id="magnitude-selector"></div>
                     </div>
