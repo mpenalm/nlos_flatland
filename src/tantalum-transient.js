@@ -884,7 +884,7 @@ Transient.prototype.renderLoop = function (timestamp) {
             fileName += this.savedImages;
         fileName += ".csv";
         this.saveTransientWaveform(fileName);
-        this.saveTransientData = 0;
+        this.saveTransientData = false;
     }
 }
 
