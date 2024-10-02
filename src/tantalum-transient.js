@@ -499,6 +499,11 @@ Transient.prototype.setupUI = function () {
         this.saveImageData = true;
     }).bind(this));
 
+    this.saveTransientData = false;
+    document.getElementById('save-transient-button').addEventListener('click', (function () {
+        this.saveTransientData = true;
+    }).bind(this));
+
     this.playVideo = false;
     this.changePlayState = false;
     document.getElementById('play-button').addEventListener('click', (function () {
@@ -898,6 +903,15 @@ Transient.prototype.renderLoop = function (timestamp) {
 
         this.savedImages++;
         this.saveImageData = false;
+    }
+
+    if (this.saveTransientData) {
+        var fileName = "Transient_signal";
+        if (this.savedImages > 0)
+            fileName += this.savedImages;
+        fileName += ".csv";
+        this.saveTransientWaveform(fileName);
+        this.saveTransientData = false;
     }
 }
 
