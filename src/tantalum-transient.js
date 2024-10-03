@@ -704,7 +704,7 @@ Transient.prototype.setupUI = function () {
                     roughness: data.wallRoughness,
                     albedo: 0.5,
                 };
-                generator.generateAndAddScene(renderer, config, sceneSelector, verticesList, hiddenMaterial, wallMaterial, data.featureSize, data.name, hiddenBox);
+                generator.generateAndAddScene(renderer, config, sceneSelector, verticesList, hiddenMaterial, wallMaterial, data.featureSize, data.name, hiddenBox, data.spreadIdx, data.lightOrigin, data.lightLookAt);
         
                 modal.style.display = "none";
                 showSliderHandles();
@@ -756,7 +756,7 @@ Transient.prototype.setupUI = function () {
             albedo: 0.5,
         };
         if (typeOfScene != 2)
-            generator.generateAndAddScene(renderer, config, sceneSelector, verticesList, hiddenMaterial, wallMaterial, featureSizeSlider.label.innerHTML, (typeOfScene == 1) ? modSceneNames[modSceneSelector.selectedButton] : 'Custom', hiddenBox);
+            generator.generateAndAddScene(renderer, config, sceneSelector, verticesList, hiddenMaterial, wallMaterial, featureSizeSlider.label.innerHTML, (typeOfScene == 1) ? modSceneNames[modSceneSelector.selectedButton] : 'Custom', hiddenBox, renderer.spreadType, renderer.laserPos, renderer.laserFocus);
 
         modal.style.display = "none";
         showSliderHandles();
