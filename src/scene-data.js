@@ -137,9 +137,9 @@
         renderer.setEmitterPos(renderer.scene2canvas(this.lightOrigin), renderer.scene2canvas(lightLookAt));
     }
 
-    SceneData.prototype.applyReconstructionParameters = function (filterSelector, wlSlider, sigmaSlider, recResolutionSelector, camSelector, instantSlider, filterType) {
+    SceneData.prototype.applyReconstructionParameters = function (filterSelector, wlSlider, sigmaSlider, recResolutionSelector, camSelector, instantSlider, filterTypes) {
         filterSelector.select(this.filterIdx);
-        if (filterType === 'pf') {
+        if (filterTypes[this.filterIdx] === 'pf') {
             wlSlider.setValue(this.wl);
             sigmaSlider.setValue(parseInt(this.sigma * 10));
         }
