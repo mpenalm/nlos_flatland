@@ -308,7 +308,7 @@
         return verticesList;
     }
 
-    SceneGenerator.prototype.generateAndAddScene = function (renderer, config, sceneSelector, verticesList, hiddenMaterial, wallMaterial, featureSize, baseSceneName, hiddenBox) {
+    SceneGenerator.prototype.generateAndAddScene = function (renderer, config, sceneSelector, verticesList, hiddenMaterial, wallMaterial, featureSize, baseSceneName, hiddenBox, emitterSpread, emitterOrigin, emitterLookAt) {
         var vertices = [];
         verticesList.forEach(vertexList => {
             vertices = vertices.concat(vertexList);
@@ -329,7 +329,7 @@
         var ids = this.generate(verticesList, hiddenMaterial.matType, matParams, wallMaterial.matType, wallMatParams);
         // TODO: check necessary additional vars
         var sceneConfig = {
-            'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': [0.5, 0.8], 'posB': [0.837, 0.5], 'spread': tcore.Renderer.SPREAD_LASER, 'wallMat': wallMaterial.matType,
+            'shader': ids[0], 'name': 'Custom scene ' + ids[1], 'posA': renderer.scene2canvas(emitterOrigin), 'posB': renderer.scene2canvas(emitterLookAt), 'spread': emitterSpread, 'wallMat': wallMaterial.matType,
             'modifications': {
                 'feature_size': featureSize,
                 'base_scene': baseSceneName,
