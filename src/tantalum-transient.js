@@ -686,7 +686,7 @@ Transient.prototype.setupUI = function () {
                     geomVisSelector.select(data.geometryVisibilityIdx);
 
                     // Reconstruction parameters
-                    data.applyReconstructionParameters(filterSelector, wlSlider, sigmaSlider, recResolutionSelector, camSelector, instantSlider, renderer.filterType);
+                    data.applyReconstructionParameters(filterSelector, wlSlider, sigmaSlider, recResolutionSelector, camSelector, instantSlider, filterTypes);
 
                     return;
                 } else if (data.typeOfScene == sceneData.LoadedSceneType.ModifiedDefault) {
@@ -735,7 +735,7 @@ Transient.prototype.setupUI = function () {
                 geomVisSelector.select(data.geometryVisibilityIdx);
 
                 // Reconstruction parameters
-                data.applyReconstructionParameters(filterSelector, wlSlider, sigmaSlider, recResolutionSelector, camSelector, instantSlider, renderer.filterType);
+                data.applyReconstructionParameters(filterSelector, wlSlider, sigmaSlider, recResolutionSelector, camSelector, instantSlider, filterTypes);
             })
 
         } else if (typeOfScene == 1) {
@@ -775,7 +775,8 @@ Transient.prototype.setupUI = function () {
 
         modal.style.display = "none";
         showSliderHandles();
-        sceneSelector.select(config.scenes.length - 1);
+        if (typeOfScene != 2)
+            sceneSelector.select(config.scenes.length - 1);
     }).bind(this));
 
     // Get the <span> element that closes the modal
