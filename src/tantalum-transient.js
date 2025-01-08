@@ -61,7 +61,7 @@ Transient.prototype.setupGL = function () {
         throw new Error("Your platform does not support the draw buffers extension");
     if (!timerExt) {
         alert("Your browser does not support the EXT_disjoint_timer_query extension, separate render and reconstruction times will not be shown.");
-        document.getElementById("latency-table").style.display= 'none';
+        document.getElementById("latency-table").remove();
     }
 
     tgl.init(gl, multiBufExt);
@@ -494,6 +494,23 @@ Transient.prototype.setupUI = function () {
     deltaTSlider.setValue(3);
     tmaxSlider.setValue(3333);
 
+    document.getElementById('show-hide-latency').addEventListener('click', (function () {
+        latencyTable = document.getElementById('latency-table');
+        if (latencyTable) {
+            if (latencyTable.style.display == 'none') {
+                latencyTable.style.display = '';
+            } else {
+                latencyTable.style.display = 'none';
+            }
+        }
+        fpsTable = document.getElementById('fps-table');
+        if (fpsTable.style.display == 'none') {
+            fpsTable.style.display = '';
+        } else {
+            fpsTable.style.display = 'none';
+        }
+    }).bind(this));
+
     this.saveImageData = false;
     document.getElementById('save-button').addEventListener('click', (function () {
         this.saveImageData = true;
@@ -509,6 +526,8 @@ Transient.prototype.setupUI = function () {
     document.getElementById('play-button').addEventListener('click', (function () {
         this.changePlayState = true;
     }).bind(this));
+
+    
 
     document.getElementById('add-button').addEventListener('click', (function () {
         modal.style.display = "block";

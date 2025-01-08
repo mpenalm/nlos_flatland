@@ -26,28 +26,32 @@
 </head>
 
 <body onload="t = new Transient();">
-    <div class="tooltip">
-        <img src="info.png" alt="Information button" style="height: 40px;">
-        <span class="tooltiptext">
-            In the left of the window, the system shows the current scene being rendered, and scene and capture parameters that can be modified.
-            <ul>
-                <li>The visualization shows fluence in the whole scene instead of radiance. That is, the amount of light passing through each point. There is no participating medium.</li>
-                <li>You can move the emitter position and orientation by clicking and dragging over the scene or using the textboxes.</li>
-                <li>The sensor always looks at the blue dots in the right of the scene, representing SPAD aperture.</li>
-                <li>The scene is around 3.5 meters long in the horizontal (x) direction, and 2 meters long in the vertical (y) direction.</li>
-                <li>Please note that compiling scenes with many segments, such as the Bunny can take a few seconds, but they will only need to be compiled the first time you select them.</li>
-            </ul>
-            
-            In the right of the window, it shows the image obtained by the NLOS imaging method, and its parameters.
-            <ul>
-                <li>Confocal and Time-gated camera models can be evaluated at different instants with the time slider or Play/Pause button. </li>
-                <li>Please note that the Steady-state camera model is not affected by the Time slider but it's still recomputed, and it can take a couple of seconds.</li>
-            </ul>
-        </span>
+    <div class="row">
+        <div class="tooltip">
+            <img src="info.png" alt="Information button" style="height: 40px;">
+            <span class="tooltiptext">
+                In the left of the window, the system shows the current scene being rendered, and scene and capture parameters that can be modified.
+                <ul>
+                    <li>The visualization shows fluence in the whole scene instead of radiance. That is, the amount of light passing through each point. There is no participating medium.</li>
+                    <li>You can move the emitter position and orientation by clicking and dragging over the scene or using the textboxes.</li>
+                    <li>The sensor always looks at the blue dots in the right of the scene, representing SPAD aperture.</li>
+                    <li>The scene is around 3.5 meters long in the horizontal (x) direction, and 2 meters long in the vertical (y) direction.</li>
+                    <li>Please note that compiling scenes with many segments, such as the Bunny can take a few seconds, but they will only need to be compiled the first time you select them.</li>
+                </ul>
+                
+                In the right of the window, it shows the image obtained by the NLOS imaging method, and its parameters.
+                <ul>
+                    <li>Confocal and Time-gated camera models can be evaluated at different instants with the time slider or Play/Pause button. </li>
+                    <li>Please note that the Steady-state camera model is not affected by the Time slider but it's still recomputed, and it can take a couple of seconds.</li>
+                </ul>
+            </span>
+        </div>
+        <div class="button stretch-button active" id="show-hide-latency" style="width: fit-content; margin-left: 30px;">Show/Hide latency table</div>
     </div>
+    <br/>
 
     <div>
-        <table id="latency-table">
+        <table id="latency-table" style="display: none;">
             <tr>
                 <th style="width: 33%;">Execution times</th>
                 <th style="width: 33%;">Render</th>
@@ -69,7 +73,7 @@
                 <td style="text-align: right;"><span id="std-rec-time"></span></td>
             </tr>
         </table>
-        <table>
+        <table id="fps-table" style="display: none;">
             <tr>
                 <th style="width: 75%;">Mean FPS while rendering</th>
                 <td style="width: 25%; text-align: right;"><span id="avg-render-fps"></span></td>
