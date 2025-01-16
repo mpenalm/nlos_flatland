@@ -1,0 +1,33 @@
+﻿{
+"scene": {
+	"name": "Bunny"
+},
+"light_source": {
+	"spread": "Laser",
+	"origin": [0.9498481561822126, -0.5],
+	"look_at": [1.1988720173535785, 0]
+},
+"capture": {
+    "method": "Non-confocal",
+    "num_spads": 128,
+    "spad_boundaries": [-1, 1],
+    "delta_t": 0.003,
+    "max_time": 9.999,
+    "bounces_saved": [3, 11],
+    "sample_count": "1000000 light paths"
+},
+"reconstruction": {
+    "resolution": "910x512",
+    "camera_model": {
+        "type": "Confocal"
+    },
+    "instant": 0,
+    "time": "0 m",
+    "filter": {
+        "type": "Phasor Fields",
+        "wl": "6 cm",
+        "sigma": "3 cm"
+    }
+},
+"superimpose_geometry": false
+}

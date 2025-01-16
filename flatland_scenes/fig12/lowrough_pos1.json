@@ -1,0 +1,37 @@
+﻿{
+"scene": {
+	"name": "Line modified",
+	"hidden_mat": "Diffuse",
+	"wall_mat": "RoughMirror",
+	"wall_roughness": 0.2,
+	"feature_size": "40.0000 cm"
+},
+"light_source": {
+	"spread": "Laser",
+	"origin": [0, -0.6000000000000001],
+	"look_at": [1.1988720173535785, 0]
+},
+"capture": {
+    "method": "Non-confocal",
+    "num_spads": 64,
+    "spad_boundaries": [-0.5, 0.5],
+    "delta_t": 0.003,
+    "max_time": 9.999,
+    "bounces_saved": [3, 11],
+    "sample_count": "10000000 light paths"
+},
+"reconstruction": {
+    "resolution": "910x512",
+    "camera_model": {
+        "type": "Confocal"
+    },
+    "instant": 0,
+    "time": "0 m",
+    "filter": {
+        "type": "Phasor Fields",
+        "wl": "3 cm",
+        "sigma": "3 cm"
+    }
+},
+"superimpose_geometry": false
+}
