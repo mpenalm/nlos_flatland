@@ -172,7 +172,7 @@ Transient.prototype.setupUI = function () {
         "capture_methods": ["Non-confocal", "Confocal"],
         "camera_models": ["Confocal", "Time-gated", "Steady-state"],
         "spad_num": [16, 32, 64, 128, 256],
-        "filters": ["None", "Laplacian", "Laplacian of Gaussian", "Phasor Fields"], // TODO: Phasor-based instead, careful with type='pf'
+        "filters": ["None", "Laplacian", "Laplacian of Gaussian", "Phasor-based"],
         "tone_mapper_labels": ["Linear", "Logarithmic", "Square root"],
         "tone_mapper_ids": ["none", "log(1.0+", "sqrt("],
         "magnitudes": ["Amplitude", "Phase"],
@@ -189,7 +189,7 @@ Transient.prototype.setupUI = function () {
             [0.0, 0.2, 0.0, -0.2,
                 0.2, 0.54641, 0.0, 0.2,
                 0.0, -0.2, -0.2, -0.54641],
-            // Virtual mirror
+            // Infinity mirror
             [0.4, 0.2, 0.4, -0.2],
             // Rotated segment
             [0.5355, 0.2349, 0.3645, -0.2349],
@@ -206,12 +206,6 @@ Transient.prototype.setupUI = function () {
                 -0.325, -0.75, -0.575, -0.325,
                 -0.575, -0.325, -0.325, -0.25
             ],
-            // Triangle
-            // [0.0, 0.4, 0.2, 0.0,
-            //     0.2, 0.0, 0.0, -0.4,
-            //     0.0, -0.4, 0.0, 0.4],
-            // bunny_vertices.txt
-            // [ 0.61, 0.08, 0.61, 0.1, 0.61, 0.1, 0.615, 0.15, 0.615, 0.15, 0.605, 0.165, 0.605, 0.165, 0.48, 0.2, 0.48, 0.2, 0.3999999999999999, 0.25, 0.3999999999999999, 0.25, 0.38, 0.32, 0.38, 0.32, 0.3899999999999999, 0.36, 0.3899999999999999, 0.36, 0.4099999999999999, 0.37, 0.4099999999999999, 0.37, 0.49, 0.32, 0.49, 0.32, 0.5499999999999999, 0.3, 0.5499999999999999, 0.3, 0.5299999999999999, 0.32, 0.5299999999999999, 0.32, 0.5199999999999999, 0.35, 0.5199999999999999, 0.35, 0.5299999999999999, 0.39, 0.5299999999999999, 0.39, 0.5499999999999999, 0.4, 0.5499999999999999, 0.4, 0.6, 0.38, 0.6, 0.38, 0.6599999999999999, 0.3, 0.6599999999999999, 0.3, 0.69, 0.24, 0.69, 0.24, 0.75, 0.24, 0.75, 0.24, 0.7999999999999999, 0.22, 0.7999999999999999, 0.22, 0.82, 0.2, 0.82, 0.2, 0.85, 0.16, 0.85, 0.16, 0.8699999999999999, 0.125, 0.8699999999999999, 0.125, 0.875, 0.1, 0.875, 0.1, 0.8699999999999999, 0.08, 0.8699999999999999, 0.08, 0.8799999999999999, 0.06, 0.8799999999999999, 0.06, 0.8699999999999999, 0.04, 0.8699999999999999, 0.04, 0.8599999999999999, 0.02, 0.8599999999999999, 0.02, 0.84, 0.0, 0.84, 0.0, 0.835, -0.005, 0.835, -0.005, 0.838, -0.01, 0.838, -0.01, 0.838, -0.02, 0.838, -0.02, 0.847, -0.03, 0.847, -0.03, 0.853, -0.045, 0.853, -0.045, 0.865, -0.05, 0.865, -0.05, 0.8699999999999999, -0.06, 0.8699999999999999, -0.06, 0.8799999999999999, -0.07, 0.8799999999999999, -0.07, 0.8899999999999999, -0.087, 0.8899999999999999, -0.087, 0.8919999999999999, -0.1, 0.8919999999999999, -0.1, 0.895, -0.135, 0.895, -0.135, 0.8979999999999999, -0.137, 0.8979999999999999, -0.137, 0.8979999999999999, -0.15, 0.8979999999999999, -0.15, 0.8999999999999999, -0.17, 0.8999999999999999, -0.17, 0.9019999999999999, -0.18, 0.9019999999999999, -0.18, 0.8999999999999999, -0.186, 0.8999999999999999, -0.186, 0.8979999999999999, -0.192, 0.8979999999999999, -0.192, 0.8899999999999999, -0.21, 0.8899999999999999, -0.21, 0.8899999999999999, -0.22, 0.8899999999999999, -0.22, 0.891, -0.24, 0.891, -0.24, 0.8799999999999999, -0.265, 0.8799999999999999, -0.265, 0.883, -0.28, 0.883, -0.28, 0.883, -0.29, 0.883, -0.29, 0.875, -0.3, 0.875, -0.3, 0.8599999999999999, -0.32, 0.8599999999999999, -0.32, 0.875, -0.33, 0.875, -0.33, 0.879, -0.34, 0.879, -0.34, 0.8799999999999999, -0.35, 0.8799999999999999, -0.35, 0.8799999999999999, -0.375, 0.8799999999999999, -0.375, 0.8779999999999999, -0.38, 0.8779999999999999, -0.38, 0.8739999999999999, -0.38, 0.8739999999999999, -0.38, 0.873, -0.383, 0.873, -0.383, 0.8599999999999999, -0.387, 0.8599999999999999, -0.387, 0.845, -0.387, 0.845, -0.387, 0.835, -0.39, 0.835, -0.39, 0.76, -0.395, 0.76, -0.395, 0.725, -0.398, 0.725, -0.398, 0.71, -0.396, 0.71, -0.396, 0.6399999999999999, -0.398,],
         ],
         "addition_modes": ["Absolute space", "Complex space"],
         "resolution_labels": [],
@@ -242,6 +236,8 @@ Transient.prototype.setupUI = function () {
         if (words.length == 1) {
             if (filt[0] == 'l')
                 filt = "lap";
+            else if (filt[0] == 'p')
+                filt = "pf"
         } else {
             filt = "";
             words.forEach(w => {
@@ -314,11 +310,9 @@ Transient.prototype.setupUI = function () {
         if (idx < 3) {
             document.getElementById("filter-parameter").style.display = 'none';
             document.getElementById("magnitude-div").style.visibility = 'hidden';
-            // document.getElementById("conventional-addition").style.visibility = 'hidden';
         } else {
             document.getElementById("filter-parameter").style.display = 'block';
             document.getElementById("magnitude-div").style.visibility = 'visible';
-            // document.getElementById("conventional-addition").style.visibility = (renderer.isConvCamera) ? 'visible' : 'hidden';
             wlSlider.show(filterTypes[idx] === 'pf');
         }
     })
@@ -354,14 +348,11 @@ Transient.prototype.setupUI = function () {
     }
 
 
-    // new tui.ButtonGroup("addition-selector", false, config.addition_modes, function (idx) {
-    //     renderer.setAddModules(!idx);
-    // });
     var camSelector = new tui.ButtonGroup("camera-selector", true, config.camera_models, function (idx) {
         var prev = renderer.isConvCamera;
         renderer.setCameraModel(idx);
 
-        // Hide or show Amplitude/Phase and Module/Complex selectors depending on camera model if the filter is phasor fields
+        // Hide or show Amplitude/Phase selector depending on camera model and filter
         if (renderer.filterType === 'pf') {
             var current = renderer.isConvCamera;
             var usePhase = renderer.usePhase;
@@ -378,9 +369,6 @@ Transient.prototype.setupUI = function () {
                     renderer.setToneMapper(config.tone_mapper_ids[tonemapSelector.selectedButton]);
                 }
                 document.getElementById("tonemap-div").style.display = display;
-
-                // Hide Module/Complex addition selector
-                // document.getElementById("conventional-addition").style.visibility = 'hidden';
             } else if (current) {
                 // Hide Amplitude/Phase selector
                 document.getElementById("magnitude-div").style.visibility = 'hidden';
@@ -390,9 +378,6 @@ Transient.prototype.setupUI = function () {
                     document.getElementById("tonemap-div").style.display = 'block';
                     renderer.setToneMapper(config.tone_mapper_ids[tonemapSelector.selectedButton]);
                 }
-
-                // Show Module/Complex addition selector
-                // document.getElementById("conventional-addition").style.visibility = 'visible';
             }
         }
     });

@@ -8,7 +8,6 @@ var Shaders = {
         'void intersect(Ray ray, inout Intersection isect) {\n'                              +
         '    bboxIntersect(ray, vec2(0.0), vec2(1.79, 1.0), 3.0, isect);\n'                  +
         '    lineIntersect(ray, vec2( 1.2, -1.0), vec2( 1.2,   1.0), 0.0, isect);\n'         +
-        '    // lineIntersect(ray, vec2(0.5, 0.2), vec2(0.4, -0.2), 0.0, isect);\n'          +
         '    lineIntersect(ray, vec2(0.5355, 0.2349), vec2(0.3645, -0.2349), 0.0, isect);\n' +
         '}\n\n'                                                                              +
 

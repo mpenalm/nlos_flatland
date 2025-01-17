@@ -5260,7 +5260,7 @@
                 query = this.renderQueries[i];
                 if (query) {
                     let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
-                    let disjoint = this.gl.getParameter(t.renderer.timerExt.GPU_DISJOINT_EXT);
+                    let disjoint = this.gl.getParameter(this.timerExt.GPU_DISJOINT_EXT);
                     if (available && !disjoint) {
                         // See how much time the rendering of the object took in nanoseconds.
                         let timeElapsed = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_EXT);
@@ -5271,9 +5271,7 @@
 
                         this.renderQueries.splice(i, 1);
                     } else {
-                        // console.log('Unable to read a query, exiting loop');
                         i++;
-                        // console.log(`unable to read the query: ${i}`);
                     }
                 }
             }
@@ -5305,7 +5303,7 @@
                 query = this.nlosQueries[i];
                 if (query) {
                     let available = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_AVAILABLE_EXT);
-                    let disjoint = this.gl.getParameter(t.renderer.timerExt.GPU_DISJOINT_EXT);
+                    let disjoint = this.gl.getParameter(this.timerExt.GPU_DISJOINT_EXT);
                     if (available && !disjoint) {
                         // See how much time the rendering of the object took in nanoseconds.
                         let timeElapsed = this.timerExt.getQueryObjectEXT(query, this.timerExt.QUERY_RESULT_EXT);
@@ -5316,14 +5314,10 @@
 
                         this.nlosQueries.splice(i, 1);
                     } else {
-                        // console.log('Unable to read a query, exiting loop');
                         i++;
                     }
                 }
             }
-
-            // console.log(`Total time reconstructing: ${1e-6 * total} ms`);
-            // console.log(`Mean time reconstructing: ${1e-6 * total / count} ms`);
             
             var mean = 0;
             var std = 0;

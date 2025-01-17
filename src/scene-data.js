@@ -16,19 +16,12 @@
     function getSceneGeometryLength(sceneIdx) {
         var d;
         if (sceneIdx < 4) {
-            // Line, Box, Three segments, and Virtual mirror
+            // Line, Box, Three segments, and Infinity mirror
             d = 0.4;
-        } else if (sceneIdx == 4) {
-            // Rotated segment
-            // d = Math.sqrt(0.17);
+        } else if (sceneIdx < 6) {
+            // Rotated segment and Two boxes
             d = 0.5;
-        } else if (sceneIdx == 5) {
-            // Two boxes
-            d = 0.5;
-        } /*else {
-            // Triangle
-            d = Math.sqrt(0.2);
-        }*/
+        }
 
         return d;
     }
@@ -76,8 +69,6 @@
             this.featureSize = parseFloat(jsonScene.scene.feature_size.split(' ')[0]); // assuming cm
             var length = (this.typeOfScene == LoadedSceneType.ModifiedDefault) ? getSceneGeometryLength(this.baseSceneIdx) : getSegmentLength(this.v1, this.v2);
             this.nFeatures = parseInt(length*100 / this.featureSize); // Length is in m, feature size in cm
-            // console.log(`Feature size: ${this.featureSize}\nLength: ${length}\n#features: ${this.nFeatures}`);
-            // this.nFeatures = 1; // TODO: compute from featureSize or save this in JSON
             if (this.hiddenMat === MaterialType.Dielectric|| this.hiddenMat === MaterialType.RoughDielectric) {
                 this.hiddenIor = jsonScene.scene.hidden_ior;
             } 
