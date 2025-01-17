@@ -1,9 +1,0 @@
-#include "preamble"
-
-uniform sampler2D u_ruler;
-
-varying vec2 mPos;
-
-void main() {
-    gl_FragColor = texture2D(u_ruler, mPos);
-}
