@@ -9,7 +9,7 @@ It is based on the [Tantalum](https://github.com/tunabrain/tantalum) renderer an
 
 ## Use ##
 
-The system is deployed at https://mpenalm.github.io/nlos_flatland. 
+The system is deployed at <https://mpenalm.github.io/nlos_flatland>. 
 It can also run locally. To launch it, open the [`nlos_flatland.html`](nlos_flatland.html) file on a browser.
 
 In the left of the window, it shows the current scene being rendered, and scene and capture parameters that can be modified.
