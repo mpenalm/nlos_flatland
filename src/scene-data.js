@@ -103,7 +103,9 @@
         // Reconstruction parameters
         this.resolutionIdx = config.resolution_labels.findIndex((res) => res === jsonScene.reconstruction.resolution);
         this.cameraIdx = config.camera_models.findIndex((model) => model === jsonScene.reconstruction.camera_model.type);
-        // TODO: other values under camera_model
+        if (this.cameraIdx == -1) {
+            alert(`Non supported camera model: ${jsonScene.reconstruction.camera_model.type}`);
+        }
         this.instant = jsonScene.reconstruction.instant;
         this.filterIdx = config.filters.findIndex((type) => type === jsonScene.reconstruction.filter.type);
         if (this.filterIdx == 3) { // Phasor Fields

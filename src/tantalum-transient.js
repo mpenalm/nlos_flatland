@@ -673,6 +673,7 @@ Transient.prototype.setupUI = function () {
 
             files[0].text().then(function (text) {
                 var data = new sceneData.SceneData(text, config, sceneNames, modSceneNames);
+                if (data.cameraIdx == -1) return;
 
                 if (data.typeOfScene == sceneData.LoadedSceneType.Default) {
                     if (data.sceneIdx == -1) return;
@@ -742,7 +743,7 @@ Transient.prototype.setupUI = function () {
 
                 // Reconstruction parameters
                 data.applyReconstructionParameters(filterSelector, wlSlider, sigmaSlider, recResolutionSelector, camSelector, instantSlider, filterTypes);
-            })
+            });
 
         } else if (typeOfScene == 1) {
             verticesList = generator.generateVertexListForModifiedScene(modSceneSelector.selectedButton, config.vertices[modSceneSelector.selectedButton], nFeatures.value);
