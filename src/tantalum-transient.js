@@ -380,6 +380,13 @@ Transient.prototype.setupUI = function () {
                 }
             }
         }
+
+        // Show disclaimer when camera model is confocal and emitter type is not laser, hide otherwise
+        if (renderer.isVirtualConf && renderer.spreadType != tcore.Renderer.SPREAD_LASER) {
+            document.getElementById("confocal-nonlaser-disclaimer").style.visibility = 'visible';
+        } else {
+            document.getElementById("confocal-nonlaser-disclaimer").style.visibility = 'hidden';
+        }
     });
     var tonemapSelector = new tui.ButtonGroup("tonemap-selector", true, config.tone_mapper_labels, function (idx) {
         renderer.setToneMapper(config.tone_mapper_ids[idx]);

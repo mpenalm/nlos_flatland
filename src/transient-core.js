@@ -4647,6 +4647,12 @@
     Renderer.prototype.setSpreadType = function (type) {
         this.resetActiveBlock();
         this.spreadType = type;
+        // Show disclaimer when camera model is confocal and emitter type is not laser, hide otherwise
+        if (this.isVirtualConf && this.spreadType != tcore.Renderer.SPREAD_LASER) {
+            document.getElementById("confocal-nonlaser-disclaimer").style.visibility = 'visible';
+        } else {
+            document.getElementById("confocal-nonlaser-disclaimer").style.visibility = 'hidden';
+        }
         this.computeSpread();
         this.reset();
     }
