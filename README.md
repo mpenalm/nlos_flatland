@@ -23,4 +23,4 @@ In the left of the window, it shows the current scene being rendered, and scene 
 In the right of the window, it shows the image obtained by the NLOS imaging method, and its parameters.
 - Confocal and Time-gated camera models can be evaluated at different instants with the time slider or Play/Pause button. 
 - Please note that the Steady-state camera model is not affected by the Time slider but it's still recomputed, and it can take a couple of seconds.
-- Note that the confocal virtual camera model only supports laser emitters. Results for other emitter types may give inconsistent results.
+- Note that the Confocal camera model only supports laser emitters. Results for other emitter types may give inconsistent results.
