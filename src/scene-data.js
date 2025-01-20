@@ -73,10 +73,10 @@
                 this.hiddenIor = jsonScene.scene.hidden_ior;
             } 
             if (this.hiddenMat === MaterialType.RoughMirror || this.hiddenMat === MaterialType.RoughDielectric) {
-                this.hiddenRoughness = jsonScene.hidden_roughness;
+                this.hiddenRoughness = jsonScene.scene.hidden_roughness;
             }
             if (this.wallMat === MaterialType.RoughMirror) {
-                this.wallRoughness = jsonScene.wall_roughness;
+                this.wallRoughness = jsonScene.scene.wall_roughness;
             }
         }
 
