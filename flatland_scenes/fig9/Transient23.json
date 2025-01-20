@@ -32,7 +32,7 @@
     "instant": 0,
     "time": "0 m",
     "filter": {
-        "type": "Phasor Fields",
+        "type": "Phasor-based",
         "wl": "6 cm",
         "sigma": "6 cm"
     }

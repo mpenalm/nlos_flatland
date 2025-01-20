@@ -24,7 +24,7 @@
     "instant": 0,
     "time": "0 m",
     "filter": {
-        "type": "Phasor Fields",
+        "type": "Phasor-based",
         "wl": "3 cm",
         "sigma": "3 cm"
     }
