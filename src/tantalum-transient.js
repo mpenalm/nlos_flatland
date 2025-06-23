@@ -8,6 +8,16 @@ var Transient = function () {
 
     this.savedImages = 0;
 
+    this.timeElems = [];
+    this.timeElems['totalRender'] = document.getElementById("total-render-time");
+    this.timeElems['meanRender'] = document.getElementById("mean-render-time");
+    this.timeElems['stdRender'] = document.getElementById("std-render-time");
+    this.timeElems['totalRec'] = document.getElementById("total-rec-time");
+    this.timeElems['meanRec'] = document.getElementById("mean-rec-time");
+    this.timeElems['stdRec'] = document.getElementById("std-rec-time");
+    this.timeElems['meanFPS'] = document.getElementById("avg-render-fps");
+    this.timeElems['numFrames'] = document.getElementById("render-frames");
+
     try {
         this.setupGL();
     } catch (e) {
@@ -28,16 +38,6 @@ var Transient = function () {
 
     /* Ok, all seems well. Time to show the controls */
     this.controls.style.visibility = "visible";
-
-    this.timeElems = [];
-    this.timeElems['totalRender'] = document.getElementById("total-render-time");
-    this.timeElems['meanRender'] = document.getElementById("mean-render-time");
-    this.timeElems['stdRender'] = document.getElementById("std-render-time");
-    this.timeElems['totalRec'] = document.getElementById("total-rec-time");
-    this.timeElems['meanRec'] = document.getElementById("mean-rec-time");
-    this.timeElems['stdRec'] = document.getElementById("std-rec-time");
-    this.timeElems['meanFPS'] = document.getElementById("avg-render-fps");
-    this.timeElems['numFrames'] = document.getElementById("render-frames");
 
     window.requestAnimationFrame(this.boundRenderLoop);
 }
@@ -843,6 +843,8 @@ Transient.prototype.fail = function (message) {
 
     document.getElementById("transient-content").appendChild(failureDiv);
     this.overlay.style.display = this.canvas.style.display = 'none';
+    document.getElementById("headers").style.display = 'none';
+    document.getElementById("info-row").style.display = 'none';
 }
 
 Transient.prototype.renderLoop = function (timestamp) {
